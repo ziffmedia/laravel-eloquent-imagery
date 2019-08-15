@@ -1,0 +1,39 @@
+{
+    "name": "ziffmedia/laravel-eloquent-imagery",
+    "description": "Image handling per column/attribute for Laravel Eloquent",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Ralph Schindler",
+            "email": "ralph_schindler@ziffdavis.com"
+        }
+    ],
+    "require": {
+        "php": "^7.1"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^3.8",
+        "intervention/image": "^2.4",
+        "phpunit/phpunit": "^7.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "ZiffMedia\\Laravel\\EloquentImagery\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ZiffMedia\\Laravel\\EloquentImagery\\Test\\": "tests/"
+        }
+    },
+    "suggest": {
+        "intervention/image": "Intervention Image is necessary for serving images that need modification"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "ZiffDavis\\Laravel\\EloquentImagery\\EloquentImageryProvider"
+            ]
+        }
+    }
+}
