@@ -32,7 +32,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "ZiffDavis\\Laravel\\EloquentImagery\\EloquentImageryProvider"
+                "ZiffMedia\\Laravel\\EloquentImagery\\EloquentImageryProvider"
             ]
         }
     }
