@@ -4,8 +4,8 @@ namespace ZiffMedia\Laravel\EloquentImagery\Nova;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Filesystem\FilesystemManager;
+use Illuminate\Support\Collection;
 use Laravel\Nova\Fields\Field;
-// use Laravel\Nova\Fields\Image as ImageField;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Resource;
 use ZiffMedia\Laravel\EloquentImagery\Eloquent\Image;
@@ -17,49 +17,79 @@ class EloquentImageryField extends Field
 
     public $showOnIndex = false;
 
+    protected $thumbnailUrlModeifiers;
+    protected $previewUrlModifiers;
+
+    public function __construct($name, $attribute = null, callable $resolveCallback = null)
+    {
+        parent::__construct($name, $attribute, $resolveCallback);
+
+        // $this->preview(function (Image $image) {
+        //     if (!$image->exists()) {
+        //         return null;
+        //     }
+        //
+        //     return $image->url($this->previewUrlModifiers);
+        // });
+        //
+        // $this->thumbnail(function (Image $image) {
+        //     if (!$image->exists()) {
+        //         return null;
+        //     }
+        //
+        //     return $image->url($this->thumbnailUrlModifiers);
+        // });
+
+    }
+
     protected function fillAttribute(NovaRequest $request, $requestAttribute, $model, $attribute)
     {
-        if ($request->exists($requestAttribute)) {
-            $value = json_decode($request[$requestAttribute], true);
+        if (!$request->exists($requestAttribute)) {
+            return;
+        }
 
-            /** @var Image $image */
-            $fieldAttribute = $model->{$attribute};
+        $value = json_decode($request[$requestAttribute], true);
 
-            if ($fieldAttribute instanceof ImageCollection) {
+        /** @var Image|ImageCollection $fieldAttribute */
+        $fieldAttribute = $model->{$attribute};
 
-                $existingImages = $fieldAttribute->exchangeArray([]);
+        if (!$fieldAttribute instanceof Image && !$fieldAttribute instanceof ImageCollection) {
+            throw new \RuntimeException('Field must be an EloquentImagery field');
+        }
 
-                $existingImages = collect($existingImages)->mapWithKeys(function ($image) {
-                    return [$image->path => $image];
-                });
+        if ($fieldAttribute instanceof Image) {
+            ($value !== null)
+                ? $this->updateImage($fieldAttribute, $value['fileData'] ?? null, $value['metadata'])
+                : $image->remove();
 
-                $newImages = collect($value)->map(function ($imageData, $index) use ($fieldAttribute, &$existingImages) {
-                    if ($imageData['path']) {
-                        $image = $existingImages[$imageData['path']];
-                        unset($existingImages[$imageData['path']]);
-                    } else {
-                        $image = $fieldAttribute->createImage();
-                        $image->setData($imageData['fileData']);
-                    }
+            return;
+        }
 
-                    $image->metadata->exchangeArray(array_merge($image->metadata->getArrayCopy(), $imageData['metadata']));
+        // create a collection of mapped path=>image of the existing images
+        $existingImages = $fieldAttribute->mapWithKeys(function ($image) {
+            return [$image->path => $image];
+        });
 
-                    $fieldAttribute[$index] = $image;
-                });
-
-                $currentIndex = $newImages->count();
-
-                foreach ($existingImages->values() as $deletedIndex => $existingImage) {
-                    $fieldAttribute[$currentIndex + $deletedIndex] = $existingImage;
-                    unset($fieldAttribute[$currentIndex + $deletedIndex]); // wow, what a weird api
-                }
+        // iterate over provided value from form, start creating an array of images for the new ImageCollection
+        $newImages = collect($value)->map(function ($imageData, $index) use ($fieldAttribute, $existingImages) {
+            if ($imageData['path']) {
+                $image = $existingImages[$imageData['path']];
+                unset($existingImages[$imageData['path']]);
             } else {
-                if ($value === null) {
-                    $image->remove();
-                } else {
-                    $this->updateImage($fieldAttribute, $value['fileData'] ?? null, $value['metadata']);
-                }
+                $image = $fieldAttribute->createImage($imageData['fileData']);
             }
+
+            $image->metadata = new Collection($imageData['metadata']);
+
+            $fieldAttribute[$index] = $image;
+        });
+
+        $currentIndex = $newImages->count();
+
+        // what is left over needs to be removed from the original attribute
+        foreach ($existingImages->values() as $deletedIndex => $existingImage) {
+            $fieldAttribute[$currentIndex + $deletedIndex] = $existingImage;
+            unset($fieldAttribute[$currentIndex + $deletedIndex]); // wow, what a weird api
         }
     }
 
@@ -69,7 +99,7 @@ class EloquentImageryField extends Field
             $image->setData($imageData);
         }
 
-        $image->setMetadata($imageMetadata);
+        $image->metadata = new Collection($imageMetadata);
     }
 
     public function fillUsing($fillCallback)
@@ -145,6 +175,7 @@ class EloquentImageryField extends Field
 
         return $this;
     }
+
 
     // /** @var \Illuminate\Contracts\Filesystem\Filesystem */
     // protected static $eloquentImageryFilesystem;
@@ -228,5 +259,6 @@ class EloquentImageryField extends Field
     //
     //     return $this;
     // }
+
 }
 

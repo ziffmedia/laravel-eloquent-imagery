@@ -13,10 +13,6 @@ use finfo;
 use OutOfBoundsException;
 use RuntimeException;
 
-/**
- * @property-read string $path
- * @property-read Collection $metadata
- */
 class Image implements \JsonSerializable
 {
     /** @var Filesystem|Cloud */
@@ -31,8 +27,9 @@ class Image implements \JsonSerializable
     protected $height = null;
     protected $hash = '';
     protected $timestamp = 0;
+
     /** @var Collection */
-    protected $metadata = null;
+    public $metadata = null;
 
     protected $exists = false;
     protected $flush = false;

@@ -40,6 +40,11 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         $this->metadata = new Collection;
     }
 
+    public function getImagePrototype()
+    {
+        return $this->imagePrototype;
+    }
+
     public function getAutoincrement()
     {
         return $this->autoincrement;
