@@ -83,15 +83,15 @@ class EloquentImageryField extends Field
             $isCollection = true;
 
             $value = [
-                'autoinc' => $this->value->autoinc,
-                'images'  => []
+                'autoincrement' => $this->value->getAutoincrement(),
+                'images'        => []
             ];
 
             foreach ($this->value as $image) {
                 $value['images'][] = [
                     'previewUrl' => $image->url('v' . $image->timestamp),
-                    'path' => $image->path,
-                    'metadata' => $image->metadata
+                    'path'       => $image->path,
+                    'metadata'   => $image->metadata
                 ];
             }
         } else {
@@ -100,8 +100,8 @@ class EloquentImageryField extends Field
             if ($this->value->exists()) {
                 $value = [
                     'previewUrl' => $this->value->url('v' . $this->value->timestamp),
-                    'path' => $this->value->path,
-                    'metadata' => $this->value->metadata
+                    'path'       => $this->value->path,
+                    'metadata'   => $this->value->metadata
                 ];
             } else {
                 $value = null;
@@ -109,19 +109,41 @@ class EloquentImageryField extends Field
         }
 
         return array_merge([
-            'component' => $this->component(),
+            'component'       => $this->component(),
             'prefixComponent' => true,
-            'indexName' => $this->name,
-            'name' => $this->name,
-            'attribute' => $this->attribute,
-            'value' => $value,
-            'panel' => $this->panel,
-            'sortable' => $this->sortable,
-            'nullable' => $this->nullable,
-            'readonly' => $this->isReadonly(app(NovaRequest::class)),
-            'textAlign' => $this->textAlign,
-            'isCollection' => $isCollection
+            'indexName'       => $this->name,
+            'name'            => $this->name,
+            'attribute'       => $this->attribute,
+            'value'           => $value,
+            'panel'           => $this->panel,
+            'sortable'        => $this->sortable,
+            'nullable'        => $this->nullable,
+            'readonly'        => $this->isReadonly(app(NovaRequest::class)),
+            'textAlign'       => $this->textAlign,
+            'isCollection'    => $isCollection
         ], $this->meta());
+    }
+
+    /**
+     * @param $previewUrlModifiers
+     * @return $this
+     */
+    public function previewUrlModifiers($previewUrlModifiers)
+    {
+        $this->previewUrlModifiers = $previewUrlModifiers;
+
+        return $this;
+    }
+
+    /**
+     * @param $thumbnailUrlModifiers
+     * @return $this
+     */
+    public function thumbnailUrlModifiers($thumbnailUrlModifiers)
+    {
+        $this->thumbnailUrlModifiers = $thumbnailUrlModifiers;
+
+        return $this;
     }
 
     // /** @var \Illuminate\Contracts\Filesystem\Filesystem */
