@@ -20,28 +20,6 @@ class EloquentImageryField extends Field
     protected $thumbnailUrlModeifiers;
     protected $previewUrlModifiers;
 
-    public function __construct($name, $attribute = null, callable $resolveCallback = null)
-    {
-        parent::__construct($name, $attribute, $resolveCallback);
-
-        // $this->preview(function (Image $image) {
-        //     if (!$image->exists()) {
-        //         return null;
-        //     }
-        //
-        //     return $image->url($this->previewUrlModifiers);
-        // });
-        //
-        // $this->thumbnail(function (Image $image) {
-        //     if (!$image->exists()) {
-        //         return null;
-        //     }
-        //
-        //     return $image->url($this->thumbnailUrlModifiers);
-        // });
-
-    }
-
     protected function fillAttribute(NovaRequest $request, $requestAttribute, $model, $attribute)
     {
         if (!$request->exists($requestAttribute)) {
@@ -57,40 +35,13 @@ class EloquentImageryField extends Field
             throw new \RuntimeException('Field must be an EloquentImagery field');
         }
 
-        if ($fieldAttribute instanceof Image) {
-            ($value !== null)
-                ? $this->updateImage($fieldAttribute, $value['fileData'] ?? null, $value['metadata'])
-                : $image->remove();
+        if ($fieldAttribute instanceof ImageCollection) {
+            $this->resolveImageCollectionFromFormData($value, $fieldAttribute);
 
             return;
         }
 
-        // create a collection of mapped path=>image of the existing images
-        $existingImages = $fieldAttribute->mapWithKeys(function ($image) {
-            return [$image->path => $image];
-        });
-
-        // iterate over provided value from form, start creating an array of images for the new ImageCollection
-        $newImages = collect($value)->map(function ($imageData, $index) use ($fieldAttribute, $existingImages) {
-            if ($imageData['path']) {
-                $image = $existingImages[$imageData['path']];
-                unset($existingImages[$imageData['path']]);
-            } else {
-                $image = $fieldAttribute->createImage($imageData['fileData']);
-            }
-
-            $image->metadata = new Collection($imageData['metadata']);
-
-            $fieldAttribute[$index] = $image;
-        });
-
-        $currentIndex = $newImages->count();
-
-        // what is left over needs to be removed from the original attribute
-        foreach ($existingImages->values() as $deletedIndex => $existingImage) {
-            $fieldAttribute[$currentIndex + $deletedIndex] = $existingImage;
-            unset($fieldAttribute[$currentIndex + $deletedIndex]); // wow, what a weird api
-        }
+        $this->resolveImageFromFormData($value, $fieldAttribute);
     }
 
     protected function updateImage(Image $image, $imageData, $imageMetadata)
@@ -177,88 +128,53 @@ class EloquentImageryField extends Field
     }
 
 
-    // /** @var \Illuminate\Contracts\Filesystem\Filesystem */
-    // protected static $eloquentImageryFilesystem;
+    protected function resolveImageFromFormData(array $formData, Image $image)
+    {
+        if ($value === null) {
+            $image->remove();
 
-    // protected $previewUrlModifiers = null;
-    // protected $thumbnailUrlModifiers = null;
-    //
-    // public function __construct($name, $attribute = null, $disk = 'public', $storageCallback = null)
-    // {
-    //     if (!self::$eloquentImageryFilesystem) {
-    //         self::$eloquentImageryFilesystem = app(FilesystemManager::class)
-    //             ->disk(config('eloquent-imagery.filesystem', config('filesystems.default')));
-    //     }
-    //
-    //     parent::__construct($name, $attribute, $disk, $storageCallback);
-    //
-    //     $this->store(function (NovaRequest $request, Model $model) {
-    //         if ($request->hasFile('image')) {
-    //             $model->{$this->attribute}->fromRequest($request);
-    //         }
-    //     });
-    //
-    //     $this->preview(function (Image $eloquentImageryImage) {
-    //         if (!$eloquentImageryImage->exists()) {
-    //             return null;
-    //         }
-    //
-    //         return $eloquentImageryImage->url($this->previewUrlModifiers);
-    //     });
-    //
-    //     $this->thumbnail(function (Image $eloquentImageryImage) {
-    //         if (!$eloquentImageryImage->exists()) {
-    //             return null;
-    //         }
-    //
-    //         return $eloquentImageryImage->url($this->thumbnailUrlModifiers);
-    //     });
-    //
-    //     $this->delete(function (NovaRequest $request, Model $model) {
-    //         /** @var Image $eloquentImageryImage */
-    //         $eloquentImageryImage = $model->{$this->attribute};
-    //
-    //         if (!$eloquentImageryImage->exists()) {
-    //             return null;
-    //         }
-    //
-    //         $eloquentImageryImage->remove();
-    //     });
-    //
-    //     $this->download(function (NovaRequest $request, Model $model) {
-    //         /** @var Image $eloquentImageryImage */
-    //         $eloquentImageryImage = $model->{$this->attribute};
-    //
-    //         if (!$eloquentImageryImage->exists()) {
-    //             return null;
-    //         }
-    //
-    //         $thing = self::$eloquentImageryFilesystem->download($eloquentImageryImage->getStateProperties()['path']);
-    //         return $thing;
-    //     });
-    // }
-    //
-    // /**
-    //  * @param $previewUrlModifiers
-    //  * @return $this
-    //  */
-    // public function previewUrlModifiers($previewUrlModifiers)
-    // {
-    //     $this->previewUrlModifiers = $previewUrlModifiers;
-    //
-    //     return $this;
-    // }
-    //
-    // /**
-    //  * @param $thumbnailUrlModifiers
-    //  * @return $this
-    //  */
-    // public function thumbnailUrlModifiers($thumbnailUrlModifiers)
-    // {
-    //     $this->thumbnailUrlModifiers = $thumbnailUrlModifiers;
-    //
-    //     return $this;
-    // }
+            return;
+        }
 
+        $this->updateImage($fieldAttribute, $formData['fileData'] ?? null, $formData['metadata']);
+    }
+
+    protected function resolveImageCollectionFromFormData(array $formData, ImageCollection $imageCollection)
+    {
+        // create a collection of mapped path=>image of the existing images
+        $existingImages = $imageCollection->mapWithKeys(function ($image, $index) {
+            return [$image->path => ['image' => $image, 'original_index' => $index]];
+        });
+
+        $newCollectionForImages = new Collection;
+
+        // iterate over provided value from form, start creating an array of images for the new ImageCollection
+        foreach ($formData as $imageIndex => $imageData) {
+            if ($imageData['path']) {
+                $image = $existingImages[$imageData['path']]['image'];
+                unset($existingImages[$imageData['path']]);
+            } else {
+                $image = $imageCollection->createImage($imageData['fileData']);
+            }
+
+            // if bytes were provided, set them
+            if (isset($imageData['fileData'])) {
+                $image->setData($imageData['fileData']);
+            }
+
+            // store the metadata
+            $image->metadata = new Collection($imageData['metadata']);
+
+            $newCollectionForImages[$imageIndex] = $image;
+        }
+
+        // what is left over needs to be removed from the original attribute
+        foreach ($existingImages as $leftOverImages) {
+            unset($imageCollection[$leftOverImages['original_index']]);
+        }
+
+        // finally replace the image collection's interal/wrapped collection
+        $imageCollection->replaceWrappedCollectionForImages($newCollectionForImages);
+    }
 }
 

@@ -13,6 +13,15 @@ use finfo;
 use OutOfBoundsException;
 use RuntimeException;
 
+/**
+ * @property-read $index
+ * @property-read $path,
+ * @property-read $extension,
+ * @property-read $width,
+ * @property-read $height,
+ * @property-read $hash,
+ * @property-read $timestamp,
+ */
 class Image implements \JsonSerializable
 {
     /** @var Filesystem|Cloud */
@@ -21,6 +30,8 @@ class Image implements \JsonSerializable
     /** @var string */
     protected $pathTemplate = null;
 
+    /** @var null|integer This is filled when an image is used in an ImageCollection */
+    protected $index = null;
     protected $path = '';
     protected $extension = '';
     protected $width = null;
@@ -44,6 +55,11 @@ class Image implements \JsonSerializable
 
         $this->pathTemplate = $pathTemplate;
         $this->metadata = new Collection;
+    }
+
+    public function setIndex($index)
+    {
+        $this->index = $index;
     }
 
     public function exists()
@@ -88,6 +104,7 @@ class Image implements \JsonSerializable
 
     public function setStateFromAttributeData($attributeData)
     {
+        $this->index = $attributeData['index'] ?? null;
         $this->path = $attributeData['path'];
         $this->extension = $attributeData['extension'];
         $this->width = $attributeData['width'];
@@ -103,6 +120,7 @@ class Image implements \JsonSerializable
     public function getStateAsAttributeData()
     {
         return [
+            'index'     => $this->index,
             'path'      => $this->path,
             'extension' => $this->extension,
             'width'     => $this->width,
@@ -178,7 +196,7 @@ class Image implements \JsonSerializable
         preg_match_all('#{(\w+)}#', $path, $pathReplacements);
 
         foreach ($pathReplacements[1] as $pathReplacement) {
-            if (in_array($pathReplacement, ['extension', 'width', 'height', 'hash', 'timestamp'])) {
+            if (in_array($pathReplacement, ['index', 'extension', 'width', 'height', 'hash', 'timestamp'])) {
                 $path = str_replace("{{$pathReplacement}}", $this->{$pathReplacement}, $path);
                 $updatedPathParts[] = $pathReplacement;
                 continue;
@@ -221,6 +239,7 @@ class Image implements \JsonSerializable
         $this->flush = true;
         $this->removeAtPathOnFlush = $this->path;
 
+        $this->index = null;
         $this->path = '';
         $this->extension = '';
         $this->width = null;
@@ -252,11 +271,15 @@ class Image implements \JsonSerializable
 
     public function __get($name)
     {
-        if ($name === 'metadata') {
-            return $this->metadata;
-        }
-
-        $properties = $this->toArray();
+        $properties = [
+            'index'     => $this->index,
+            'path'      => $this->path,
+            'extension' => $this->extension,
+            'width'     => $this->width,
+            'height'    => $this->height,
+            'hash'      => $this->hash,
+            'timestamp' => $this->timestamp,
+        ];
 
         if (!array_key_exists($name, $properties)) {
             throw new OutOfBoundsException("Property $name is not accessible");

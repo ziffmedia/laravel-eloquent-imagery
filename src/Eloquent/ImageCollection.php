@@ -57,9 +57,14 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         return $image;
     }
 
-    public function getCollection()
+    public function getWrappedCollectionForImages()
     {
         return $this->images;
+    }
+
+    public function replaceWrappedCollectionForImages(Collection $images)
+    {
+        $this->images = $images;
     }
 
     public function metadata()
@@ -208,7 +213,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
             return false;
         }
 
-        return $this->images->every(function ($image) {
+        return $this->images->contains(function ($image) {
             return $image->pathHasReplacements();
         });
     }
@@ -226,11 +231,12 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
     public function updatePath(array $replacements, Model $model)
     {
         $this->images->each(function (Image $image) use ($replacements, $model) {
-            $updatedPathParts = $image->updatePath(array_merge($replacements, ['index' => $this->autoincrement]), $model);
 
-            if (in_array('index', $updatedPathParts)) {
-                $this->autoincrement++;
+            if ($image->index === null) {
+                $image->setIndex($this->autoincrement++);
             }
+
+            $updatedPathParts = $image->updatePath($replacements, $model);
         });
     }
 
@@ -242,7 +248,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         $this->images = $this->images->filter(function (Image $image) {
             $this->deletedImages[] = $image;
             $image->remove();
-            return false;
+            return false; // returning false will remove from new collection
         });
     }
 
@@ -257,6 +263,11 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         });
     }
 
+    public function exists()
+    {
+        return true;
+    }
+
     /**
      * Make dynamic calls into the collection.
      *
@@ -266,6 +277,12 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
      */
     public function __call($method, $parameters)
     {
-        return $this->forwardCallTo($this->getCollection(), $method, $parameters);
+        return $this->forwardCallTo($this->getWrappedCollectionForImages(), $method, $parameters);
+    }
+
+    public function __clone()
+    {
+        $this->images = clone $this->images;
+        $this->metadata = clone $this->metadata;
     }
 }
