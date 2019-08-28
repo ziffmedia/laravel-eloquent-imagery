@@ -122,7 +122,10 @@ class EloquentImageryField extends Field
     protected function resolveImageFromFormData($formData, Image $image)
     {
         if ($formData === null) {
-            $image->remove();
+            
+            if ($image->exists()) {
+                $image->remove();
+            }
 
             return;
         }
