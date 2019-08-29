@@ -46,6 +46,7 @@ class Image implements \JsonSerializable
     protected $flush = false;
     protected $data = null;
     protected $removeAtPathOnFlush = null;
+    protected $isReadOnly = false;
 
     public function __construct($pathTemplate)
     {
@@ -60,6 +61,11 @@ class Image implements \JsonSerializable
     public function setIndex($index)
     {
         $this->index = $index;
+    }
+
+    public function setReadOnly()
+    {
+        $this->isReadOnly = true;
     }
 
     public function exists()
@@ -133,6 +139,10 @@ class Image implements \JsonSerializable
 
     public function setData($data)
     {
+        if ($this->isReadOnly) {
+            throw new RuntimeException('Cannot call setData on an image marked as read only');
+        }
+
         if ($this->path && static::$filesystem->exists($this->path)) {
             $this->removeAtPathOnFlush = $this->path;
         }
@@ -232,6 +242,10 @@ class Image implements \JsonSerializable
 
     public function remove()
     {
+        if ($this->isReadOnly) {
+            throw new RuntimeException('Cannot remove an image marked as read only');
+        }
+
         if ($this->path == '') {
             throw new RuntimeException('Called remove on an image that has no path');
         }
@@ -251,6 +265,10 @@ class Image implements \JsonSerializable
 
     public function flush()
     {
+        if ($this->isReadOnly) {
+            throw new RuntimeException('Cannot flush an image marked as read only');
+        }
+
         if (!$this->flush) {
             return;
         }
