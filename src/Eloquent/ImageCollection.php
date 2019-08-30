@@ -187,7 +187,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
             $this->images->push($image);
         }
 
-        if ($attributeData['metadata']) {
+        if (isset($attributeData['metadata']) && is_iterable($attributeData['metadata'])) {
             foreach ($attributeData['metadata'] as $key => $value) {
                 $this->metadata[$key] = $value;
             }
