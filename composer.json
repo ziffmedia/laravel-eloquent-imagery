@@ -28,7 +28,11 @@
         }
     },
     "suggest": {
-        "intervention/image": "Intervention Image is necessary for serving images that need modification"
+        "intervention/image": "Intervention Image is necessary for serving images that need modification",
+        "laravel/framework": "This package is intended to be used with laravel/framework version >= 5.7"
+    },
+    "conflict": {
+        "laravel/framework": "<5.7.0"
     },
     "extra": {
         "laravel": {
