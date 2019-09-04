@@ -1,6 +1,7 @@
 {
     "name": "ziffmedia/laravel-eloquent-imagery",
     "description": "Image handling per column/attribute for Laravel Eloquent",
+    "license": "MIT",
     "type": "library",
     "authors": [
         {
