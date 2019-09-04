@@ -150,6 +150,7 @@ class ImageCollectionTest extends AbstractTestCase
                     'hash'      => '809dcbbcd89eb8a275a6c6f4556e1f41',
                     'timestamp' => Carbon::getTestNow()->unix(),
                     'metadata'  => [],
+                    'index'     => 1,
                 ],
                 [
                     'path'      => 'foo/boom-2.png',
@@ -158,7 +159,8 @@ class ImageCollectionTest extends AbstractTestCase
                     'height'    => 30,
                     'hash'      => '7692f4f945481216e41ce0a8f42f6ed6',
                     'timestamp' => Carbon::getTestNow()->unix(),
-                    'metadata'  => []
+                    'metadata'  => [],
+                    'index'     => 2,
                 ]
             ],
             'metadata'      => []
@@ -211,10 +213,10 @@ class ImageCollectionTest extends AbstractTestCase
         $this->assertCount(1, $imageCollection);
     }
 
-    public function testGetCollection()
+    public function testGetWrappedCollectionForImages()
     {
         $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}'));
-        $this->assertInstanceOf(Collection::class, $imageCollection->getCollection());
+        $this->assertInstanceOf(Collection::class, $imageCollection->getWrappedCollectionForImages());
     }
 
     public function testGetIterator()

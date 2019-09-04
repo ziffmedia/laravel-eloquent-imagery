@@ -3,6 +3,7 @@
 namespace ZiffMedia\Laravel\EloquentImagery\Test\Unit\Eloquent;
 
 use Illuminate\Support\Collection;
+use RuntimeException;
 use ZiffMedia\Laravel\EloquentImagery\Eloquent\Image;
 use ZiffMedia\Laravel\EloquentImagery\EloquentImageryProvider;
 
@@ -116,6 +117,30 @@ class ImageTest extends AbstractTestCase
 
         $this->assertEquals('foo/bar.jpg', $image->path);
         $this->assertFileExists(__DIR__ . '/../../storage/foo/bar.jpg');
+    }
+
+    public function testCannotCallSetDataOnReadonlyImage()
+    {
+        $image = new Image('foo/{name}.{extension}');
+        $image->setReadOnly();
+        $this->expectException(RuntimeException::class);
+        $image->setData([]);
+    }
+
+    public function testCannotCallRemoveOnReadonlyImage()
+    {
+        $image = new Image('foo/{name}.{extension}');
+        $image->setReadOnly();
+        $this->expectException(RuntimeException::class);
+        $image->remove();
+    }
+
+    public function testCannotCallFlushOnReadonlyImage()
+    {
+        $image = new Image('foo/{name}.{extension}');
+        $image->setReadOnly();
+        $this->expectException(RuntimeException::class);
+        $image->flush();
     }
 }
 

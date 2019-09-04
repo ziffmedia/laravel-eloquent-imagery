@@ -38,7 +38,7 @@ class EloquentImageryObserverTest extends AbstractTestCase
         $observer = new EloquentImageryObserver(TestAssets\FooModel::class);
         $observer->saving($foo);
 
-        $this->assertEquals('{"path":"foo\/bar.jpg","extension":"jpg","width":1,"height":1,"hash":"1234","timestamp":12345,"metadata":[]}', $foo->image);
+        $this->assertEquals('{"index":null,"path":"foo\/bar.jpg","extension":"jpg","width":1,"height":1,"hash":"1234","timestamp":12345,"metadata":[]}', $foo->image);
     }
 
     public function testSavedRestoresImage()
