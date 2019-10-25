@@ -64,25 +64,29 @@
         })
       },
 
-      addImage (event) {
+      addImage (event, metadata = {}) {
 
         let file = event.target.files[0]
 
         let image = {
           inputId: 'eloquent-imagery-' + this.field.name + '-' + (this.images.length + 1),
           previewUrl: URL.createObjectURL(file),
-          metadata: []
+          metadata: Object.keys(metadata).map(key => ({'key': key, 'value': metadata[key]}))
         }
 
         this.images.push(image)
 
-        let reader = new FileReader()
+        return new Promise((resolve, reject) => {
+          let reader = new FileReader()
 
-        reader.addEventListener('load', () => {
-          image.fileData = reader.result
+          reader.addEventListener('load', () => {
+            image.fileData = reader.result
+
+            resolve(image)
+          })
+
+          reader.readAsDataURL(file)
         })
-
-        reader.readAsDataURL(file)
       },
 
       removeImage (imageToRemove) {

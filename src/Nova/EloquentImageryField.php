@@ -61,7 +61,10 @@ class EloquentImageryField extends Field
 
             foreach ($this->value as $image) {
                 $value['images'][] = [
-                    'previewUrl' => $image->url('v' . $image->timestamp),
+                    'previewUrl' => $image->url(
+                        ($this->previewUrlModifiers ? $this->previewUrlModifiers . '|' : '')
+                        . 'v' . $image->timestamp
+                    ),
                     'path'       => $image->path,
                     'metadata'   => $image->metadata
                 ];
@@ -71,7 +74,10 @@ class EloquentImageryField extends Field
 
             if ($this->value->exists()) {
                 $value = [
-                    'previewUrl' => $this->value->url('v' . $this->value->timestamp),
+                    'previewUrl' => $this->value->url(
+                        ($this->previewUrlModifiers ? $this->previewUrlModifiers . '|' : '')
+                        . 'v' . $this->value->timestamp
+                    ),
                     'path'       => $this->value->path,
                     'metadata'   => $this->value->metadata
                 ];
@@ -122,7 +128,7 @@ class EloquentImageryField extends Field
     protected function resolveImageFromFormData($formData, Image $image)
     {
         if ($formData === null) {
-            
+
             if ($image->exists()) {
                 $image->remove();
             }
