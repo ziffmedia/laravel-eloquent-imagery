@@ -17,7 +17,7 @@ class EloquentImageryField extends Field
 
     public $showOnIndex = false;
 
-    protected $thumbnailUrlModeifiers;
+    protected $thumbnailUrlModifiers;
     protected $previewUrlModifiers;
 
     protected function fillAttribute(NovaRequest $request, $requestAttribute, $model, $attribute)
@@ -60,30 +60,12 @@ class EloquentImageryField extends Field
             ];
 
             foreach ($this->value as $image) {
-                $value['images'][] = [
-                    'previewUrl' => $image->url(
-                        ($this->previewUrlModifiers ? $this->previewUrlModifiers . '|' : '')
-                        . 'v' . $image->timestamp
-                    ),
-                    'path'       => $image->path,
-                    'metadata'   => $image->metadata
-                ];
+                $value['images'][] = $this->jsonSerializeImage($image);
             }
         } else {
             $isCollection = false;
 
-            if ($this->value->exists()) {
-                $value = [
-                    'previewUrl' => $this->value->url(
-                        ($this->previewUrlModifiers ? $this->previewUrlModifiers . '|' : '')
-                        . 'v' . $this->value->timestamp
-                    ),
-                    'path'       => $this->value->path,
-                    'metadata'   => $this->value->metadata
-                ];
-            } else {
-                $value = null;
-            }
+            $value = ($this->value->exists()) ? $this->jsonSerializeImage($this->value) : null;
         }
 
         return array_merge([
@@ -100,6 +82,22 @@ class EloquentImageryField extends Field
             'textAlign'       => $this->textAlign,
             'isCollection'    => $isCollection
         ], $this->meta());
+    }
+
+    protected function jsonSerializeImage(Image $image)
+    {
+        return [
+            'previewUrl' => $image->url(
+                ($this->previewUrlModifiers ? $this->previewUrlModifiers . '|' : '')
+                . 'v' . $image->timestamp
+            ),
+            'thumbnailUrl' => $image->url(
+                ($this->thumbnailUrlModifiers ? $this->thumbnailUrlModifiers . '|' : '')
+                . 'v' . $image->timestamp
+            ),
+            'path'       => $image->path,
+            'metadata'   => $image->metadata
+        ];
     }
 
     /**
