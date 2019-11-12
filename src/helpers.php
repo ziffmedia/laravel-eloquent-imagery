@@ -9,7 +9,7 @@ if (! function_exists('eloquent_imagery_url')) {
      * @param $path
      * @param $modifiers
      */
-    function eloquent_imagery_url($relativePath, $modifiers) {
+    function eloquent_imagery_url($relativePath, array $modifiers = []) {
         static $renderRouteEnabled = null;
         static $imageryFilesystem = null;
 
