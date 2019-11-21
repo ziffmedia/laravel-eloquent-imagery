@@ -1,5 +1,5 @@
 <template>
-  <div class="px-6 py-4 border border-70 h-full">
+  <div class="px-6 py-4">
 
     <img style="max-height: 80px" class="block mx-auto mb-4 sm:mb-0 sm:mr-4 sm:ml-0"
       :src="this.image.thumbnailUrl"
@@ -72,6 +72,7 @@
         </div>
       </modal>
     </portal>
+
   </div>
 </template>
 
