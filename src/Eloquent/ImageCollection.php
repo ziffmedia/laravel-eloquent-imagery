@@ -180,6 +180,10 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
     {
         $this->autoincrement = $attributeData['autoinc'] ?? $attributeData['autoincrement'] ?? 1;
 
+        // replace collection, as Collection has no method to cleanly empty itself, same with metadata
+        $this->images = new Collection;
+        $this->metadata = new Collection;
+
         foreach ($attributeData['images'] as $imageState) {
             $image = clone $this->imagePrototype;
             $image->setStateFromAttributeData($imageState);

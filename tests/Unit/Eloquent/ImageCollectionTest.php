@@ -49,6 +49,35 @@ class ImageCollectionTest extends AbstractTestCase
         $this->assertEquals('bar', $imageCollection->metadata()['foo']);
     }
 
+    public function testSetStateFromDataAttributeClearsPreviousState()
+    {
+        $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}'));
+
+        $state = [
+            'images'   => [
+                [
+                    'path'      => 'foo/bar.jpg',
+                    'extension' => 'jpg',
+                    'width'     => 1,
+                    'height'    => 1,
+                    'hash'      => '1234567890',
+                    'timestamp' => 12345,
+                    'metadata'  => []
+                ]
+            ],
+            'metadata' => [
+                'foo' => 'bar'
+            ]
+        ];
+
+        $imageCollection->setStateFromAttributeData($state);
+
+        // call set state again to ensure that the items and metdata collection are not appending data
+        $imageCollection->setStateFromAttributeData($state);
+
+        $this->assertCount(1, $imageCollection);
+    }
+
     public function testPathHasReplacements()
     {
         $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}'));
