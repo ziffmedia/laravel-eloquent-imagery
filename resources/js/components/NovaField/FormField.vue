@@ -2,7 +2,7 @@
   <default-field :field="field" :errors="errors" full-width-content="true">
     <template slot="field">
       <div class="bg-white rounded-lg">
-        <draggable v-model="images" group="image-group" @start="drag=true" @end="drag=false" class="flex flex-wrap mb-2">
+        <draggable v-model="images" group="image-group" v-on:start="drag=true" v-on:end="drag=false" :class="`flex flex-wrap mb-2 laravel-eloquent-imagery-${this.resourceName}`">
           <div v-for="image in images" class="pl-1 pr-1 border border-70 flex items-end m-1">
               <image-card-input v-bind:image.sync="image" v-on:remove-image="removeImage"></image-card-input>
           </div>
@@ -14,7 +14,7 @@
                 type="file"
                 :id="`eloquent-imagery-` + this.field.name + `-add-image`"
                 name="name"
-                @change="addImage"
+                v-on:change="addImage"
               />
 
               <span v-on:click="() => this.$refs['addNewImageFileInput'].click()">

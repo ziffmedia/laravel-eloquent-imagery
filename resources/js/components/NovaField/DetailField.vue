@@ -1,7 +1,7 @@
 <template>
   <panel-item :field="field">
     <template slot="value">
-      <div class="flex flex-wrap mb-2">
+      <div :class="`flex flex-wrap mb-2 laravel-eloquent-imagery-${this.resourceName}`">
         <div v-for="image in images" class="pl-1 pr-1 border border-70 flex items-end m-1">
           <image-card-display v-bind:image.sync="image"></image-card-display>
         </div>
