@@ -47,10 +47,10 @@ trait HasEloquentImagery
             }
 
             if (!isset(static::$eloquentImageryPrototypes[$attribute])) {
-                $prototype = new Image($config['path']);
+                $prototype = app(Image::class, ['pathTemplate' => $config['path']]);
 
                 if (isset($config['collection']) && $config['collection'] === true) {
-                    $prototype = new ImageCollection($prototype);
+                    $prototype = app(ImageCollection::class, ['imagePrototype' => $prototype]);
                 }
 
                 static::$eloquentImageryPrototypes[$attribute] = $prototype;
