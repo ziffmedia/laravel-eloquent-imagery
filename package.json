@@ -13,8 +13,7 @@
         "cross-env": "^5.0.0",
         "laravel-mix": "^5.0",
         "laravel-nova": "^1.0",
-        "serialize-javascript": ">=2.1.1",
-        "vue-template-compiler": "^2.6.11"
+        "serialize-javascript": ">=2.1.1"
     },
     "dependencies": {
         "vuedraggable": "^2.21.0"
