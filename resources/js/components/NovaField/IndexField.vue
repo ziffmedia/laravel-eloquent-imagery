@@ -3,14 +3,8 @@
 </template>
 
 <script>
-  import ImageCardDisplay from "./ImageCardDisplay";
-
   export default {
     props: ['resource', 'resourceName', 'resourceId', 'field'],
-
-    components: {
-      ImageCardDisplay,
-    },
 
     data: () => ({
       isCollection: false,
