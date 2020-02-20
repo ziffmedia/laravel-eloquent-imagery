@@ -1,29 +1,20 @@
 <template>
-    <img :src="images[0]['thumbnailUrl']" class="w-16">
+  <div class="text-center">
+    <img v-if="previewImageThumbnailUrl" :src="previewImageThumbnailUrl" class="w-16">
+    <span v-if="!previewImageThumbnailUrl" class="text-80">no image</span>
+  </div>
 </template>
 
 <script>
   export default {
-    props: ['resource', 'resourceName', 'resourceId', 'field'],
+    props: ['field'],
 
-    data: () => ({
-      isCollection: false,
-      images: []
-    }),
+    computed: {
+      previewImageThumbnailUrl () {
+        let images = (this.field.isCollection) ? this.field.value.images : (this.field.value ? [this.field.value] : [])
 
-    mounted () {
-      let images = (this.field.isCollection) ? this.field.value.images : (this.field.value ? [this.field.value] : [])
-
-      this.images = images.map((image, i) => {
-
-        return {
-          inputId: 'eloquent-imagery-' + this.field.name + '-' + i,
-          previewUrl: image.previewUrl,
-          thumbnailUrl: image.thumbnailUrl,
-          metadata: Object.keys(image.metadata).map(key => ({'key': key, 'value': image.metadata[key]}))
-        }
-      })
-
+        return (images.length > 0) ? images[0].thumbnailUrl : null
+      }
     }
   }
 </script>
