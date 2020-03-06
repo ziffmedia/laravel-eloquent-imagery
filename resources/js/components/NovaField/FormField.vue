@@ -2,29 +2,25 @@
   <default-field :field="field" :errors="errors" full-width-content="true">
     <template slot="field">
       <div class="bg-white rounded-lg">
-        <draggable v-model="images" group="image-group" v-on:start="drag=true" v-on:end="drag=false" :class="`flex flex-wrap mb-2 laravel-eloquent-imagery-${this.resourceName}`">
-          <div v-for="(image, index) in images" :class="`pl-1 pr-1 border border-70 flex items-end m-1 laravel-eloquent-imagery-image-${(index + 1)}`">
-              <image-card-input v-bind:image.sync="image" v-on:remove-image="removeImage"></image-card-input>
-          </div>
-          <div slot="footer" class="pl-1 pr-1 border border-70 flex items-center m-1">
-            <div v-if="(isCollection == false && images.length == 0) || isCollection" class="px-6 py-4 content-center">
-              <input
-                ref="addNewImageFileInput"
-                class="form-file-input select-none"
-                type="file"
-                :id="`eloquent-imagery-` + this.field.name + `-add-image`"
-                name="name"
-                v-on:change="addImage"
-              />
 
-              <span v-on:click="() => this.$refs['addNewImageFileInput'].click()">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="72" width="72">
-                  <path fill="#888" d="M6 2h9a1 1 0 0 1 .7.3l4 4a1 1 0 0 1 .3.7v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4c0-1.1.9-2 2-2zm9 2.41V7h2.59L15 4.41zM18 9h-3a2 2 0 0 1-2-2V4H6v16h12V9zm-5 4h2a1 1 0 0 1 0 2h-2v2a1 1 0 0 1-2 0v-2H9a1 1 0 0 1 0-2h2v-2a1 1 0 0 1 2 0v2z"/>
-                </svg>
-              </span>
-            </div>
+        <div v-if="!field.isCollection" class="flex flex-wrap mb-2 laravel-eloquent-imagery-articles">
+          <AddImageButton v-if="images.length == 0" v-on:image-added="addImage" />
+
+          <div v-if="images.length == 1" class="pl-1 pr-1 border border-70 flex items-end m-1">
+            <image-card-input v-bind:image.sync="images[0]" v-on:remove-image="removeImage"></image-card-input>
           </div>
-        </draggable>
+        </div>
+
+        <div v-if="field.isCollection">
+          <draggable v-model="images" group="image-group" v-on:start="drag=true" v-on:end="drag=false" :class="`flex flex-wrap mb-2 laravel-eloquent-imagery-${this.resourceName}`">
+            <div v-for="(image, index) in images" :class="`pl-1 pr-1 border border-70 flex items-end m-1 laravel-eloquent-imagery-image-${(index + 1)}`">
+              <image-card-input v-bind:image.sync="image" v-on:remove-image="removeImage"></image-card-input>
+            </div>
+
+            <AddImageButton v-on:image-added="addImage" />
+          </draggable>
+        </div>
+
       </div>
 
     </template>
@@ -34,6 +30,9 @@
 <script>
   import { FormField, HandlesValidationErrors, Errors } from 'laravel-nova'
   import Draggable from 'vuedraggable'
+
+  // component dependnecies
+  import AddImageButton from './AddImageButton'
   import ImageCardInput from './ImageCardInput'
 
   export default {
@@ -42,20 +41,20 @@
     props: ['resourceName', 'resourceId', 'field'],
 
     components: {
-      ImageCardInput,
-      Draggable
+      AddImageButton,
+      Draggable,
+      ImageCardInput
     },
 
-    data: () => ({
-      isCollection: false,
-      images: [],
-    }),
+    data () {
+      return {
+        images: [],
+      }
+    },
 
     methods: {
       setInitialValue () {
-        this.isCollection = this.field.isCollection
-
-        let images = (this.isCollection) ? this.field.value.images : (this.field.value ? [this.field.value] : [])
+        let images = (this.field.isCollection) ? this.field.value.images : (this.field.value ? [this.field.value] : [])
 
         this.images = images.map((image, i) => {
           return {
@@ -69,7 +68,6 @@
       },
 
       addImage (event, metadata = {}) {
-
         let file = event.target.files[0]
 
         let imageUrl = URL.createObjectURL(file)
@@ -112,7 +110,7 @@
           }, {})
         }))
 
-        formData.append(this.field.attribute, JSON.stringify(this.isCollection ? serializedImages : serializedImages.pop()))
+        formData.append(this.field.attribute, JSON.stringify(this.field.isCollection ? serializedImages : serializedImages.pop()))
       },
 
     }
