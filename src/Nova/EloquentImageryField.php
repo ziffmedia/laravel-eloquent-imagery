@@ -65,7 +65,7 @@ class EloquentImageryField extends Field
         } else {
             $isCollection = false;
 
-            $value = ($this->value->exists()) ? $this->jsonSerializeImage($this->value) : null;
+            $value = (isset($this->value)) ? $this->jsonSerializeImage($this->value) : null;
         }
 
         return array_merge([
