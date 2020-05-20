@@ -1,20 +1,19 @@
 <template>
   <div class="px-6 py-4">
-
     <img style="max-height: 80px" class="block mx-auto mb-4 sm:mb-0 sm:mr-4 sm:ml-0"
-      :src="this.image.thumbnailUrl"
+      v-bind:src="image.thumbnailUrl"
       v-on:click.prevent="openPreviewImageModal"
     />
 
     <portal to="modals" v-if="previewImageModalOpen">
       <modal @modal-close="handleClickaway">
-        <img class="block mx-auto mb-4 sm:mb-0 sm:mr-4 sm:ml-0" :src="image.previewUrl" />
+        <img class="block mx-auto mb-4 sm:mb-0 sm:mr-4 sm:ml-0" v-bind:src="image.previewUrl" />
       </modal>
     </portal>
 
     <input
       ref="replaceImageFileInput"
-      class="form-file-input select-none"
+      class="select-none form-file-input"
       type="file"
       :id="image.inputId"
       @change="fileChange"
@@ -41,8 +40,8 @@
     <portal to="modals" v-if="metadataModalOpen">
       <modal @modal-close="handleClickaway">
         <div class="w-screen">
-          <div class="w-2/3 bg-white m-auto select-text" style="min-height: 12em">
-            <div class="w-full m-2 p-8">
+          <div class="w-2/3 m-auto bg-white select-text" style="min-height: 12em">
+            <div class="w-full p-8 m-2">
 
               <h3>Image Metadata</h3>
 
