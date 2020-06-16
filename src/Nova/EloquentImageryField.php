@@ -68,24 +68,10 @@ class EloquentImageryField extends Field
             $value = ($this->value->exists()) ? $this->jsonSerializeImage($this->value) : null;
         }
 
-        return array_merge([
-            'component'       => $this->component(),
-            'prefixComponent' => true,
-            'indexName'       => $this->name,
-            'name'            => $this->name,
-            'attribute'       => $this->attribute,
-            'value'           => $value,
-            'panel'           => $this->panel,
-            'sortable'        => $this->sortable,
-            'nullable'        => $this->nullable,
-            'readonly'        => $this->isReadonly(app(NovaRequest::class)),
-            'textAlign'       => $this->textAlign,
-            'isCollection'    => $isCollection,
-            'sortableUriKey'  => $this->sortableUriKey(),
-            'stacked'         => $this->stacked,
-            'helpText'        => $this->getHelpText(),
-            'required'        => $this->isRequired(app(NovaRequest::class)),
-        ], $this->meta());
+        return array_merge(parent::jsonSerialize(), [
+            'value'        => $value,
+            'isCollection' => $isCollection
+        ]);
     }
 
     protected function jsonSerializeImage(Image $image)
