@@ -4,12 +4,14 @@ use Illuminate\Contracts\Filesystem\Cloud;
 use Illuminate\Filesystem\FilesystemManager;
 
 if (! function_exists('eloquent_imagery_url')) {
+
     /**
      * Apply modifiers to a url
-     * @param $path
+     * @param $relativePath
      * @param $modifiers
+     * @return string
      */
-    function eloquent_imagery_url($relativePath, array $modifiers = []) {
+    function eloquent_imagery_url($relativePath, string $modifiers = '') {
         static $renderRouteEnabled = null;
         static $imageryFilesystem = null;
 
@@ -38,6 +40,10 @@ if (! function_exists('eloquent_imagery_url')) {
 
         // keyed with [dirname, filename, basename, extension]
         $pathinfo = pathinfo($relativePath);
+
+        if (!isset($pathinfo)) {
+            throw new InvalidArgumentException("pathinfo() was unable to parse $relativePath into path parts.");
+        }
 
         $pathWithModifiers =
             (($pathinfo['dirname'] !== '.') ? ($pathinfo['dirname'] . '/') : '')

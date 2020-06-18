@@ -10,6 +10,7 @@ use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use finfo;
+use InvalidArgumentException;
 use OutOfBoundsException;
 use RuntimeException;
 
@@ -94,6 +95,10 @@ class Image implements \JsonSerializable
 
         // keyed with [dirname, filename, basename, extension]
         $pathinfo = pathinfo($this->path);
+
+        if (!isset($pathinfo['dirname'])) {
+            throw new InvalidArgumentException("pathinfo() was unable to parse {$this->path} into path parts.");
+        }
 
         $pathWithModifiers =
             (($pathinfo['dirname'] !== '.') ? "{$pathinfo['dirname']}/" : '')
