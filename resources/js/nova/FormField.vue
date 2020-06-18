@@ -1,5 +1,5 @@
 <template>
-  <default-field :field="field" :errors="errors" full-width-content="true">
+  <default-field :field="field" :errors="errors" :full-width-content="true">
     <template slot="field">
       <div class="bg-white rounded-lg">
         <draggable v-model="images" group="image-group" v-on:start="drag=true" v-on:end="drag=false" :class="`flex flex-wrap mb-2 laravel-eloquent-imagery-${this.resourceName}`">
