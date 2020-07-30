@@ -72,7 +72,8 @@ class EloquentImageryController extends Controller
                 $imageBytes = $fallbackFilesystem->get($imageActualPath);
                 $mimeType = $fallbackFilesystem->getMimeType($imageActualPath);
                 if (config('eloquent-imagery.render.fallback.mark_images')) {
-                    $imageRequestData['fallbackbanner'] = true;
+                    $imageModifier = new ImageTransformer();
+                    $imageBytes = $imageModifier->addFromFallbackWatermark($imageBytes);
                 }
             } catch (FileNotFoundException $e) {
                 $imageBytes = null;
