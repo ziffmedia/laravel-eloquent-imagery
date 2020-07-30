@@ -1,13 +1,14 @@
 <?php
 
-namespace ZiffMedia\Laravel\EloquentImagery\Test\Unit\Eloquent;
+namespace ZiffMedia\LaravelEloquentImagery\Test\Unit\Eloquent;
 
 use ArrayIterator;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use ZiffMedia\Laravel\EloquentImagery\Eloquent\Image;
-use ZiffMedia\Laravel\EloquentImagery\Eloquent\ImageCollection;
-use ZiffMedia\Laravel\EloquentImagery\EloquentImageryProvider;
+use ZiffMedia\LaravelEloquentImagery\Eloquent\Image;
+use ZiffMedia\LaravelEloquentImagery\Eloquent\ImageCollection;
+use ZiffMedia\LaravelEloquentImagery\EloquentImageryProvider;
+use ZiffMedia\LaravelEloquentImagery\Test\Unit\AbstractTestCase;
 
 class ImageCollectionTest extends AbstractTestCase
 {
@@ -18,7 +19,7 @@ class ImageCollectionTest extends AbstractTestCase
 
     public function testSetStateFromDataAttribute()
     {
-        $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}'));
+        $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}', []));
 
         $state = [
             'autoincrement' => 10,
@@ -51,7 +52,7 @@ class ImageCollectionTest extends AbstractTestCase
 
     public function testSetStateFromDataAttributeClearsPreviousState()
     {
-        $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}'));
+        $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}', []));
 
         $state = [
             'images'   => [
@@ -80,7 +81,7 @@ class ImageCollectionTest extends AbstractTestCase
 
     public function testPathHasReplacements()
     {
-        $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}'));
+        $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}', []));
         $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
 
         $this->assertTrue($imageCollection->pathHasReplacements());
@@ -92,7 +93,7 @@ class ImageCollectionTest extends AbstractTestCase
 
     public function testOffsetExists()
     {
-        $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}'));
+        $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}', []));
         $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
 
         $this->assertTrue(isset($imageCollection[0]));
@@ -101,7 +102,7 @@ class ImageCollectionTest extends AbstractTestCase
 
     public function testOffsetSet()
     {
-        $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}'));
+        $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}', []));
 
         // add image
         $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
@@ -116,7 +117,7 @@ class ImageCollectionTest extends AbstractTestCase
 
     public function testOffsetUnset()
     {
-        $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}'));
+        $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}', []));
         $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
         $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.png'));
 
@@ -130,7 +131,7 @@ class ImageCollectionTest extends AbstractTestCase
 
     public function testFlush()
     {
-        $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}'));
+        $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}', []));
         $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
         $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.png'));
 
@@ -147,19 +148,19 @@ class ImageCollectionTest extends AbstractTestCase
 
         // reset collection
 
-        $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}'));
+        $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}', []));
         $imageCollection->setStateFromAttributeData($state);
 
         unset($imageCollection[1]);
         $imageCollection->flush();
 
         $this->assertFileExists(__DIR__ . '/../../storage/foo/bar-baz-1.jpg');
-        $this->assertFileNotExists(__DIR__ . '/../../storage/foo/bar-baz-2.png');
+        $this->assertFileDoesNotExist(__DIR__ . '/../../storage/foo/bar-baz-2.png');
     }
 
     public function testGetStateAsDataAttribute()
     {
-        $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}'));
+        $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}', []));
         $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
         $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.png'));
 
@@ -201,7 +202,7 @@ class ImageCollectionTest extends AbstractTestCase
 
     public function testRemove()
     {
-        $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}'));
+        $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}', []));
         $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
         $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.png'));
         $imageCollection->updatePath(['slug' => 'bar-baz'], new TestAssets\FooModel);
@@ -214,18 +215,18 @@ class ImageCollectionTest extends AbstractTestCase
 
         // reset collection
 
-        $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}'));
+        $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}', []));
         $imageCollection->setStateFromAttributeData($state);
         $imageCollection->remove();
         $imageCollection->flush();
 
-        $this->assertFileNotExists(__DIR__ . '/../../storage/foo/bar-baz-1.jpg');
-        $this->assertFileNotExists(__DIR__ . '/../../storage/foo/bar-baz-2.png');
+        $this->assertFileDoesNotExist(__DIR__ . '/../../storage/foo/bar-baz-1.jpg');
+        $this->assertFileDoesNotExist(__DIR__ . '/../../storage/foo/bar-baz-2.png');
     }
 
     public function testPurgeRemovedImages()
     {
-        $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}'));
+        $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}', []));
         $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
         $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.png'));
 
@@ -244,13 +245,13 @@ class ImageCollectionTest extends AbstractTestCase
 
     public function testGetWrappedCollectionForImages()
     {
-        $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}'));
+        $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}', []));
         $this->assertInstanceOf(Collection::class, $imageCollection->getWrappedCollectionForImages());
     }
 
     public function testGetIterator()
     {
-        $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}'));
+        $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}', []));
         $this->assertInstanceOf(ArrayIterator::class, $imageCollection->getIterator());
     }
 }

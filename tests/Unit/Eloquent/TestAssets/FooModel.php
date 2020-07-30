@@ -1,10 +1,10 @@
 <?php
 
-namespace ZiffMedia\Laravel\EloquentImagery\Test\Unit\Eloquent\TestAssets;
+namespace ZiffMedia\LaravelEloquentImagery\Test\Unit\Eloquent\TestAssets;
 
 use Illuminate\Database\Eloquent\Model;
-use ZiffMedia\Laravel\EloquentImagery\Eloquent\HasEloquentImagery;
-use ZiffMedia\Laravel\EloquentImagery\Eloquent\Image;
+use ZiffMedia\LaravelEloquentImagery\Eloquent\HasEloquentImagery;
+use ZiffMedia\LaravelEloquentImagery\Eloquent\Image;
 
 /**
  * @property Image $image

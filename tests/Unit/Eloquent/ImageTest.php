@@ -1,11 +1,12 @@
 <?php
 
-namespace ZiffMedia\Laravel\EloquentImagery\Test\Unit\Eloquent;
+namespace ZiffMedia\LaravelEloquentImagery\Test\Unit\Eloquent;
 
 use Illuminate\Support\Collection;
 use RuntimeException;
-use ZiffMedia\Laravel\EloquentImagery\Eloquent\Image;
-use ZiffMedia\Laravel\EloquentImagery\EloquentImageryProvider;
+use ZiffMedia\LaravelEloquentImagery\Eloquent\Image;
+use ZiffMedia\LaravelEloquentImagery\EloquentImageryProvider;
+use ZiffMedia\LaravelEloquentImagery\Test\Unit\AbstractTestCase;
 
 class ImageTest extends AbstractTestCase
 {
@@ -16,7 +17,7 @@ class ImageTest extends AbstractTestCase
 
     public function testSetStateFromDataAttribute()
     {
-        $image = new Image('foo/{name}.{extension}');
+        $image = new Image('foo/{name}.{extension}', []);
 
         $state = [
             'path'      => 'foo/bar.jpg',
@@ -42,14 +43,14 @@ class ImageTest extends AbstractTestCase
 
         $pngImageData = file_get_contents(__DIR__ . '/TestAssets/30.png');
 
-        $image = new Image('foo/{id}.{extension}');
+        $image = new Image('foo/{id}.{extension}', []);
         $image->setData($pngImageData);
         $updatedParts = $image->updatePath([], $foo);
 
         $this->assertEquals('foo/20.png', $image->path);
         $this->assertEquals(['id', 'extension'], $updatedParts);
 
-        $image = new Image('foo/{outside_var}.{extension}');
+        $image = new Image('foo/{outside_var}.{extension}', []);
         $image->setData($pngImageData);
         $updatedParts = $image->updatePath(['outside_var' => 'foobar'], $foo);
 
@@ -59,7 +60,7 @@ class ImageTest extends AbstractTestCase
 
     public function testPathHasReplacements()
     {
-        $image = new Image('foo/{id}.{extension}');
+        $image = new Image('foo/{id}.{extension}', []);
         $image->setData(file_get_contents(__DIR__ . '/TestAssets/30.png'));
 
         $this->assertTrue($image->pathHasReplacements());
@@ -71,7 +72,7 @@ class ImageTest extends AbstractTestCase
 
     public function testMetadata()
     {
-        $image = new Image('foo/{name}.{extension}');
+        $image = new Image('foo/{name}.{extension}', []);
 
         $state = [
             'path'      => 'foo/bar.jpg',
@@ -108,7 +109,7 @@ class ImageTest extends AbstractTestCase
 
     public function testFlush()
     {
-        $image = new Image('foo/{name}.{extension}');
+        $image = new Image('foo/{name}.{extension}', []);
 
         $image->setData(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
         $image->updatePath(['name' => 'bar'], new TestAssets\FooModel);
@@ -121,7 +122,7 @@ class ImageTest extends AbstractTestCase
 
     public function testCannotCallSetDataOnReadonlyImage()
     {
-        $image = new Image('foo/{name}.{extension}');
+        $image = new Image('foo/{name}.{extension}', []);
         $image->setReadOnly();
         $this->expectException(RuntimeException::class);
         $image->setData([]);
@@ -129,7 +130,7 @@ class ImageTest extends AbstractTestCase
 
     public function testCannotCallRemoveOnReadonlyImage()
     {
-        $image = new Image('foo/{name}.{extension}');
+        $image = new Image('foo/{name}.{extension}', []);
         $image->setReadOnly();
         $this->expectException(RuntimeException::class);
         $image->remove();
@@ -137,7 +138,7 @@ class ImageTest extends AbstractTestCase
 
     public function testCannotCallFlushOnReadonlyImage()
     {
-        $image = new Image('foo/{name}.{extension}');
+        $image = new Image('foo/{name}.{extension}', []);
         $image->setReadOnly();
         $this->expectException(RuntimeException::class);
         $image->flush();

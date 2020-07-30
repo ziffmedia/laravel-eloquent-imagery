@@ -1,6 +1,6 @@
 <?php
 
-namespace ZiffMedia\Laravel\EloquentImagery\Eloquent;
+namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -30,7 +30,7 @@ class EloquentImageryObserver
     }
 
     /**
-     * @param \Illuminate\Database\Eloquent\Model|\ZiffMedia\Laravel\EloquentImagery\Eloquent\HasEloquentImagery $model
+     * @param \Illuminate\Database\Eloquent\Model|\ZiffMedia\LaravelEloquentImagery\Eloquent\HasEloquentImagery $model
      */
     public function retrieved(Model $model)
     {
@@ -63,7 +63,7 @@ class EloquentImageryObserver
     }
 
     /**
-     * @param \Illuminate\Database\Eloquent\Model|\ZiffMedia\Laravel\EloquentImagery\Eloquent\HasEloquentImagery $model
+     * @param \Illuminate\Database\Eloquent\Model|\ZiffMedia\LaravelEloquentImagery\Eloquent\HasEloquentImagery $model
      */
     public function saving(Model $model)
     {
@@ -99,7 +99,7 @@ class EloquentImageryObserver
     }
 
     /**
-     * @param \Illuminate\Database\Eloquent\Model|\ZiffMedia\Laravel\EloquentImagery\Eloquent\HasEloquentImagery $model
+     * @param \Illuminate\Database\Eloquent\Model|\ZiffMedia\LaravelEloquentImagery\Eloquent\HasEloquentImagery $model
      */
     public function saved(Model $model)
     {
@@ -145,7 +145,7 @@ class EloquentImageryObserver
     }
 
     /**
-     * @param \Illuminate\Database\Eloquent\Model|\ZiffMedia\Laravel\EloquentImagery\Eloquent\HasEloquentImagery $model
+     * @param \Illuminate\Database\Eloquent\Model|\ZiffMedia\LaravelEloquentImagery\Eloquent\HasEloquentImagery $model
      */
     public function deleted(Model $model)
     {

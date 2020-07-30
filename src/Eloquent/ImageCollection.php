@@ -1,6 +1,6 @@
 <?php
 
-namespace ZiffMedia\Laravel\EloquentImagery\Eloquent;
+namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
 use ArrayAccess;
 use Countable;
