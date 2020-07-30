@@ -61,6 +61,7 @@ class EloquentImageryField extends Field
 
         return array_merge(parent::jsonSerialize(), [
             'value'        => $value,
+            'maximumSize'  => $this->maxiumSize ?? null,
             'isCollection' => $isCollection
         ]);
     }
@@ -103,6 +104,30 @@ class EloquentImageryField extends Field
         return $this;
     }
 
+    /**
+     * @param  integer|string $maximumSize
+     * @return $this
+     */
+    public function withMaximumSize($maximumSize)
+    {
+        $unit = strtolower(substr($maximumSize,-2));
+        $measure = (integer) $maximumSize;
+
+        switch(true) {
+            case ($unit == 'kb'):
+                $this->maxiumSize = $measure * 1000;
+
+                break;
+            case ($unit == 'mb'):
+                $this->maxiumSize = $measure * 1000000;
+
+                break;
+            default:
+                $this->maxiumSize = $measure;
+        }
+
+        return $this;
+    }
 
     protected function resolveImageFromFormData($formData, Image $image)
     {
