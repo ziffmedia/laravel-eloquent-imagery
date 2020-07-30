@@ -28,8 +28,8 @@
             </div>
           </div>
         </draggable>
+        <image-modal :field="field"></image-modal>
       </div>
-
     </template>
   </default-field>
 </template>
@@ -38,6 +38,7 @@
   import { FormField, HandlesValidationErrors, Errors } from 'laravel-nova'
   import Draggable from 'vuedraggable'
   import ImageCardInput from './ImageCardInput'
+  import ImageModal from './ImageModal'
 
   import store from './store'
 
@@ -45,12 +46,11 @@
     mixins: [FormField, HandlesValidationErrors],
 
     props: ['resourceName', 'resourceId', 'field'],
-
     components: {
       ImageCardInput,
-      Draggable
+      Draggable,
+      ImageModal
     },
-
     computed: {
       images: {
         get () {
@@ -75,48 +75,41 @@
         let isCollection = this.field.isCollection
 
         let images = (isCollection ? this.field.value.images : (this.field.value ? [this.field.value] : []))
-          .map((image, i) => {
-            return {
-              inputId: 'eloquent-imagery-' + this.field.name + '-' + i,
-              previewUrl: image.previewUrl,
-              thumbnailUrl: image.thumbnailUrl,
-              path: image.path,
-              metadata: Object.keys(image.metadata).map(key => ({'key': key, 'value': image.metadata[key]}))
-            }
-          })
+                .map((image, i) => {
+                  return {
+                    inputId: 'eloquent-imagery-' + this.field.name + '-' + i,
+                    previewUrl: image.previewUrl,
+                    thumbnailUrl: image.thumbnailUrl,
+                    path: image.path,
+                    metadata: Object.keys(image.metadata).map(key => ({'key': key, 'value': image.metadata[key]}))
+                  }
+                })
 
-        this.$store.commit(`eloquentImagery/${this.field.name}/initialize`, { fieldName: this.field.name, isCollection, images })
+        this.$store.commit(`eloquentImagery/${this.field.name}/initialize`, { field: this.field, isCollection, images });
+        this.$store.commit(`eloquentImagery/${this.field.name}/pushImageValidation`, this.imageValidation());
       },
 
       addImage (event, metadata = {}) {
-        let file = event.target.files[0]
+        let metadataToken = 'content-blocks-editor-uploaded-image-' + (Math.floor(Math.random() * 100000)+1)
 
-        let imageUrl = URL.createObjectURL(file)
-
-        let image = {
-          inputId: 'eloquent-imagery-' + this.field.name + '-' + (this.images.length + 1),
-          previewUrl: imageUrl,
-          thumbnailUrl: imageUrl,
-          metadata: Object.keys(metadata).map(key => ({'key': key, 'value': metadata[key]}))
+        let payload = {
+          file: event.target.files[0],
+          metadata: {'content-blocks-editor-uploaded-image': metadataToken}
         }
 
-        this.$store.dispatch(`eloquentImagery/${this.field.name}/addImage`, image)
-
-        return new Promise((resolve, reject) => {
-          let reader = new FileReader()
-
-          reader.addEventListener('load', () => {
-            image.fileData = reader.result
-
-            resolve(image)
-          })
-
-          reader.readAsDataURL(file)
-        })
+        this.$store.dispatch(`eloquentImagery/${this.field.name}/addImageFromFile`, payload)
+                .then(image => {
+                  if(!image) {
+                    this.$refs['addNewImageFileInput'].value = null;
+                  }
+                  this.imagePath = metadataToken
+                  this.replaceImage = false
+                });
       },
 
       removeImage (image) {
         this.$store.dispatch(`eloquentImagery/${this.field.name}/removeImage`, image)
+        this.$refs['addNewImageFileInput'].value = null;
       },
 
       fill (formData) {
@@ -132,6 +125,50 @@
         }))
 
         formData.append(this.field.attribute, JSON.stringify(this.isCollection ? serializedImages : serializedImages.pop()))
+      },
+      imageValidation() {
+        return [
+          {
+            condition: (file, field) => {
+              let fileType = file.type.replace('image/', '');
+              return ['jpg', 'jpeg', 'png', 'gif'].indexOf(fileType) == -1;
+            },
+            modal: (file, field) => {
+              let fileType = file.type.replace('image/', '');
+
+              return {
+                'header': 'A ' + fileType + ' image is unsupported.',
+                'message': 'An image must be in a .jpg, .png, or .gif format.',
+                'showConfirm': false
+              }
+            }
+          },
+          {
+            condition: (file, field) => {
+              return field.maximumSize && file.size > field.maximumSize;
+            },
+            modal: (file, field) => {
+              let formattedFileSize;
+              let fileSize = file.size;
+              switch (true) {
+                case (fileSize / 1000000 > 1):
+                  formattedFileSize = Math.round(fileSize / 1000000) + 'MB';
+                  break;
+                case (fileSize / 1000 > 1):
+                  formattedFileSize = Math.round(fileSize / 1000) + 'KB';
+                  break;
+                default:
+                  formattedFileSize = fileSize;
+              }
+
+              return {
+                'header': 'Are you sure you want to upload this image?',
+                'message': 'Warning image is ' + formattedFileSize,
+                'showConfirm': true
+              }
+            }
+          }
+        ];
       }
     },
 

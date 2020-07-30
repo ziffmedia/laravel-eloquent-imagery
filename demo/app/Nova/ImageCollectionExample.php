@@ -47,6 +47,7 @@ class ImageCollectionExample extends Resource
             Text::make('Name'),
 
             EloquentImageryField::make('Images')
+                ->withMaximumSize('5mb'),
         ];
     }
 
