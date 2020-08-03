@@ -32,13 +32,11 @@ class EloquentImageryField extends Field
             throw new \RuntimeException('Field must be an EloquentImagery field');
         }
 
-        if ($fieldAttribute instanceof ImageCollection) {
-            $this->resolveImageCollectionFromFormData($value, $fieldAttribute);
+        ($fieldAttribute instanceof ImageCollection)
+            ? $this->resolveImageCollectionFromFormData($value, $fieldAttribute)
+            : $this->resolveImageFromFormData($value, $fieldAttribute);
 
-            return;
-        }
-
-        $this->resolveImageFromFormData($value, $fieldAttribute);
+        $fieldAttribute->updatePath([], $model);
     }
 
 
