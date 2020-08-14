@@ -1,8 +1,7 @@
 <?php
 
-namespace ZiffMedia\Laravel\EloquentImagery\Eloquent;
+namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
-use Illuminate\Filesystem\FilesystemManager;
 use RuntimeException;
 
 /**
@@ -47,7 +46,10 @@ trait HasEloquentImagery
             }
 
             if (!isset(static::$eloquentImageryPrototypes[$attribute])) {
-                $prototype = app(Image::class, ['pathTemplate' => $config['path']]);
+                $prototype = app(Image::class, [
+                    'pathTemplate' => $config['path'],
+                    'presets' => $config['presets'] ?? []
+                ]);
 
                 if (isset($config['collection']) && $config['collection'] === true) {
                     $prototype = app(ImageCollection::class, ['imagePrototype' => $prototype]);

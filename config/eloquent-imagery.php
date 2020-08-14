@@ -107,7 +107,24 @@ return [
         /**
          * What to set the browsers max age cache header to from the render route
          */
-        'browser_cache_max_age' => 31536000
+        'browser_cache_max_age' => 31536000,
+
+        /**
+         * Transformation pipeline configuration
+         */
+        'transformation' => [
+
+            'extension_priority' => ['imagick', 'gd'],
+
+            'transformers' => [
+                'jpegnormalize',
+                'jpegexif',
+                'gifstatic',
+                'quality',
+                'fit',
+                'grayscale',
+            ]
+        ]
     ],
 
     /**
@@ -119,5 +136,22 @@ return [
      *
      * When set to true, all images will be attempted to be rendered if rendering is on.
      */
-    'force_unmodified_image_rendering' => env('IMAGERY_FORCE_UNMODIFIED_IMAGE_RENDERING', false)
+    'force_unmodified_image_rendering' => env('IMAGERY_FORCE_UNMODIFIED_IMAGE_RENDERING', false),
+
+    'urls' => [
+
+        /**
+         * This should be one of: [legacy]
+         */
+        'strategy' => 'legacy',
+
+        /**
+         * Global Presets - presets allow you do call ->url() on an image with the preset
+         * name instead of a full set of url transformations
+         */
+        'presets' => [
+            // 'global_thumbnail' => 'fit_resize|size_50x50|v'
+        ]
+
+    ]
 ];

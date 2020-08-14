@@ -1,5 +1,5 @@
 <?php
-namespace ZiffMedia\Laravel\EloquentImagery\View;
+namespace ZiffMedia\LaravelEloquentImagery\View;
 
 class BladeDirectives
 {

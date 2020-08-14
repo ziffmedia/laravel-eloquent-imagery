@@ -1,40 +1,47 @@
 <?php
 
-namespace ZiffMedia\Laravel\EloquentImagery\Eloquent;
+namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
 use Carbon\Carbon;
+use finfo;
 use Illuminate\Contracts\Filesystem\Cloud;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
-use finfo;
-use InvalidArgumentException;
+use Illuminate\Support\Traits\Macroable;
+use JsonSerializable;
 use OutOfBoundsException;
 use RuntimeException;
+use ZiffMedia\LaravelEloquentImagery\UrlHandler\UrlHandler;
 
 /**
  * @property-read $index
  * @property-read $path,
  * @property-read $extension,
+ * @property-read $animated
  * @property-read $width,
  * @property-read $height,
  * @property-read $hash,
  * @property-read $timestamp,
  */
-class Image implements \JsonSerializable
+class Image implements JsonSerializable
 {
+    use Macroable;
+
     /** @var Filesystem|Cloud */
     protected static $filesystem = null;
 
     /** @var string */
     protected $pathTemplate = null;
+    protected $presets = [];
 
     /** @var null|integer This is filled when an image is used in an ImageCollection */
     protected $index = null;
     protected $path = '';
     protected $extension = '';
+    protected $animated = false;
     protected $width = null;
     protected $height = null;
     protected $hash = '';
@@ -49,13 +56,14 @@ class Image implements \JsonSerializable
     protected $removeAtPathOnFlush = null;
     protected $isReadOnly = false;
 
-    public function __construct($pathTemplate)
+    public function __construct(string $pathTemplate, array $presets)
     {
         if (!static::$filesystem) {
             static::$filesystem = app(FilesystemManager::class)->disk(config('eloquent-imagery.filesystem', config('filesystems.default')));
         }
 
         $this->pathTemplate = $pathTemplate;
+        $this->presets = $presets;
         $this->metadata = new Collection;
     }
 
@@ -74,56 +82,39 @@ class Image implements \JsonSerializable
         return $this->exists;
     }
 
-    public function url($modifiers = null)
+    public function url($transformations = null)
     {
         $renderRouteEnabled = config('eloquent-imagery.render.enable');
 
-        if ($renderRouteEnabled === false && $modifiers) {
-            throw new RuntimeException('Cannot process render options unless the rendering route is enabled');
+        if ($renderRouteEnabled === false && $transformations) {
+            throw new RuntimeException('Cannot process render transformation options unless the rendering route is enabled');
         }
 
         if ($renderRouteEnabled === false && static::$filesystem instanceof Cloud) {
             return static::$filesystem->url($this->path);
         }
 
-        if ($modifiers) {
-            $modifierParts = explode('|', $modifiers);
-            sort($modifierParts);
-            $modifiers = implode('.', $modifierParts);
-            $modifiers = str_replace(':', '_', $modifiers);
-        }
+        $globalPresets = config('eloquent-imagery.urls.presets');
 
-        // keyed with [dirname, filename, basename, extension]
-        $pathinfo = pathinfo($this->path);
+        $transformations = $this->presets[$transformations]
+            ?? $globalPresets[$transformations]
+            ?? $transformations;
 
-        if (!isset($pathinfo['dirname'])) {
-            throw new InvalidArgumentException("pathinfo() was unable to parse {$this->path} into path parts.");
-        }
-
-        $pathWithModifiers =
-            (($pathinfo['dirname'] !== '.') ? "{$pathinfo['dirname']}/" : '')
-            . $pathinfo['filename']
-            . ($modifiers ? ".{$modifiers}" : '')
-            . ".{$pathinfo['extension']}";
-
-        if ($this->flush === true) {
-            return '';
-        }
-
-        return url()->route('eloquent-imagery.render', $pathWithModifiers);
+        return app(UrlHandler::class)->createUrl($this, $transformations);
     }
 
     public function setStateFromAttributeData($attributeData)
     {
         $this->index = $attributeData['index'] ?? null;
-        $this->path = $attributeData['path'];
-        $this->extension = $attributeData['extension'];
-        $this->width = $attributeData['width'];
-        $this->height = $attributeData['height'];
-        $this->hash = $attributeData['hash'];
-        $this->timestamp = $attributeData['timestamp'];
+        $this->path = $attributeData['path'] ?? null;
+        $this->extension = $attributeData['extension'] ?? null;
+        $this->animated = $attributeData['animated'] ?? false;
+        $this->width = $attributeData['width'] ?? null;
+        $this->height = $attributeData['height'] ?? null;
+        $this->hash = $attributeData['hash'] ?? null;
+        $this->timestamp = $attributeData['timestamp'] ?? null;
 
-        $this->metadata = new Collection($attributeData['metadata']);
+        $this->metadata = new Collection($attributeData['metadata'] ?? []);
 
         $this->exists = true;
     }
@@ -134,6 +125,7 @@ class Image implements \JsonSerializable
             'index'     => $this->index,
             'path'      => $this->path,
             'extension' => $this->extension,
+            'animated'  => $this->animated,
             'width'     => $this->width,
             'height'    => $this->height,
             'hash'      => $this->hash,
@@ -190,6 +182,9 @@ class Image implements \JsonSerializable
                 break;
             case 'image/gif':
                 $this->extension = 'gif';
+
+                // magic bytes
+                $this->animated = (bool) preg_match('#(\x00\x21\xF9\x04.{4}\x00\x2C.*){2,}#s', $data);
                 break;
             default:
                 throw new RuntimeException('Unsupported mime-type for expected image: ' . $mimeType);
@@ -298,6 +293,7 @@ class Image implements \JsonSerializable
             'index'     => $this->index,
             'path'      => $this->path,
             'extension' => $this->extension,
+            'animated'  => $this->animated,
             'width'     => $this->width,
             'height'    => $this->height,
             'hash'      => $this->hash,
@@ -320,8 +316,8 @@ class Image implements \JsonSerializable
     {
         if ($this->exists) {
             return [
-                'previewUrl' => $this->url('v' . $this->timestamp),
-                'metadata'   => $this->metadata
+                'path'     => $this->path,
+                'metadata' => $this->metadata
             ];
         }
 
