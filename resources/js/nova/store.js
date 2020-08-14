@@ -53,15 +53,30 @@ export default {
       })
     },
 
-    addImage ({ state, commit }, image) {
-      let images = state.images
-      images.push(image)
-
-      commit('updateImages', images)
-    },
-
     removeImage ({ state, commit }, imageToRemove) {
       commit('updateImages', state.images.filter(image => image !== imageToRemove))
+    },
+
+    updateImageMetaData ({ state, commit }, payload) {
+      let images = state.images;
+
+      images.forEach((image) => {
+        if (payload.inputId && image.inputId && payload.inputId === image.inputId && payload.metaData) {
+          let newMetaData = Object.keys(payload.metaData).map(key => ({'key': key, 'value': payload.metaData[key]}))
+          let oldMetaData = image.metadata;
+          let metaData = {};
+
+          [oldMetaData, newMetaData].forEach((arr) => {
+            arr.forEach((item) => {
+              metaData[item['key']] = item['value']
+            })
+          });
+
+          image.metadata = Object.keys(metaData).map(key => ({'key': key, 'value': metaData[key]}))
+        }
+      });
+
+      commit('updateImages', images)
     }
   },
 
