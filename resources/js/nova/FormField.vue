@@ -89,29 +89,8 @@
       },
 
       addImage (event, metadata = {}) {
-        let file = event.target.files[0]
-
-        let imageUrl = URL.createObjectURL(file)
-
-        let image = {
-          inputId: 'eloquent-imagery-' + this.field.name + '-' + (this.images.length + 1),
-          previewUrl: imageUrl,
-          thumbnailUrl: imageUrl,
-          metadata: Object.keys(metadata).map(key => ({'key': key, 'value': metadata[key]}))
-        }
-
-        this.$store.dispatch(`eloquentImagery/${this.field.name}/addImage`, image)
-
-        return new Promise((resolve, reject) => {
-          let reader = new FileReader()
-
-          reader.addEventListener('load', () => {
-            image.fileData = reader.result
-
-            resolve(image)
-          })
-
-          reader.readAsDataURL(file)
+        this.$store.dispatch(`eloquentImagery/${this.field.name}/addImageFromFile`, {
+          file: event.target.files[0]
         })
       },
 
