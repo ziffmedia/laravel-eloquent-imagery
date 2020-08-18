@@ -65,12 +65,13 @@ class Fit implements ImagickTransformationInterface
 
                 $width = $width !== 0 ? $width : $originalWidth;
                 $height = $height !== 0 ? $height : $originalHeight;
+                $background = $arguments->get('background');
 
                 foreach ($imagick as $image) {
 
-                    $image->setImageBackgroundColor(
-                        $arguments->get('background', 'black')
-                    );
+                    if ($background) {
+                        $image->setImageBackgroundColor($background);
+                    }
 
                     if ($width > $originalWidth && $height > $originalHeight) {
                         $image->extentImage(
