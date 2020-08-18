@@ -2,11 +2,11 @@
 export default {
   namespaced: true,
 
-  state: {
+  state: () => ({
     fieldName: '',
     images: [],
     isCollection: false
-  },
+  }),
 
   mutations: {
     initialize(state, payload) {
