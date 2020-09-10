@@ -57,22 +57,22 @@ export default {
       commit('updateImages', state.images.filter(image => image !== imageToRemove))
     },
 
-    updateImageMetaData ({ state, commit }, payload) {
+    updateImageMetadata ({ state, commit }, payload) {
       let images = state.images;
 
       images.forEach((image) => {
-        if (payload.inputId && image.inputId && payload.inputId === image.inputId && payload.metaData) {
-          let newMetaData = Object.keys(payload.metaData).map(key => ({'key': key, 'value': payload.metaData[key]}))
-          let oldMetaData = image.metadata;
-          let metaData = {};
+        if (payload.inputId && image.inputId && payload.inputId === image.inputId && payload.metadata) {
+          let newMetadata = Object.keys(payload.metadata).map(key => ({'key': key, 'value': payload.metadata[key]}))
+          let oldMetadata = image.metadata;
+          let metadata = {};
 
-          [oldMetaData, newMetaData].forEach((arr) => {
+          [oldMetadata, newMetadata].forEach((arr) => {
             arr.forEach((item) => {
-              metaData[item['key']] = item['value']
+              metadata[item['key']] = item['value']
             })
           });
 
-          image.metadata = Object.keys(metaData).map(key => ({'key': key, 'value': metaData[key]}))
+          image.metadata = Object.keys(metadata).map(key => ({'key': key, 'value': metadata[key]}))
         }
       });
 
