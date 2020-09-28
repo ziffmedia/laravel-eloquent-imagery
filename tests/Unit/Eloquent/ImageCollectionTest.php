@@ -175,6 +175,7 @@ class ImageCollectionTest extends AbstractTestCase
                 [
                     'path'      => 'foo/boom-1.jpg',
                     'extension' => 'jpg',
+                    'animated'  => false,
                     'width'     => 30,
                     'height'    => 30,
                     'hash'      => '809dcbbcd89eb8a275a6c6f4556e1f41',
@@ -185,6 +186,7 @@ class ImageCollectionTest extends AbstractTestCase
                 [
                     'path'      => 'foo/boom-2.png',
                     'extension' => 'png',
+                    'animated'  => false,
                     'width'     => 30,
                     'height'    => 30,
                     'hash'      => '7692f4f945481216e41ce0a8f42f6ed6',
