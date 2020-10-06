@@ -2,6 +2,7 @@
 
 namespace ZiffMedia\LaravelEloquentImagery\Test\Unit\ImageTransformer\Transformations;
 
+use Imagick;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ZiffMedia\LaravelEloquentImagery\ImageTransformer\Transformations\Fit;
@@ -14,7 +15,7 @@ class FitTest extends TestCase
 
         $arguments = collect(['fit' => 'limit', 'width' => 100, 'height' => 100]);
 
-        $imagickMock = $this->createMock(\Imagick::class);
+        $imagickMock = $this->createMock(Imagick::class);
         $imagickMock->method('getImageWidth')->willReturn(500);
         $imagickMock->method('getImageHeight')->willReturn(500);
 
@@ -33,7 +34,7 @@ class FitTest extends TestCase
 
         $arguments = collect(['fit' => 'limit', 'width' => 100, 'height' => 100]);
 
-        $imagickMock = $this->createMock(\Imagick::class);
+        $imagickMock = $this->createMock(Imagick::class);
         $imagickMock->method('getImageWidth')->willReturn(50);
         $imagickMock->method('getImageHeight')->willReturn(50);
 
@@ -50,7 +51,7 @@ class FitTest extends TestCase
 
         $arguments = collect(['fit' => 'limit', 'width' => 100, 'height' => 100]);
 
-        $imagickMock = $this->createMock(\Imagick::class);
+        $imagickMock = $this->createMock(Imagick::class);
         $imagickMock->method('getImageWidth')->willReturn(200);
         $imagickMock->method('getImageHeight')->willReturn(50);
 
@@ -69,7 +70,7 @@ class FitTest extends TestCase
 
         $arguments = collect(['fit' => 'limit', 'width' => 100, 'height' => 100]);
 
-        $imagickMock = $this->createMock(\Imagick::class);
+        $imagickMock = $this->createMock(Imagick::class);
         $imagickMock->method('getImageWidth')->willReturn(50);
         $imagickMock->method('getImageHeight')->willReturn(500);
 
