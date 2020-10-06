@@ -25,7 +25,7 @@ class ImageTransformerTest extends AbstractTestCase
     {
         $imageTransformer = new ImageTransformer(collect());
 
-        $bytesOriginal = file_get_contents(__DIR__ . '/picture.jpg');
+        $bytesOriginal = file_get_contents(__DIR__ . '/TestAssets/picture.jpg');
 
         $newBytes = $imageTransformer->transform(collect(['quality' => 50]), $bytesOriginal);
 

@@ -50,11 +50,20 @@ class Fit implements ImagickTransformationInterface
                 break;
 
             case 'limit':
+
+                $limitWidth = $width !== 0 ? $width : $originalWidth;
+                $limitHeight = $height !== 0 ? $height : $originalHeight;
+
+                // this only needs to be applied to images that exceed the limits on either width or height
+                if ($originalWidth <= $limitWidth && $originalHeight <= $limitHeight) {
+                    break;
+                }
+
                 foreach ($imagick as $image) {
                     $image->scaleImage(
-                        min($originalWidth, $width ?? $originalWidth),
-                        min($originalHeight, $height ?? $originalHeight),
-                        false
+                        $limitWidth,
+                        $limitHeight,
+                        true
                     );
                 }
 
