@@ -19,7 +19,7 @@ class Fit implements ImagickTransformationInterface
         $height = (int) $arguments->get('height', 0);
 
         if ($width === 0 && $height === 0) {
-            throw new RuntimeException('Both width and height cannot be 0 for fit operations');
+            return;
         }
 
         [$originalWidth, $originalHeight] = [$imagick->getImageWidth(), $imagick->getImageHeight()];
