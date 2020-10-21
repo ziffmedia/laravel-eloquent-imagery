@@ -20,6 +20,9 @@
     />
 
     <div class="flex">
+      <div class="flex-1 text-center" v-on:click.prevent="openImageEditorModal">
+          E
+      </div>
       <div class="flex-1 text-center" v-on:click="() => this.$refs['replaceImageFileInput'].click()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
           <path d="M13 5.41V17a1 1 0 0 1-2 0V5.41l-3.3 3.3a1 1 0 0 1-1.4-1.42l5-5a1 1 0 0 1 1.4 0l5 5a1 1 0 1 1-1.4 1.42L13 5.4zM3 17a1 1 0 0 1 2 0v3h14v-3a1 1 0 0 1 2 0v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3z"/>
@@ -36,6 +39,20 @@
         </svg>
       </div>
     </div>
+
+    <portal to="modals" v-if="imageEditorModalOpen">
+      <modal @modal-close="handleClickaway">
+        <div class="w-screen">
+          <div class="w-2/3 m-auto bg-white select-text" style="min-height: 50em">
+            <div class="w-full p-8 m-2">
+              <div class="flex px-3" style="height: 700px">
+                <div ref="tuiImageEditor"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </modal>
+    </portal>
 
     <portal to="modals" v-if="metadataModalOpen">
       <modal @modal-close="handleClickaway">
@@ -64,7 +81,7 @@
               </div>
 
               <span class="hover:underline" v-on:click.prevent="handleClickaway">
-                Save &amp; Close
+                Save &amp;amp; Close
               </span>
             </div>
           </div>
@@ -76,13 +93,18 @@
 </template>
 
 <script>
+  import ImageEditor from 'tui-image-editor'
+  import 'tui-image-editor/dist/tui-image-editor.css'
+
   export default {
     props: ['image'],
 
     data () {
       return {
+        imageEditorModalOpen: false,
         metadataModalOpen: false,
-        previewImageModalOpen: false
+        previewImageModalOpen: false,
+        imageEditor: null
       }
     },
 
@@ -102,6 +124,47 @@
         reader.readAsDataURL(file)
       },
 
+      saveImageFromEditor (event) {
+        this.image.fileData = this.image.previewUrl = this.image.thumbnailUrl = this.imageEditor.toDataURL({format: 'jpeg'}) // jpeg or png
+
+        this.closeImageEditorModal()
+      },
+
+      openImageEditorModal (event) {
+        this.imageEditorModalOpen = true
+
+        this.$nextTick(() => {
+          this.imageEditor = new ImageEditor(this.$refs['tuiImageEditor'], {
+            includeUI: {
+              loadImage: {
+                path: this.image.previewUrl,
+                name: 'SampleImage'
+              },
+              initMenu: 'filter',
+              menuBarPosition: 'bottom'
+            },
+            cssMaxWidth: 700,
+            cssMaxHeight: 500
+          })
+
+          const buttons = this.$refs['tuiImageEditor'].querySelector('.tui-image-editor-header-buttons')
+
+          buttons.querySelectorAll('*').forEach(n => n.remove())
+
+          const saveButton = document.createElement('button')
+          saveButton.className = 'btn btn-primary btn-icon bg-primary'
+          saveButton.innerHTML = 'Save Edits'
+          saveButton.onclick = this.saveImageFromEditor
+
+          buttons.append(saveButton)
+        })
+      },
+
+      closeImageEditorModal () {
+        this.imageEditor.destroy()
+        this.imageEditorModalOpen = false
+      },
+
       openPreviewImageModal (event) {
         this.previewImageModalOpen = true
       },
@@ -111,6 +174,8 @@
       },
 
       handleClickaway () {
+        this.closeImageEditorModal()
+
         this.metadataModalOpen = false
         this.previewImageModalOpen = false
       },
@@ -125,3 +190,9 @@
     }
   }
 </script>
+
+<style>
+.tui-image-editor-header-logo {
+  display: none
+}
+</style>

@@ -2,6 +2,8 @@
 
 namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use RuntimeException;
 
 /**
@@ -17,13 +19,15 @@ trait HasEloquentImagery
 
     public static function bootHasEloquentImagery()
     {
-        $observer = new EloquentImageryObserver(get_called_class());
+        $modelClass = get_called_class();
 
         // register directly so that the instance is preserved (not preserved via static::observe())
-        static::registerModelEvent('retrieved', [$observer, 'retrieved']);
-        static::registerModelEvent('saving', [$observer, 'saving']);
-        static::registerModelEvent('saved', [$observer, 'saved']);
-        static::registerModelEvent('deleted', [$observer, 'deleted']);
+        static::registerModelEvent('retrieved', [$modelClass, 'eloquentImageryRetrieved']);
+        static::registerModelEvent('creating', [$modelClass, 'eloquentImagerySerializing']);
+        static::registerModelEvent('created', [$modelClass, 'eloquentImageryUnserializing']);
+        static::registerModelEvent('updating', [$modelClass, 'eloquentImagerySerializing']);
+        static::registerModelEvent('updated', [$modelClass, 'eloquentImageryUnserializing']);
+        static::registerModelEvent('deleted', [$modelClass, 'eloquentImageryDeleted']);
     }
 
     public function initializeHasEloquentImagery()
@@ -61,6 +65,118 @@ trait HasEloquentImagery
             }
 
             $this->attributes[$attribute] = $this->eloquentImageryImages[$attribute] = clone $prototype;
+        }
+    }
+
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Model|\ZiffMedia\LaravelEloquentImagery\Eloquent\HasEloquentImagery $model
+     */
+    public static function eloquentImageryRetrieved(Model $model)
+    {
+        foreach ($model->eloquentImageryImages as $attribute => $image) {
+            // in the case a model was retrieved and the image column was not returned
+            if (!array_key_exists($attribute, $model->attributes)) {
+                continue;
+            }
+
+            $attributeData = $model->attributes[$attribute];
+            $model->attributes[$attribute] = $image;
+
+            if ($attributeData == '') {
+                continue;
+            }
+
+            if (is_string($attributeData)) {
+                $attributeData = json_decode($attributeData, true);
+            }
+
+            $image->setStateFromAttributeData($attributeData);
+        }
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Model|\ZiffMedia\LaravelEloquentImagery\Eloquent\HasEloquentImagery $model
+     */
+    public static function eloquentImagerySerializing(Model $model)
+    {
+        $casts = $model->getCasts();
+
+        foreach ($model->eloquentImageryImages as $attribute => $image) {
+            if ($image->pathHasReplacements()) {
+                $image->updatePath([], $model);
+            }
+
+            if ($image instanceof ImageCollection) {
+                $image->purgeRemovedImages();
+            } elseif ($image instanceof Image && !$image->exists()) {
+                $model->attributes[$attribute] = null;
+                continue;
+            }
+
+            $attributeData = $image->getStateAsAttributeData();
+
+            $value = (isset($casts[$attribute]) && $casts[$attribute] === 'json')
+                ? $attributeData
+                : json_encode($attributeData);
+
+            $model->attributes[$attribute] = $value;
+        }
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Model|\ZiffMedia\LaravelEloquentImagery\Eloquent\HasEloquentImagery $model
+     */
+    public static function eloquentImageryUnserializing(Model $model)
+    {
+        $casts = $model->getCasts();
+
+        $errors = [];
+
+        foreach ($model->eloquentImageryImages as $attribute => $image) {
+            if ($image->pathHasReplacements()) {
+
+                $image->updatePath([], $model);
+
+                if ($image->pathHasReplacements()) {
+                    $errors[] = "After saving row, image for attribute {$attribute}'s path still contains unresolvable path replacements";
+                }
+
+                $imageState = $image->getStateAsAttributeData();
+
+                $value = (isset($casts[$attribute]) && $casts[$attribute] === 'json')
+                    ? $imageState
+                    : json_encode($imageState);
+
+                $model->getConnection()
+                    ->table($model->getTable())
+                    ->where($model->getKeyName(), $model->getKey())
+                    ->update([$attribute => $value]);
+            }
+            $image->flush();
+
+            $model->attributes[$attribute] = $image;
+        }
+
+        if ($errors) {
+            throw new RuntimeException(implode('; ', $errors));
+        }
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Model|\ZiffMedia\LaravelEloquentImagery\Eloquent\HasEloquentImagery $model
+     */
+    public static function eloquentImageryDeleted(Model $model)
+    {
+        if (in_array(SoftDeletes::class, class_uses_recursive($model)) && !$model->isForceDeleting()) {
+            return;
+        }
+
+        foreach ($model->eloquentImageryImages as $image) {
+            if ($image->exists()) {
+                $image->remove();
+                $image->flush();
+            }
         }
     }
 }

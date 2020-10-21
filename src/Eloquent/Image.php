@@ -191,6 +191,11 @@ class Image implements JsonSerializable
         }
     }
 
+    public function getData()
+    {
+        return $this->data;
+    }
+
     public function metadata()
     {
         return $this->metadata;
@@ -261,6 +266,11 @@ class Image implements JsonSerializable
         $this->hash = '';
         $this->timestamp = 0;
         $this->metadata = new Collection;
+    }
+
+    public function needsFlush()
+    {
+        return $this->flush;
     }
 
     public function flush()
