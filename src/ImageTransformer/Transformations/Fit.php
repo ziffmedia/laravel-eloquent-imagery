@@ -19,7 +19,7 @@ class Fit implements ImagickTransformationInterface
         $height = (int) $arguments->get('height', 0);
 
         if ($width === 0 && $height === 0) {
-            throw new RuntimeException('Both width and height cannot be 0 for fit operations');
+            return;
         }
 
         [$originalWidth, $originalHeight] = [$imagick->getImageWidth(), $imagick->getImageHeight()];
@@ -50,11 +50,20 @@ class Fit implements ImagickTransformationInterface
                 break;
 
             case 'limit':
+
+                $limitWidth = $width !== 0 ? $width : $originalWidth;
+                $limitHeight = $height !== 0 ? $height : $originalHeight;
+
+                // this only needs to be applied to images that exceed the limits on either width or height
+                if ($originalWidth <= $limitWidth && $originalHeight <= $limitHeight) {
+                    break;
+                }
+
                 foreach ($imagick as $image) {
                     $image->scaleImage(
-                        min($originalWidth, $width ?? $originalWidth),
-                        min($originalHeight, $height ?? $originalHeight),
-                        false
+                        $limitWidth,
+                        $limitHeight,
+                        true
                     );
                 }
 
@@ -65,12 +74,13 @@ class Fit implements ImagickTransformationInterface
 
                 $width = $width !== 0 ? $width : $originalWidth;
                 $height = $height !== 0 ? $height : $originalHeight;
+                $background = $arguments->get('background');
 
                 foreach ($imagick as $image) {
 
-                    $image->setImageBackgroundColor(
-                        $arguments->get('background', 'black')
-                    );
+                    if ($background) {
+                        $image->setImageBackgroundColor($background);
+                    }
 
                     if ($width > $originalWidth && $height > $originalHeight) {
                         $image->extentImage(

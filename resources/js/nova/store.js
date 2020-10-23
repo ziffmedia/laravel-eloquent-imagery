@@ -5,6 +5,7 @@ export const emitter = new Vue()
 export default {
   namespaced: true,
 
+
   state: {
     field: {},
     images: [],
@@ -93,13 +94,6 @@ export default {
       });
     },
 
-    addImage ({ state, commit }, image) {
-      let images = state.images
-      images.push(image)
-
-      commit('updateImages', images)
-    },
-
     removeImage ({ state, commit }, imageToRemove) {
       commit('updateImages', state.images.filter(image => image !== imageToRemove))
     },
@@ -118,6 +112,28 @@ export default {
         });
       });
     },
+
+    updateImageMetadata ({ state, commit }, payload) {
+      let images = state.images;
+
+      images.forEach((image) => {
+        if (payload.inputId && image.inputId && payload.inputId === image.inputId && payload.metadata) {
+          let newMetadata = Object.keys(payload.metadata).map(key => ({'key': key, 'value': payload.metadata[key]}))
+          let oldMetadata = image.metadata;
+          let metadata = {};
+
+          [oldMetadata, newMetadata].forEach((arr) => {
+            arr.forEach((item) => {
+              metadata[item['key']] = item['value']
+            })
+          });
+
+          image.metadata = Object.keys(metadata).map(key => ({'key': key, 'value': metadata[key]}))
+        }
+      });
+
+      commit('updateImages', images)
+    }
   },
 
   getters: {

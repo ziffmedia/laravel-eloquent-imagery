@@ -2,6 +2,7 @@
 
 namespace ZiffMedia\LaravelEloquentImagery\Test\Unit\ImageTransformer;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use ZiffMedia\LaravelEloquentImagery\ImageTransformer\ImageTransformer;
 use ZiffMedia\LaravelEloquentImagery\Test\Unit\AbstractTestCase;
@@ -10,17 +11,21 @@ class ImageTransformerTest extends AbstractTestCase
 {
     public function testImageTransformerHasTransformations()
     {
-        $imageTransformer = new ImageTransformer();
+        $config = include __DIR__ . '/../../../config/eloquent-imagery.php';
+
+        $imageTransformer = new ImageTransformer(
+            ImageTransformer::createTransformationCollection(Arr::get($config, 'render.transformation.transformers'))
+        );
 
         $this->assertInstanceOf(Collection::class, $imageTransformer->transformations);
-        $this->assertCount(5, $imageTransformer->transformations);
+        $this->assertCount(6, $imageTransformer->transformations);
     }
 
     public function testImageTransformerSetsQuality()
     {
-        $imageTransformer = new ImageTransformer;
+        $imageTransformer = new ImageTransformer(collect());
 
-        $bytesOriginal = file_get_contents(__DIR__ . '/picture.jpg');
+        $bytesOriginal = file_get_contents(__DIR__ . '/TestAssets/picture.jpg');
 
         $newBytes = $imageTransformer->transform(collect(['quality' => 50]), $bytesOriginal);
 

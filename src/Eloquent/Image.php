@@ -316,8 +316,8 @@ class Image implements JsonSerializable
     {
         if ($this->exists) {
             return [
-                'previewUrl' => $this->url('v' . $this->timestamp),
-                'metadata'   => $this->metadata
+                'path'     => $this->path,
+                'metadata' => $this->metadata
             ];
         }
 

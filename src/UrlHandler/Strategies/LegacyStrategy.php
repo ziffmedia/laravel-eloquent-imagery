@@ -55,6 +55,10 @@ class LegacyStrategy implements StrategyInterface
 
         $imageRequestData['path'] = $imagePath;
 
+        if (isset($imageRequestData['fit']) && $imageRequestData['fit'] === 'lim') {
+            $imageRequestData['fit'] = 'limit';
+        }
+
         return $imageRequestData;
     }
 
