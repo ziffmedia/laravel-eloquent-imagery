@@ -75,15 +75,15 @@
         let isCollection = this.field.isCollection
 
         let images = (isCollection ? this.field.value.images : (this.field.value ? [this.field.value] : []))
-                .map((image, i) => {
-                  return {
-                    inputId: 'eloquent-imagery-' + this.field.name + '-' + i,
-                    previewUrl: image.previewUrl,
-                    thumbnailUrl: image.thumbnailUrl,
-                    path: image.path,
-                    metadata: Object.keys(image.metadata).map(key => ({'key': key, 'value': image.metadata[key]}))
-                  }
-                })
+          .map((image, i) => {
+            return {
+              inputId: 'eloquent-imagery-' + this.field.name + '-' + i,
+              previewUrl: image.previewUrl,
+              thumbnailUrl: image.thumbnailUrl,
+              path: image.path,
+              metadata: Object.keys(image.metadata).map(key => ({'key': key, 'value': image.metadata[key]}))
+            }
+          })
 
         this.$store.commit(`eloquentImagery/${this.field.name}/initialize`, { field: this.field, isCollection, images });
         this.$store.commit(`eloquentImagery/${this.field.name}/pushImageValidation`, this.imageValidation());
