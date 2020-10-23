@@ -93,21 +93,13 @@
       },
 
       addImage (event, metadata = {}) {
-        let metadataToken = 'content-blocks-editor-uploaded-image-' + (Math.floor(Math.random() * 100000)+1)
-
-        let payload = {
-          file: event.target.files[0],
-          metadata: {'content-blocks-editor-uploaded-image': metadataToken}
-        }
-
-        this.$store.dispatch(`eloquentImagery/${this.field.name}/addImageFromFile`, payload)
-                .then(image => {
-                  if(!image) {
-                    this.$refs['addNewImageFileInput'].value = null;
-                  }
-                  this.imagePath = metadataToken
-                  this.replaceImage = false
-                });
+        this.$store.dispatch(`eloquentImagery/${this.field.name}/addImageFromFile`, {
+          file: event.target.files[0]
+        }).then(image => {
+          if (!image) {
+            this.$refs['addNewImageFileInput'].value = null;
+          }
+        });
       },
 
       removeImage (image) {
