@@ -92,7 +92,11 @@
       addImage (event, metadata = {}) {
         this.$store.dispatch(`eloquentImagery/${this.field.name}/addImageFromFile`, {
           file: event.target.files[0]
-        })
+        }).then(image => {
+          if (!image) {
+            this.$refs['addNewImageFileInput'].value = null;
+          }
+        });
       },
 
       removeImage (image) {
