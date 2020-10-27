@@ -108,7 +108,7 @@ class ImageTransformer
                 $imagick = $imagick->coalesceImages();
                 try {
                     $imagick->optimizeImageLayers();
-                    $imagick->quantizeImages(16, 16, 16, false, true);
+                    $imagick->quantizeImages(16, Imagick::COLORSPACE_RGB, 8, false, true);
                 } catch (\ImagickException $e) {
                     error_log('Caught ImagickException: ' . $e->getMessage());
                 }
