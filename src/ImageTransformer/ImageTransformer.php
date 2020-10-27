@@ -106,6 +106,12 @@ class ImageTransformer
 
             if ($imagick->getImageFormat() === 'GIF' && $imagick->getNumberImages() > 1) {
                 $imagick = $imagick->coalesceImages();
+                try {
+                    $imagick->optimizeImageLayers();
+                    $imagick->quantizeImages(16, 16, 16, false, true);
+                } catch (\ImagickException $e) {
+                    error_log('Caught ImagickException: ' . $e->getMessage());
+                }
                 $isCoalesced = true;
             }
 
