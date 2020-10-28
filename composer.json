@@ -31,9 +31,9 @@
     },
     "suggest": {
         "ext-imagick": "Imagick image modifications",
-    "ext-gd": "GD Based image modifications",
-    "laravel/framework": "This package is intended to be used with laravel/framework version >= 5.7"
-},
+        "ext-gd": "GD Based image modifications",
+        "laravel/framework": "This package is intended to be used with laravel/framework version >= 5.7"
+    },
     "conflict": {
         "laravel/framework": "<5.7.0",
         "laravel/nova": "<2.0.0"
