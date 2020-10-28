@@ -3,6 +3,7 @@
 namespace ZiffMedia\LaravelEloquentImagery\ImageTransformer;
 
 use Illuminate\Support\Collection;
+use Imagick;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -12,6 +13,7 @@ class ImageTransformer
         'crop'           => Transformations\Crop::class,
         'fallbackbanner' => Transformations\FallbackBanner::class,
         'fit'            => Transformations\Fit::class,
+        'gifoptimize'    => Transformations\GifOptimize::class,
         'gifstatic'      => Transformations\GifStatic::class,
         'grayscale'      => Transformations\Grayscale::class,
         'jpegexif'       => Transformations\JpegExif::class,
@@ -99,13 +101,14 @@ class ImageTransformer
                 }
             }
 
-            $imagick = new \Imagick();
+            $imagick = new Imagick();
             $imagick->readImageBlob($imageBytes);
 
             $isCoalesced = false;
 
             if ($imagick->getImageFormat() === 'GIF' && $imagick->getNumberImages() > 1) {
                 $imagick = $imagick->coalesceImages();
+
                 $isCoalesced = true;
             }
 

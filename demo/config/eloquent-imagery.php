@@ -119,6 +119,7 @@ return [
             'transformers' => [
                 'jpegnormalize',
                 'jpegexif',
+                'gifoptimize',
                 'gifstatic',
                 'quality',
                 'fit',
