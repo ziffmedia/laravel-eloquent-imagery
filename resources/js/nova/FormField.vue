@@ -28,8 +28,8 @@
             </div>
           </div>
         </draggable>
+        <image-modal :field="field"></image-modal>
       </div>
-
     </template>
   </default-field>
 </template>
@@ -38,6 +38,7 @@
   import { FormField, HandlesValidationErrors, Errors } from 'laravel-nova'
   import Draggable from 'vuedraggable'
   import ImageCardInput from './ImageCardInput'
+  import ImageModal from './ImageModal'
 
   import store from './store'
 
@@ -45,12 +46,11 @@
     mixins: [FormField, HandlesValidationErrors],
 
     props: ['resourceName', 'resourceId', 'field'],
-
     components: {
       ImageCardInput,
-      Draggable
+      Draggable,
+      ImageModal
     },
-
     computed: {
       images: {
         get () {
@@ -85,17 +85,23 @@
             }
           })
 
-        this.$store.commit(`eloquentImagery/${this.field.name}/initialize`, { fieldName: this.field.name, isCollection, images })
+        this.$store.commit(`eloquentImagery/${this.field.name}/initialize`, { field: this.field, isCollection, images });
+        this.$store.commit(`eloquentImagery/${this.field.name}/pushImageValidation`, this.imageValidation());
       },
 
       addImage (event, metadata = {}) {
         this.$store.dispatch(`eloquentImagery/${this.field.name}/addImageFromFile`, {
           file: event.target.files[0]
-        })
+        }).then(image => {
+          if (!image) {
+            this.$refs['addNewImageFileInput'].value = null;
+          }
+        });
       },
 
       removeImage (image) {
         this.$store.dispatch(`eloquentImagery/${this.field.name}/removeImage`, image)
+        this.$refs['addNewImageFileInput'].value = null;
       },
 
       fill (formData) {
@@ -111,6 +117,50 @@
         }))
 
         formData.append(this.field.attribute, JSON.stringify(this.isCollection ? serializedImages : serializedImages.pop()))
+      },
+      imageValidation() {
+        return [
+          {
+            condition: (file, field) => {
+              let fileType = file.type.replace('image/', '');
+              return ['jpg', 'jpeg', 'png', 'gif'].indexOf(fileType) == -1;
+            },
+            modal: (file, field) => {
+              let fileType = file.type.replace('image/', '');
+
+              return {
+                'header': 'A ' + fileType + ' image is unsupported.',
+                'message': 'An image must be in a .jpg, .png, or .gif format.',
+                'showConfirm': false
+              }
+            }
+          },
+          {
+            condition: (file, field) => {
+              return field.maximumSize && file.size > field.maximumSize;
+            },
+            modal: (file, field) => {
+              let formattedFileSize;
+              let fileSize = file.size;
+              switch (true) {
+                case (fileSize / 1000000 > 1):
+                  formattedFileSize = Math.round(fileSize / 1000000) + 'MB';
+                  break;
+                case (fileSize / 1000 > 1):
+                  formattedFileSize = Math.round(fileSize / 1000) + 'KB';
+                  break;
+                default:
+                  formattedFileSize = fileSize;
+              }
+
+              return {
+                'header': 'Are you sure you want to upload this image?',
+                'message': 'Warning image is ' + formattedFileSize,
+                'showConfirm': true
+              }
+            }
+          }
+        ];
       }
     },
 
