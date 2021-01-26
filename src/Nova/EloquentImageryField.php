@@ -2,7 +2,10 @@
 
 namespace ZiffMedia\LaravelEloquentImagery\Nova;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Laravel\Nova\Fields\Field;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use ZiffMedia\LaravelEloquentImagery\Eloquent\Image;
@@ -16,6 +19,8 @@ class EloquentImageryField extends Field
 
     protected $thumbnailUrlModifiers;
     protected $previewUrlModifiers;
+
+    protected $validationRules = [];
 
     protected function fillAttribute(NovaRequest $request, $requestAttribute, $model, $attribute)
     {
@@ -60,9 +65,9 @@ class EloquentImageryField extends Field
         }
 
         return array_merge(parent::jsonSerialize(), [
-            'value'        => $value,
-            'maximumSize'  => $this->maxiumSize ?? null,
-            'isCollection' => $isCollection
+            'value'           => $value,
+            'isCollection'    => $isCollection,
+            'validationRules' => $this->validationRules
         ]);
     }
 
@@ -104,27 +109,36 @@ class EloquentImageryField extends Field
         return $this;
     }
 
-    /**
-     * @param  integer|string $maximumSize
-     * @return $this
-     */
-    public function withMaximumSize($maximumSize)
+    public function withMaximumSizeSoftLimit($limit)
     {
-        $unit = strtolower(substr($maximumSize,-2));
-        $measure = (integer) $maximumSize;
+        $this->validationRules['size_limit'] = array_merge(
+            $this->validationRules['size_limit'] ?? [],
+            ['soft_limit' => $this->parseSize($limit)]
+        );
 
-        switch(true) {
-            case ($unit == 'kb'):
-                $this->maxiumSize = $measure * 1000;
+        return $this;
+    }
 
-                break;
-            case ($unit == 'mb'):
-                $this->maxiumSize = $measure * 1000000;
+    public function withMaximumSizeHardLimit($limit, $ui = 'modal')
+    {
+        throw_if(!in_array($ui, ['modal', 'error']), '$ui must be either "modal" or "error"');
 
-                break;
-            default:
-                $this->maxiumSize = $measure;
-        }
+        $this->validationRules['size_limit'] = array_merge(
+            $this->validationRules['size_limit'] ?? [],
+            ['hard_limit' => $this->parseSize($limit), 'hard_limit_ui' => $ui]
+        );
+
+        return $this;
+    }
+
+    public function withOnlySpecificTypes($types, $ui = 'modal')
+    {
+        throw_if(!in_array($ui, ['modal', 'error']), '$ui must be either "modal" or "error"');
+
+        $this->validationRules['type_limit'] = [
+            'types' => is_array($types) ? $types : explode(',', $types),
+            'ui' => $ui
+        ];
 
         return $this;
     }
@@ -183,6 +197,29 @@ class EloquentImageryField extends Field
 
         // finally replace the image collection's interal/wrapped collection
         $imageCollection->replaceWrappedCollectionForImages($newCollectionForImages);
+    }
+
+    protected function parseSize($size)
+    {
+        if (is_int($size)) {
+            return $size;
+        }
+
+        // allow configured sizes to be any of the following KB, Kb, kb, k (all resolve to k, w/ or w/o b)
+        [$sizeInt, $unit] = [(int) $size, substr(rtrim(strtolower($size), 'b'), -1)];
+
+        switch ($unit) {
+            case 'g': return $sizeInt * 1073741824;
+            case 'm': return $sizeInt * 1048576;
+            case 'k': return $sizeInt * 1024;
+
+            default:
+                if (!is_numeric($unit)) {
+                    throw new InvalidArgumentException("$size was provided but is not a valid configuration value in " . __CLASS__);
+                }
+        }
+
+        return $sizeInt;
     }
 }
 

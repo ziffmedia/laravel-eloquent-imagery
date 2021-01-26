@@ -1,13 +1,12 @@
 <template>
-  <default-field :field="field" :errors="errors" :full-width-content="true">
+  <default-field :field="field" v-bind:errors="combinedErrors" :full-width-content="true" :show-help-text="field.helpText != null">
     <template slot="field">
       <div class="bg-white rounded-lg">
         <draggable v-model="images" group="image-group" v-on:start="drag=true" v-on:end="drag=false" :class="`flex flex-wrap mb-2 laravel-eloquent-imagery-${this.resourceName}`">
+
           <div v-for="(image, index) in images" :class="`pl-1 pr-1 border border-70 flex items-end m-1 laravel-eloquent-imagery-image-${(index + 1)}`">
               <image-card-input v-bind:image.sync="image" v-on:remove-image="removeImage"></image-card-input>
           </div>
-
-          <!--<button v-on:click.prevent="debugThis">De</button>-->
 
           <div v-if="(isCollection == false && images.length == 0) || isCollection" slot="footer" class="flex items-center pl-1 pr-1 m-1 border border-70">
             <div class="content-center px-6 py-4">
@@ -28,7 +27,9 @@
             </div>
           </div>
         </draggable>
-        <image-modal :field="field"></image-modal>
+
+        <image-validator-modal v-bind="validationUi.modal"></image-validator-modal>
+
       </div>
 
     </template>
@@ -39,7 +40,7 @@
   import { FormField, HandlesValidationErrors, Errors } from 'laravel-nova'
   import Draggable from 'vuedraggable'
   import ImageCardInput from './ImageCardInput'
-  import ImageModal from './ImageModal'
+  import ImageValidatorModal from './ImageValidatorModal'
 
   import store from './store'
 
@@ -49,12 +50,30 @@
     props: ['resourceName', 'resourceId', 'field'],
 
     components: {
-      ImageCardInput,
       Draggable,
-      ImageModal
+      ImageCardInput,
+      ImageValidatorModal
     },
 
     computed: {
+      combinedErrors: {
+        get () {
+          const errorText = this.$store.getters[`eloquentImagery/${this.field.name}/getValidationUi`].errorText
+
+          if (errorText) {
+            return new Errors(Object.assign({}, this.errors.all(), { [this.field.attribute]: [errorText] }))
+          }
+
+          return this.errors
+        }
+      },
+
+      validationUi: {
+        get () {
+          return this.$store.getters[`eloquentImagery/${this.field.name}/getValidationUi`]
+        }
+      },
+
       images: {
         get () {
           return this.$store.getters[`eloquentImagery/${this.field.name}/getImages`]
@@ -70,14 +89,11 @@
     },
 
     methods: {
-      debugThis () {
-        console.log(this.images)
-      },
 
       setInitialValue () {
-        let isCollection = this.field.isCollection
+        const isCollection = this.field.isCollection
 
-        let images = (isCollection ? this.field.value.images : (this.field.value ? [this.field.value] : []))
+        const images = (isCollection ? this.field.value.images : (this.field.value ? [this.field.value] : []))
           .map((image, i) => {
             return {
               inputId: 'eloquent-imagery-' + this.field.name + '-' + i,
@@ -88,18 +104,15 @@
             }
           })
 
-        this.$store.commit(`eloquentImagery/${this.field.name}/initialize`, { field: this.field, isCollection, images });
-        this.$store.commit(`eloquentImagery/${this.field.name}/pushImageValidation`, this.imageValidation());
+        this.$store.commit(`eloquentImagery/${this.field.name}/initialize`, { field: this.field, isCollection, images, validationRules: this.field.validationRules });
       },
 
       addImage (event, metadata = {}) {
         this.$store.dispatch(`eloquentImagery/${this.field.name}/addImageFromFile`, {
           file: event.target.files[0]
-        }).then(image => {
-          if (!image) {
-            this.$refs['addNewImageFileInput'].value = null;
-          }
-        });
+        }).catch(() => {
+          this.$refs['addNewImageFileInput.value'] = null
+        })
       },
 
       removeImage (image) {
@@ -120,50 +133,6 @@
         }))
 
         formData.append(this.field.attribute, JSON.stringify(this.isCollection ? serializedImages : serializedImages.pop()))
-      },
-      imageValidation() {
-        return [
-          {
-            condition: (file, field) => {
-              let fileType = file.type.replace('image/', '');
-              return ['jpg', 'jpeg', 'png', 'gif'].indexOf(fileType) == -1;
-            },
-            modal: (file, field) => {
-              let fileType = file.type.replace('image/', '');
-
-              return {
-                'header': 'A ' + fileType + ' image is unsupported.',
-                'message': 'An image must be in a .jpg, .png, or .gif format.',
-                'showConfirm': false
-              }
-            }
-          },
-          {
-            condition: (file, field) => {
-              return field.maximumSize && file.size > field.maximumSize;
-            },
-            modal: (file, field) => {
-              let formattedFileSize;
-              let fileSize = file.size;
-              switch (true) {
-                case (fileSize / 1000000 > 1):
-                  formattedFileSize = Math.round(fileSize / 1000000) + 'MB';
-                  break;
-                case (fileSize / 1000 > 1):
-                  formattedFileSize = Math.round(fileSize / 1000) + 'KB';
-                  break;
-                default:
-                  formattedFileSize = fileSize;
-              }
-
-              return {
-                'header': 'Are you sure you want to upload this image?',
-                'message': 'Warning image is ' + formattedFileSize,
-                'showConfirm': true
-              }
-            }
-          }
-        ];
       }
     },
 

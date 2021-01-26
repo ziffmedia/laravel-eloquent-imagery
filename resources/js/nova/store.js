@@ -9,77 +9,147 @@ export default {
     field: {},
     images: [],
     isCollection: false,
-    modal:{
-      header: '',
-      message: '',
-      showConfirm: false,
-      show: false
+    validationRules: [],
+    validationUi: {
+      errorText: '',
+      modal: {
+        show: false,
+        headerText: '',
+        bodyText: '',
+        handleConfirm: null,
+        handleCancel: null
+      }
     },
-    imageValidators: []
   },
 
   mutations: {
-    initialize(state, payload) {
+    initialize (state, payload) {
       state.field = payload.field;
       state.images = payload.images
       state.isCollection = payload.isCollection
+      state.validationRules = payload.validationRules
     },
 
-    updateImages(state, images) {
+    updateImages (state, images) {
       state.images = images
     },
 
-    updateModal(state, modal) {
-      state.modal = modal;
+    updateValidationUiErrorText (state, errorText) {
+      state.validationUi.errorText = errorText
     },
 
-    pushImageValidation(state, callbacks) {
-      callbacks.forEach((validator)=>{
-        if(typeof validator.condition == "undefined" || typeof validator.modal == "undefined" ) {
-          throw 'Callback must have a condition and modal properties set.';
-        }
-        state.imageValidators.push(validator);
+    updateValidationUiModal (state, modal) {
+      Object.assign(state.validationUi.modal, modal ?? {
+        show: false,
+        headerText: '',
+        bodyText: '',
+        handleConfirm: null,
+        handleCancel: null
       })
     }
   },
 
   actions: {
     addImageFromFile ({ state, commit, dispatch }, payload) {
-      let file = payload.file
-      let imageUrl = URL.createObjectURL(file)
-      let metadata = payload.hasOwnProperty('metadata') ? payload.metadata : []
+      const file = payload.file
+      const imageUrl = URL.createObjectURL(file)
+      const metadata = payload.hasOwnProperty('metadata') ? payload.metadata : []
 
-      let image = {
+      const image = {
         inputId: 'eloquent-imagery-' + state.field.name + '-' + (state.images.length + 1),
         previewUrl: imageUrl,
         thumbnailUrl: imageUrl,
         metadata: Object.keys(metadata).map(key => ({'key': key, 'value': metadata[key]})),
       }
 
-      let modalPromise = new Promise((resolve) => {
-        resolve(true);
-      });
+      return new Promise((resolve, reject) => {
 
-      state.imageValidators.forEach((imageValidator)=> {
-        if(!imageValidator.condition(file,state.field)) {
-          return;
+        // file type validation
+        if (state.validationRules.hasOwnProperty('type_limit') && !state.validationRules['type_limit'].types.includes(file.type)) {
+          if (state.validationRules['type_limit'].ui !== 'modal') {
+            commit('updateValidationUiErrorText', 'A ' + file.type + ' file is unsupported.')
+
+            // ensure message goes away after 5 seconds
+            setTimeout(() => commit('updateValidationUiErrorText'), 5000)
+
+            return reject()
+          }
+
+          commit('updateValidationUiModal', {
+            show: true,
+            headerText: 'A ' + file.type + ' file is unsupported.',
+            bodyText: 'An image must be one of the following formats: ' + state.validationRules['type_limit'].types.join(', '),
+            handleCancel: () => {
+              commit('updateValidationUiModal')
+
+              reject()
+            }
+          })
+
+          return
         }
 
-        let modal = imageValidator.modal(file,state.field)
-        modalPromise = dispatch('showModal',modal);
-      });
+        // size limit validation
+        if (state.validationRules.hasOwnProperty('size_limit')) {
+          // hard limit, no modal
+          if (state.validationRules['size_limit'].hasOwnProperty('hard_limit')
+            && file.size > state.validationRules['size_limit']['hard_limit']
+          ) {
+            if (state.validationRules['size_limit']['hard_limit_ui'] !== 'modal') {
+              commit('updateValidationUiErrorText', 'The file (' + file.size + ' bytes) is too large to upload, files must be less than ' + state.validationRules['size_limit']['hard_limit'])
 
-      return modalPromise.then((shouldLoadImage)=> {
-        if(!shouldLoadImage){
-          return false;
+              // ensure message goes away after 5 seconds
+              setTimeout(() => commit('updateValidationUiErrorText'), 5000)
+
+              return reject()
+            }
+
+            commit('updateValidationUiModal', {
+              show: true,
+              headerText: 'File is too large to upload.',
+              bodyText: 'The file (' + file.size + ' bytes) is too large to upload, files must be less than ' + state.validationRules['size_limit']['hard_limit'],
+              handleCancel: () => {
+                commit('updateValidationUiModal')
+
+                reject()
+              }
+            })
+
+            return
+          }
+
+          // soft limit
+          if (state.validationRules['size_limit'].hasOwnProperty('soft_limit')
+            && file.size > state.validationRules['size_limit']['soft_limit']
+          ) {
+            commit('updateValidationUiModal', {
+              show: true,
+              headerText: 'Are you sure you want to upload this image?',
+              bodyText: 'This file is (' + file.size + ' bytes) which is greater than the suggested limit size of ' + state.validationRules['size_limit']['soft_limit'],
+              handleCancel: () => {
+                commit('updateValidationUiModal')
+
+                reject()
+              },
+              handleConfirm: () => {
+                commit('updateValidationUiModal')
+
+                resolve()
+              }
+            })
+
+            return
+          }
         }
 
-        let images = state.images
-        images.push(image)
+        resolve()
+      }).then(() => {
+        return new Promise(resolve => {
+          let images = state.images
+          images.push(image)
 
-        commit('updateImages', images)
+          commit('updateImages', images)
 
-        return new Promise((resolve, reject) => {
           let reader = new FileReader()
 
           reader.addEventListener('load', () => {
@@ -90,7 +160,9 @@ export default {
 
           reader.readAsDataURL(file)
         })
-      });
+      }).catch(() => {
+        return Promise.reject()
+      })
     },
 
     addImage ({ state, commit }, image) {
@@ -102,21 +174,6 @@ export default {
 
     removeImage ({ state, commit }, imageToRemove) {
       commit('updateImages', state.images.filter(image => image !== imageToRemove))
-    },
-
-    notifyCloseModalEvent({state}, modalOption) {
-      emitter.$emit('close',modalOption);
-    },
-
-    showModal({ state, commit }, modal){
-      commit('updateModal',modal);
-
-      return new Promise((resolve, reject) =>  {
-        state.modal.show = true;
-        emitter.$on('close', (modalOption) => {
-          resolve(modalOption);
-        });
-      });
     },
 
     updateImageMetadata ({ state, commit }, payload) {
@@ -145,6 +202,7 @@ export default {
   getters: {
     getImages: (state) => state.images,
     getIsCollection: (state) => state.isCollection,
-    getModal: (state) => state.modal
+    getModal: (state) => state.modal,
+    getValidationUi: (state) => state.validationUi
   }
 }
