@@ -44,10 +44,13 @@ class ImageCollectionExample extends Resource
         return [
             ID::make()->sortable(),
 
-            Text::make('Name'),
+            Text::make('Name')
+                ->rules('required'),
 
             EloquentImageryField::make('Images')
-                ->withMaximumSize('5mb'),
+                ->withMaximumSizeSoftLimit('100kb')
+                ->withMaximumSizeHardLimit('7mb', 'modal')
+                ->withOnlySpecificTypes('image/png,image/jpeg,image/gif', 'modal')
         ];
     }
 
