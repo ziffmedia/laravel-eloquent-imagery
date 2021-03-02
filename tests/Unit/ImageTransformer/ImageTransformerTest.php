@@ -18,7 +18,7 @@ class ImageTransformerTest extends AbstractTestCase
         );
 
         $this->assertInstanceOf(Collection::class, $imageTransformer->transformations);
-        $this->assertCount(6, $imageTransformer->transformations);
+        $this->assertCount(7, $imageTransformer->transformations);
     }
 
     public function testImageTransformerSetsQuality()

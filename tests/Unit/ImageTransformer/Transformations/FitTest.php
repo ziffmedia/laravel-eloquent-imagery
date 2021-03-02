@@ -19,7 +19,7 @@ class FitTest extends TestCase
         $imagickMock->method('getImageWidth')->willReturn(500);
         $imagickMock->method('getImageHeight')->willReturn(500);
 
-        $this->createMockIterator($imagickMock, [$imagickMock], 2);
+        $this->createMockIterator($imagickMock, [$imagickMock]);
 
         $imagickMock->expects($this->once())
             ->method('scaleImage')
@@ -55,7 +55,7 @@ class FitTest extends TestCase
         $imagickMock->method('getImageWidth')->willReturn(200);
         $imagickMock->method('getImageHeight')->willReturn(50);
 
-        $this->createMockIterator($imagickMock, [$imagickMock], 2);
+        $this->createMockIterator($imagickMock, [$imagickMock]);
 
         $imagickMock->expects($this->once())
             ->method('scaleImage')
@@ -74,7 +74,7 @@ class FitTest extends TestCase
         $imagickMock->method('getImageWidth')->willReturn(50);
         $imagickMock->method('getImageHeight')->willReturn(500);
 
-        $this->createMockIterator($imagickMock, [$imagickMock], 2);
+        $this->createMockIterator($imagickMock, [$imagickMock]);
 
         $imagickMock->expects($this->once())
             ->method('scaleImage')
@@ -89,22 +89,26 @@ class FitTest extends TestCase
      * @param int $startSequenceAt
      * @param false $includeCallsToKey
      */
-    protected function createMockIterator(\Iterator $iterator, array $items, $startSequenceAt = 0, $includeCallsToKey = false)
+    protected function createMockIterator(\Iterator $iterator, array $items)
     {
-        $iterator->expects($this->at($startSequenceAt))->method('rewind');
+        $iteratorState = new \ArrayObject([
+            'iteration' => 0,
+            'values' => $items
+        ]);
 
-        foreach ($items as $k => $v) {
-            $iterator->expects($this->at(++$startSequenceAt))->method('valid')->will($this->returnValue(true));
-            $iterator->expects($this->at(++$startSequenceAt))->method('current')->will($this->returnValue($v));
+        $iterator->method('rewind');
 
-            if ($includeCallsToKey) {
-                $iterator->expects($this->at(++$startSequenceAt))->method('key')->will($this->returnValue($k));
-            }
+        $iterator->method('valid')->will($this->returnCallback(function () use ($iteratorState) {
+            return isset($iteratorState['values'][$iteratorState['iteration']]);
+        }));
 
-            $iterator->expects($this->at(++$startSequenceAt))->method('next');
-        }
+        $iterator->method('current')->will($this->returnCallback(function () use ($iteratorState) {
+            return $iteratorState['values'][$iteratorState['iteration']];
+        }));
 
-        $iterator->expects($this->at($startSequenceAt))->method('valid')->will($this->returnValue(false));
+        $iterator->method('next')->will($this->returnCallback(function () use ($iteratorState) {
+            return $iteratorState['iteration']++;
+        }));
     }
 }
 
