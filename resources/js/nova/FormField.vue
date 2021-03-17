@@ -54,15 +54,15 @@
     computed: {
       images: {
         get () {
-          return this.$store.getters[`eloquentImagery/${this.field.name}/getImages`]
+          return this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
         },
         set (value) {
-          this.$store.commit(`eloquentImagery/${this.field.name}/updateImages`, value)
+          this.$store.commit(`eloquentImagery/${this.field.attribute}/updateImages`, value)
         }
       },
 
       isCollection () {
-        return this.$store.getters[`eloquentImagery/${this.field.name}/getIsCollection`]
+        return this.$store.getters[`eloquentImagery/${this.field.attribute}/getIsCollection`]
       }
     },
 
@@ -77,7 +77,7 @@
         let images = (isCollection ? this.field.value.images : (this.field.value ? [this.field.value] : []))
           .map((image, i) => {
             return {
-              inputId: 'eloquent-imagery-' + this.field.name + '-' + i,
+              inputId: 'eloquent-imagery-' + this.field.attribute.replace('_', '-') + '-' + i,
               previewUrl: image.previewUrl,
               thumbnailUrl: image.thumbnailUrl,
               path: image.path,
@@ -85,17 +85,17 @@
             }
           })
 
-        this.$store.commit(`eloquentImagery/${this.field.name}/initialize`, { fieldName: this.field.name, isCollection, images })
+        this.$store.commit(`eloquentImagery/${this.field.attribute}/initialize`, { fieldName: this.field.attribute, isCollection, images })
       },
 
       addImage (event, metadata = {}) {
-        this.$store.dispatch(`eloquentImagery/${this.field.name}/addImageFromFile`, {
+        this.$store.dispatch(`eloquentImagery/${this.field.attribute}/addImageFromFile`, {
           file: event.target.files[0]
         })
       },
 
       removeImage (image) {
-        this.$store.dispatch(`eloquentImagery/${this.field.name}/removeImage`, image)
+        this.$store.dispatch(`eloquentImagery/${this.field.attribute}/removeImage`, image)
       },
 
       fill (formData) {
@@ -115,11 +115,11 @@
     },
 
     created () {
-      this.$store.registerModule(`eloquentImagery/${this.field.name}`, store)
+      this.$store.registerModule(`eloquentImagery/${this.field.attribute}`, store)
     },
 
     destroyed () {
-      this.$store.unregisterModule(`eloquentImagery/${this.field.name}`)
+      this.$store.unregisterModule(`eloquentImagery/${this.field.attribute}`)
     }
   }
 </script>

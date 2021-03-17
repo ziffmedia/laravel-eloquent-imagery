@@ -307,6 +307,26 @@ class Image implements JsonSerializable
         return $properties[$name];
     }
 
+    public function __isset(string $name): bool
+    {
+        $properties = [
+            'index'     => $this->index,
+            'path'      => $this->path,
+            'extension' => $this->extension,
+            'animated'  => $this->animated,
+            'width'     => $this->width,
+            'height'    => $this->height,
+            'hash'      => $this->hash,
+            'timestamp' => $this->timestamp,
+        ];
+
+        if (!array_key_exists($name, $properties)) {
+            throw new OutOfBoundsException("Property $name is not accessible");
+        }
+
+        return isset($properties[$name]);
+    }
+
     public function toArray()
     {
         return $this->getStateAsAttributeData();
