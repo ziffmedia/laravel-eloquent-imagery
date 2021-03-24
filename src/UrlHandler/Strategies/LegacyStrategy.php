@@ -17,7 +17,7 @@ class LegacyStrategy implements StrategyInterface
         'quality'    => '/^quality_(?P<value>[0-9]+)/', //quality, if applicable
         'background' => '/^bg_(?P<value>[\da-f]{6})$/', // background hex
         'trim'       => '/^trim_(?P<value>\d+)$/', // trim, tolerance
-        'crop'       => '/^crop_(?P<value>[\d,x]+)$/', // crop operations
+        'crop'       => '/^crop_(?P<value>[a-z][A-Z]+)$/', // crop operations, crop_topCenter|crop_center|crop_bottomCenter along with size_950x534
         'static'     => '/^static(?:_(?P<value>\d*)){0,1}$/' // ensure even animated gifs are single frame
     ];
 
