@@ -22,8 +22,6 @@ class Crop implements ImagickTransformationInterface
         $width = (int)$arguments->get('width', 0);
         $height = (int)$arguments->get('height', 0);
 
-        echo("doing crop: $crop - $width - $height");
-
         [$imgWidth, $imgHeight] = [$imagick->getImageWidth(), $imagick->getImageHeight()];
 
         $x = 0;
@@ -50,6 +48,9 @@ class Crop implements ImagickTransformationInterface
             default:
                 return;
         }
+
+        echo("doing crop x y: $crop - $width - $height - $x - $y");
+        
         foreach ($imagick as $image) {
             $image->cropImage($width, $height, $x, $y);
         }
