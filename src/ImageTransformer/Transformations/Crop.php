@@ -49,8 +49,6 @@ class Crop implements ImagickTransformationInterface
                 return;
         }
 
-        echo("doing crop x y: $crop - $width - $height - $x - $y");
-        
         foreach ($imagick as $image) {
             $image->cropImage($width, $height, $x, $y);
         }
