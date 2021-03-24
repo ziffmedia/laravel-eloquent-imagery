@@ -21,16 +21,16 @@ class Crop implements ImagickTransformationInterface
         $crop = $arguments->get('crop');
 
         // crop command must be in the format \dx\d
-        if (!preg_match('#(?P<x>\d+)x(?P<y>\d+)#', $crop, $matches)) {
+        if (!preg_match('#(?P<width>\d+)x(?P<height>\d+)#', $crop, $matches)) {
             return;
         }
 
-        [$x, $y] = [$matches['x'], $matches['y']];
+        [$width, $height] = [$matches['width'], $matches['height']];
 
-        [$width, $height] = [$imagick->getImageWidth(), $imagick->getImageHeight()];
+//        [$width, $height] = [$imagick->getImageWidth(), $imagick->getImageHeight()];
 
         foreach ($imagick as $image) {
-            $image->cropImage($width, $height, $x, $y);
+            $image->cropImage($width, $height, 0, 0);
         }
     }
 }
