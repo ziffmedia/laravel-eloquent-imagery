@@ -25,16 +25,16 @@ class Crop implements ImagickTransformationInterface
         [$imgWidth, $imgHeight] = [$imagick->getImageWidth(), $imagick->getImageHeight()];
 
         //cropping only one side to get target proportion
-        $this->oneSideCrop($imagick, $crop, $imgWidth, $imgHeight, $targetWidth, $targetHeight);
-
-        //now resize to achieve target size
-        foreach ($imagick as $image) {
-            $image->resizeImage(
-                $targetWidth !== 0 ? $targetWidth : $imgWidth,
-                $targetHeight !== 0 ? $targetHeight : $imgHeight,
-                Imagick::FILTER_POINT,
-                1
-            );
+        if ($this->oneSideCrop($imagick, $crop, $imgWidth, $imgHeight, $targetWidth, $targetHeight)) {
+            //now resize to achieve target size
+            foreach ($imagick as $image) {
+                $image->resizeImage(
+                    $targetWidth !== 0 ? $targetWidth : $imgWidth,
+                    $targetHeight !== 0 ? $targetHeight : $imgHeight,
+                    Imagick::FILTER_POINT,
+                    1
+                );
+            }
         }
     }
 
@@ -68,7 +68,7 @@ class Crop implements ImagickTransformationInterface
                         $y = $imgHeight - $newImgHeight;
                     break;
                 default:
-                    return;
+                    return false;
             }
 
         } else {
@@ -90,13 +90,14 @@ class Crop implements ImagickTransformationInterface
                     $x = 0;
                     break;
                 default:
-                    return;
+                    return false;
             }
         }
 
         foreach ($imagick as $image) {
             $image->cropImage($newImgWidth, $newImgHeight, $x, $y);
         }
+        return true;
     }
 }
 
