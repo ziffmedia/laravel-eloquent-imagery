@@ -39,6 +39,18 @@ class Crop implements ImagickTransformationInterface
                 if ($imgHeight > $height)
                     $y = (int)(($imgHeight - $height) / 2);
                 break;
+            case "centerRight":
+                //means x-center y-center
+                if ($imgWidth > $width)
+                    $x =$imgWidth - $width;
+                if ($imgHeight > $height)
+                    $y = (int)(($imgHeight - $height) / 2);
+                break;
+            case "centerLeft":
+                //means x-center y-center
+                if ($imgHeight > $height)
+                    $y = (int)(($imgHeight - $height) / 2);
+                break;
             case "bottomCenter":
                 if ($imgWidth > $width)
                     $x = (int)(($imgWidth - $width) / 2);
