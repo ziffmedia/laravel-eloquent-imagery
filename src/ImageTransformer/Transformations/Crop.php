@@ -14,14 +14,18 @@ class Crop implements ImagickTransformationInterface
      */
     public function applyImagick(Collection $arguments, Imagick $imagick)
     {
+        echo('doing crop');
+
         if (!$arguments->has('crop')) {
             return;
         }
 
         $crop = $arguments->get('crop');
 
+        echo('crop argument' . $crop);
+
         // crop command must be in the format \dx\d
-        if (preg_match('#(?P<x>\d)x(?P<y>\d)#', $crop, $matches)) {
+        if (!preg_match('#(?P<x>\d+)x(?P<y>\d+)#', $crop, $matches)) {
             return;
         }
 
