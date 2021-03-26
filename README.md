@@ -211,6 +211,17 @@ If you wish to demo the Nova specific capabilities, you must first install the d
 version of nova to `demo/nova`.  Once it is there, continue with the above script from the top,
 then visit the examples at `/nova` in your browser.
 
+###Demo through docker:
+in the root to build docker image
+```
+ docker build -t my-imagery .
+```
+
+to start demo server
+```
+docker run -it --rm -p8000:8000 --name my-running-imagery-demo my-imagery sh -c "php artisan serve --host 0.0.0.0"
+```
+
 ## TODO
 
 - support moving images as a result of updated path parts (attribute update, etc)

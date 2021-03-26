@@ -124,6 +124,8 @@ return [
                 'quality',
                 'fit',
                 'grayscale',
+                'crop',
+                'fill'
             ]
         ]
     ],

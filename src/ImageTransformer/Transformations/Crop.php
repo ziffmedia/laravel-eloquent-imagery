@@ -5,7 +5,7 @@ namespace ZiffMedia\LaravelEloquentImagery\ImageTransformer\Transformations;
 use Illuminate\Support\Collection;
 use Imagick;
 
-class Crop implements ImagickTransformationInterface
+class Crop extends BaseTransformation
 {
 
     /**
@@ -19,85 +19,28 @@ class Crop implements ImagickTransformationInterface
         }
 
         $crop = $arguments->get('crop');
-        $targetWidth = (int)$arguments->get('width', 0);
-        $targetHeight = (int)$arguments->get('height', 0);
+        // crop command must be in the format \dx\d
+        if (!preg_match('#(?P<x>\d+)x(?P<y>\d+)#', $crop, $matches))
+            return;
+        [$targetWidth, $targetHeight] = [$matches['x'], $matches['y']];
 
+        $gravity = $this->getGravityParam($arguments);
         [$imgWidth, $imgHeight] = [$imagick->getImageWidth(), $imagick->getImageHeight()];
-
-        //cropping only one side to get target proportion
-        if ($this->oneSideCrop($imagick, $crop, $imgWidth, $imgHeight, $targetWidth, $targetHeight)) {
-            //now resize to achieve target size
-            foreach ($imagick as $image) {
-                $image->resizeImage(
-                    $targetWidth !== 0 ? $targetWidth : $imgWidth,
-                    $targetHeight !== 0 ? $targetHeight : $imgHeight,
-                    Imagick::FILTER_POINT,
-                    1
-                );
-            }
-        }
-    }
-
-    private function oneSideCrop(Imagick $imagick, $crop, $imgWidth, $imgHeight, $targetWidth, $targetHeight)
-    {
-        $originProportion = $imgWidth / $imgHeight;
-        $targetProportion = $targetWidth / $targetHeight;
-
-        $newImgWidth = $imgWidth;
-        $newImgHeight = $imgHeight;
 
         $x = 0;
         $y = 0;
 
-        if ($originProportion < $targetProportion) {
-            //means we need reduce height
-            $newImgHeight = (int)($imgWidth * $targetHeight / $targetWidth);
-            //in this case we do not change width, thus x always 0
-            switch ($crop) {
-                case "topCenter":
-                    $y = 0;
-                    break;
-                case "center":
-                case "centerRight":
-                case "centerLeft":
-                    if ($imgHeight > $newImgHeight)
-                        $y = (int)(($imgHeight - $newImgHeight) / 2);
-                    break;
-                case "bottomCenter":
-                    if ($imgHeight > $newImgHeight)
-                        $y = $imgHeight - $newImgHeight;
-                    break;
-                default:
-                    return false;
-            }
+        if ($imgWidth > $targetWidth) {
+            $x = $this->getGravityXValue($gravity, $imgWidth, $targetWidth);
+        }
 
-        } else {
-            //need reduce width
-            $newImgWidth = (int)($imgHeight * $targetWidth / $targetHeight);
-            //in this case we do not change height, thus y always 0
-            switch ($crop) {
-                case "topCenter":
-                case "bottomCenter":
-                case "center":
-                    if ($imgWidth > $newImgWidth)
-                        $x = (int)(($imgWidth - $newImgWidth) / 2);
-                    break;
-                case "centerRight":
-                    if ($imgWidth > $newImgWidth)
-                        $x = $imgWidth - $newImgWidth;
-                    break;
-                case "centerLeft":
-                    $x = 0;
-                    break;
-                default:
-                    return false;
-            }
+        if ($imgHeight > $targetHeight) {
+            $y = $this->getGravityYValue($gravity, $imgHeight, $targetHeight);
         }
 
         foreach ($imagick as $image) {
-            $image->cropImage($newImgWidth, $newImgHeight, $x, $y);
+            $image->cropImage($targetWidth, $targetHeight, $x, $y);
         }
-        return true;
     }
 }
 
