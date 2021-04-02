@@ -11,6 +11,7 @@ class ImageTransformer
 {
     const BUILTIN_TRANSFORMATIONS = [
         'crop'           => Transformations\Crop::class,
+        'fill'           => Transformations\Fill::class,
         'fallbackbanner' => Transformations\FallbackBanner::class,
         'fit'            => Transformations\Fit::class,
         'gifoptimize'    => Transformations\GifOptimize::class,

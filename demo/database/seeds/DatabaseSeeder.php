@@ -22,8 +22,8 @@ class DatabaseSeeder extends Seeder
     public function user()
     {
         DB::table('users')->insert([
-            'name'     => 'Developer',
-            'email'    => 'developer@example.com',
+            'name' => 'Developer',
+            'email' => 'developer@example.com',
             'password' => bcrypt('password')
         ]);
     }
@@ -41,6 +41,24 @@ class DatabaseSeeder extends Seeder
                 'Fit Limit to 300 in width, 200 in height - should not scale up' => 'fit_limit|size_300x200',
             ];
             $model->image->setData(file_get_contents(resource_path('example-images/080-150x150.png')));
+            $model->save();
+        });
+
+        tap(new SingleImageExample, function ($model) {
+            $model->name = 'Croppable Image JPG Original 1600x1067';
+            $model->variations = [
+                'Crop 100x100, gravity south-west' => 'crop_100x100|gravity_south_west',
+                'Crop 300x300, gravity auto - means center' => 'crop_300x300|gravity_auto',
+                'Crop 300x300, gravity auto - means center by default' => 'crop_300x300',
+                // missing params example
+                'Fill 500x100, gravity auto' => 'fill|size_500x100',
+                'Fill 500x100, gravity north-west (west is ignored due to requested aspect ratio)' => 'fill|size_500x100|gravity_north_west',
+                'Fill 500x100, gravity north-east (north is ignored due to requested aspect ratio)' => 'fill|size_100x500|gravity_north_east',
+                // missing params example (for size)
+                'Fill 100x100, gravity auto' => 'fill|size_100x100',
+                'Fill 400x200, gravity auto' => 'fill|size_400x200',
+            ];
+            $model->image->setData(file_get_contents(resource_path('example-images/multiple-people-1600x1067.jpg')));
             $model->save();
         });
 
@@ -63,7 +81,7 @@ class DatabaseSeeder extends Seeder
             $model->variations = [
                 'no transformations' => '',
                 'Grayscale' => 'grayscale',
-                'Fit Scale Down to 200 pixels in width'=> 'fit_scale|size_200x',
+                'Fit Scale Down to 200 pixels in width' => 'fit_scale|size_200x',
                 'Fit Limit Pad Up to 800 pixels in width, extra space added has purple background' => 'fit_lpad|size_800x|bg_800080',
                 'Fit Resize to 300x100, will skew image' => 'fit_resize|size_300x100',
                 'Fit Limit to 600 in width, 300 in height - should not scale up' => 'fit_limit|size_600x300',

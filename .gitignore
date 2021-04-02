@@ -3,3 +3,4 @@ composer.lock
 .idea/
 /node_modules
 .phpunit.result.cache
+Dockerfile
