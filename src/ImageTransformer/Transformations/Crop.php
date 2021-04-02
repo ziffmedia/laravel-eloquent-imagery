@@ -5,8 +5,9 @@ namespace ZiffMedia\LaravelEloquentImagery\ImageTransformer\Transformations;
 use Illuminate\Support\Collection;
 use Imagick;
 
-class Crop extends BaseTransformation
+class Crop implements ImagickTransformationInterface
 {
+    use Concerns\HasGravityFeatures;
 
     /**
      * @param Collection $arguments
@@ -14,18 +15,23 @@ class Crop extends BaseTransformation
      */
     public function applyImagick(Collection $arguments, Imagick $imagick)
     {
-        if (!$arguments->has('crop')) {
+        if (!$arguments->has('crop') || $arguments->has('fill')) {
             return;
         }
 
         $crop = $arguments->get('crop');
+
         // crop command must be in the format \dx\d
-        if (!preg_match('#(?P<x>\d+)x(?P<y>\d+)#', $crop, $matches))
+        if (!preg_match('#(?P<x>\d+){0,1}x(?P<y>\d+){0,1}#', $crop, $matches)) {
             return;
-        [$targetWidth, $targetHeight] = [$matches['x'], $matches['y']];
+        }
 
         $gravity = $this->getGravityParam($arguments);
+
         [$imgWidth, $imgHeight] = [$imagick->getImageWidth(), $imagick->getImageHeight()];
+
+        $targetWidth = isset($matches['x']) && $matches['x'] > 0 ? (int) $matches['x'] : $imgWidth;
+        $targetHeight = isset($matches['y']) && $matches['y'] > 0 ? (int) $matches['y'] : $imgHeight;
 
         $x = 0;
         $y = 0;

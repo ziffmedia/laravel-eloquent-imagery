@@ -1,10 +1,10 @@
 <?php
 
-namespace ZiffMedia\LaravelEloquentImagery\ImageTransformer\Transformations;
+namespace ZiffMedia\LaravelEloquentImagery\ImageTransformer\Transformations\Concerns;
 
 use Illuminate\Support\Collection;
 
-abstract class BaseTransformation implements ImagickTransformationInterface
+trait HasGravityFeatures
 {
     protected function getGravityParam(Collection $arguments): array
     {
@@ -16,10 +16,12 @@ abstract class BaseTransformation implements ImagickTransformationInterface
         if (in_array('north', $gravity)) {
             return 0;
         }
+
         if (in_array('south', $gravity)) {
             return $imgHeight - $targetHeight;
         }
-        return (int)(($imgHeight - $targetHeight) / 2);
+
+        return (int) ($imgHeight - $targetHeight) / 2;
     }
 
     protected function getGravityXValue($gravity, $imgWidth, $targetWidth): int
@@ -27,9 +29,12 @@ abstract class BaseTransformation implements ImagickTransformationInterface
         if (in_array('west', $gravity)) {
             return 0;
         }
+
         if (in_array('east', $gravity)) {
             return $imgWidth - $targetWidth;
         }
-        return (int)(($imgWidth - $targetWidth) / 2);
+
+        return (int) ($imgWidth - $targetWidth) / 2;
     }
 }
+

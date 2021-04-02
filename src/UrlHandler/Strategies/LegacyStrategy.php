@@ -19,7 +19,7 @@ class LegacyStrategy implements StrategyInterface
         'trim'       => '/^trim_(?P<value>\d+)$/', // trim, tolerance
         'crop'       => '/^crop_(?P<value>[\dx]+)$/', // crop operations
         'fill'       => '/^fill$/', // fill operation
-        'gravity'       => '/^g_(?P<value>[\w_]+)$/', // optional gravity param, g_auto - means center, g_north or g_south
+        'gravity'    => '/^gravity_(?P<value>[\w_]+)$/', // optional gravity param, g_auto - means center, g_north or g_south
         'static'     => '/^static(?:_(?P<value>\d*)){0,1}$/' // ensure even animated gifs are single frame
     ];
 

@@ -5,8 +5,9 @@ namespace ZiffMedia\LaravelEloquentImagery\ImageTransformer\Transformations;
 use Illuminate\Support\Collection;
 use Imagick;
 
-class Fill extends BaseTransformation
+class Fill implements ImagickTransformationInterface
 {
+    use Concerns\HasGravityFeatures;
 
     public function applyImagick(Collection $arguments, Imagick $imagick)
     {
@@ -14,38 +15,46 @@ class Fill extends BaseTransformation
             return;
         }
 
-        $targetWidth = (int)$arguments->get('width', 0);
-        $targetHeight = (int)$arguments->get('height', 0);
-        $gravity = $this->getGravityParam($arguments);
-
         [$imgWidth, $imgHeight] = [$imagick->getImageWidth(), $imagick->getImageHeight()];
 
-        if ($imgWidth < $targetWidth || $imgHeight < $targetHeight) {
-            //img needs to be scaled up so it covers target area.
-            $originProportion = $imgWidth / $imgHeight;
-            if ($targetWidth - $imgWidth > $targetHeight - $imgHeight)
-                $increaseC = $targetWidth / $imgWidth;
-            else
-                $increaseC = $targetHeight / $imgHeight;
+        $targetWidth = (int) $arguments->get('width');
+        $targetHeight = (int) $arguments->get('height');
 
-            $imgWidth = (int)($imgWidth * $increaseC);
-            $imgHeight = (int)($imgHeight * $increaseC);
+        if ($targetWidth === 0 && $targetHeight === 0) {
+            return;
+        }
+
+        if ($targetWidth === 0) {
+            $targetWidth = $imgWidth;
+        }
+
+        if ($targetHeight === 0) {
+            $targetHeight = $imgHeight;
+        }
+
+        $gravity = $this->getGravityParam($arguments);
+
+        if ($imgWidth < $targetWidth || $imgHeight < $targetHeight) {
+
+            // img needs to be scaled up so it covers target area.
+            $increaseC = ($targetWidth - $imgWidth > $targetHeight - $imgHeight)
+                ? $targetWidth / $imgWidth
+                : $targetHeight / $imgHeight;
 
             foreach ($imagick as $image) {
                 $image->resizeImage(
-                    $imgWidth,
-                    $imgHeight,
+                    $imgWidth * $increaseC,
+                    $imgHeight * $increaseC,
                     Imagick::FILTER_POINT,
                     1
                 );
             }
         }
 
-
-        //cropping only one side to get target proportion
+        // cropping only one side to get target proportion
         $this->gravityCrop($imagick, $gravity, $imgWidth, $imgHeight, $targetWidth, $targetHeight);
 
-        //now resize to achieve target size
+        // now resize to achieve target size
         foreach ($imagick as $image) {
             $image->resizeImage(
                 $targetWidth !== 0 ? $targetWidth : $imgWidth,
@@ -54,10 +63,9 @@ class Fill extends BaseTransformation
                 1
             );
         }
-
     }
 
-    private function gravityCrop(Imagick $imagick, $gravity, $imgWidth, $imgHeight, $targetWidth, $targetHeight)
+    private function gravityCrop(Imagick $imagick, $gravity, int $imgWidth, int $imgHeight, int $targetWidth, int $targetHeight)
     {
         $originProportion = $imgWidth / $imgHeight;
         $targetProportion = $targetWidth / $targetHeight;
@@ -66,13 +74,13 @@ class Fill extends BaseTransformation
         $newImgHeight = $imgHeight;
 
         if ($originProportion < $targetProportion) {
-            //means we need reduce height
-            $newImgHeight = (int)($imgWidth * $targetHeight / $targetWidth);
+            // means we need reduce height
+            $newImgHeight = $imgWidth * $targetHeight / $targetWidth;
             $x = 0;
             $y = $this->getGravityYValue($gravity, $imgHeight, $newImgHeight);
         } else {
-            //need reduce width
-            $newImgWidth = (int)($imgHeight * $targetWidth / $targetHeight);
+            // need reduce width
+            $newImgWidth = $imgHeight * $targetWidth / $targetHeight;
             $y = 0;
             $x = $this->getGravityXValue($gravity, $imgWidth, $newImgWidth);
         }
