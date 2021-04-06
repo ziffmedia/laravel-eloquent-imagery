@@ -57,6 +57,7 @@ class DatabaseSeeder extends Seeder
                 // missing params example (for size)
                 'Fill 100x100, gravity auto' => 'fill|size_100x100',
                 'Fill 400x200, gravity auto' => 'fill|size_400x200',
+                'Fill 2000x200, gravity auto (will do scale up and then fill)' => 'fill|size_2000x200',
             ];
             $model->image->setData(file_get_contents(resource_path('example-images/multiple-people-1600x1067.jpg')));
             $model->save();
