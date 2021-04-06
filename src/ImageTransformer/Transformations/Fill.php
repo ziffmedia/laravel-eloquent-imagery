@@ -37,13 +37,13 @@ class Fill implements ImagickTransformationInterface
         if ($imgWidth < $targetWidth || $imgHeight < $targetHeight) {
 
             // img needs to be scaled up so it covers target area.
-            $increaseC = ($targetWidth - $imgWidth > $targetHeight - $imgHeight)
+            $scaleUpFactor = ($targetWidth - $imgWidth > $targetHeight - $imgHeight)
                 ? $targetWidth / $imgWidth
                 : $targetHeight / $imgHeight;
 
-            //we need to save new image size into variables because they are being used later on.
-            $imgWidth = (int)($imgWidth * $increaseC);
-            $imgHeight = (int)($imgHeight * $increaseC);
+            // new width and height
+            $imgWidth = (int) ($imgWidth * $scaleUpFactor);
+            $imgHeight = (int) ($imgHeight * $scaleUpFactor);
 
             foreach ($imagick as $image) {
                 $image->resizeImage(
