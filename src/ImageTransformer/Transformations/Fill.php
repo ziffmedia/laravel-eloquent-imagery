@@ -41,10 +41,14 @@ class Fill implements ImagickTransformationInterface
                 ? $targetWidth / $imgWidth
                 : $targetHeight / $imgHeight;
 
+            //we need to save new image size into variables because they are being used later on.
+            $imgWidth = (int)($imgWidth * $increaseC);
+            $imgHeight = (int)($imgHeight * $increaseC);
+
             foreach ($imagick as $image) {
                 $image->resizeImage(
-                    $imgWidth * $increaseC,
-                    $imgHeight * $increaseC,
+                    $imgWidth,
+                    $imgHeight,
                     Imagick::FILTER_POINT,
                     1
                 );
