@@ -2,7 +2,7 @@
 
 ## Description
 
-`ziffdavis/laravel-eloquent-imagery` takes a unique approach to handling
+`ziffmedia/laravel-eloquent-imagery` takes a unique approach to handling
 images. Instead of treating images as model relations, they are treated
 as attributes of a model. To this end, image information is stored
 in a tables column (a model's attribute) at a given name. Additionally,
@@ -32,12 +32,12 @@ be applied at upload time.
 
 First, install the package:
 
-    $ composer require ziffdavis/laravel-eloquent-imagery
+    $ composer require ziffmedia/laravel-eloquent-imagery
 
 In Laravel 5.5+. this library will self-register. Next, you should
 publish the vendor (config) files:
 
-    $ artisan vendor:publish --provider=ZiffDavis\LaravelEloquentImagery\EloquentImageryProvider
+    $ artisan vendor:publish --provider="ZiffMedia\LaravelEloquentImagery\EloquentImageryProvider"
 
 It is now ready to use.
 
@@ -57,14 +57,14 @@ Next, in the model, add in the HasEloquentImagery trait and configure a class
 property called `$eloquentImagery` like so:
 
 ```php
-use ZiffDavis\LaravelEloquentImagery\Eloquent\HasEloquentImagery;
+use ZiffMedia\LaravelEloquentImagery\Eloquent\HasEloquentImagery;
 
 class Post extends Model
 {
     use HasEloquentImagery;
 
     protected $eloquentImagery = [
-        'image' => 'posts/{id}.{extension}',
+        'path' => 'posts/{id}.{extension}',
     ];
 }
 ```
@@ -83,7 +83,7 @@ use the `eloquentImageryCollection` method at construction to setup
 the collection:
 
 ```php
-use ZiffDavis\LaravelEloquentImagery\Eloquent\HasEloquentImagery;
+use ZiffMedia\LaravelEloquentImagery\Eloquent\HasEloquentImagery;
 
 class Post extends Model
 {
