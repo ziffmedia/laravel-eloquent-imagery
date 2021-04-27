@@ -64,6 +64,24 @@ class DatabaseSeeder extends Seeder
         });
 
         tap(new SingleImageExample, function ($model) {
+            $model->name = 'Croppable Image WEBP Original 1600x1067';
+            $model->variations = [
+                'Fill 500x100, gravity north-west (west is ignored due to requested aspect ratio)' => 'fill|size_500x100|gravity_north_west',
+            ];
+            $model->image->setData(file_get_contents(resource_path('example-images/multiple-people-1600x1067.webp')));
+            $model->save();
+        });
+
+        tap(new SingleImageExample, function ($model) {
+            $model->name = 'Croppable Image BMP Original 150x150';
+            $model->variations = [
+                'Fill 500x100, gravity north-west (west is ignored due to requested aspect ratio)' => 'fill|size_500x100|gravity_north_west',
+            ];
+            $model->image->setData(file_get_contents(resource_path('example-images/080-150x150.bmp')));
+            $model->save();
+        });
+
+        tap(new SingleImageExample, function ($model) {
             $model->name = 'Red Rectangle JPG Original 500x200';
             $model->variations = [
                 'no transformations' => '',
