@@ -124,6 +124,8 @@ return [
                 'fit',
                 'grayscale',
                 'fallbackbanner'
+                'crop',
+                'fill'
             ]
         ]
     ],
