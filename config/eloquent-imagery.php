@@ -123,7 +123,7 @@ return [
                 'quality',
                 'fit',
                 'grayscale',
-                'fallbackbanner'
+                'fallbackbanner',
                 'crop',
                 'fill'
             ]
