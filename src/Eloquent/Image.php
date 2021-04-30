@@ -186,6 +186,13 @@ class Image implements JsonSerializable
                 // magic bytes
                 $this->animated = (bool) preg_match('#(\x00\x21\xF9\x04.{4}\x00\x2C.*){2,}#s', $data);
                 break;
+            case 'image/webp':
+                $this->extension = 'webp';
+                break;
+            case 'image/bmp':
+            case 'image/x-ms-bmp':
+                $this->extension = 'bmp';
+                break;
             default:
                 throw new RuntimeException('Unsupported mime-type for expected image: ' . $mimeType);
         }
