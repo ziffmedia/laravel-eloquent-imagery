@@ -60,11 +60,10 @@ class Fill implements ImagickTransformationInterface
 
         // now resize to achieve target size
         foreach ($imagick as $image) {
-            $image->resizeImage(
+            $image->scaleImage(
                 $targetWidth !== 0 ? $targetWidth : $imgWidth,
                 $targetHeight !== 0 ? $targetHeight : $imgHeight,
-                Imagick::FILTER_POINT,
-                1
+                true
             );
         }
     }
