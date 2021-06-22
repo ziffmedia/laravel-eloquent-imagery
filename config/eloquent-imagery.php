@@ -126,7 +126,9 @@ return [
                 'fallbackbanner',
                 'crop',
                 'fill'
-            ]
+            ],
+
+            'skip_gifs' => false,
         ]
     ],
 

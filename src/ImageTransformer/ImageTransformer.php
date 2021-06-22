@@ -107,6 +107,10 @@ class ImageTransformer
 
             $isCoalesced = false;
 
+            if (config('eloquent-imagery.render.transformation.skip_gifs', false) && $imagick->getImageFormat() === 'GIF') {
+                return $imageBytes;
+            }
+
             if ($imagick->getImageFormat() === 'GIF' && $imagick->getNumberImages() > 1) {
                 $imagick = $imagick->coalesceImages();
 
