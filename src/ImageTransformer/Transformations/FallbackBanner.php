@@ -11,6 +11,10 @@ class FallbackBanner implements ImagickTransformationInterface
 
     public function applyImagick(Collection $arguments, Imagick $imagick)
     {
+        if (!$arguments->has('fit') || $arguments->get('fallback') == false) {
+            return;
+        }
+
         [$originalWidth, $originalHeight] = [$imagick->getImageWidth(), $imagick->getImageHeight()];
 
         foreach ($imagick as $image) {
