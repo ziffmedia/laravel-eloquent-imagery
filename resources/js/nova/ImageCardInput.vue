@@ -1,6 +1,6 @@
 <template>
-  <div class="px-6 py-4">
-    <img style="max-height: 80px" class="block mx-auto mb-4 sm:mb-0 sm:mr-4 sm:ml-0"
+  <div class="px-2 py-2">
+    <img style="max-height: 100px" class="block mx-auto mb-2 sm:mb-0 sm:mr-4 sm:ml-0"
       v-bind:src="image.thumbnailUrl"
       v-on:click.prevent="openPreviewImageModal"
     />
@@ -38,52 +38,39 @@
         </div>
       </div>
 
+      <div class="mt-1 text-danger-dark text-xs" v-if="isMissingMetadata">
+        *Missing required metadata
+      </div>
+
       <portal to="modals" v-if="metadataModalOpen">
-        <modal @modal-close="handleClickaway">
-          <div class="w-screen">
-            <div class="w-2/3 m-auto bg-white select-text" style="min-height: 12em">
-              <div class="w-full p-8 m-2">
-
-                <h3>Image Metadata</h3>
-
-                <div class="flex px-3" v-for="(metadata, index) in image.metadata">
-                  <input type="text" class="w-1/3 text-xs form-control form-input form-input-bordered m-1" v-model="image.metadata[index].key" />
-                  <input type="text" class="w-full text-xs form-control form-input form-input-bordered m-1" v-model="image.metadata[index].value" />
-                  <span class="cursor-pointer m-2" v-on:click.prevent="removeMetadata(image, index)">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                      <path class="heroicon-ui" d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2zm0 2v14h14V5H5zm11 7a1 1 0 0 1-1 1H9a1 1 0 0 1 0-2h6a1 1 0 0 1 1 1z"/>
-                    </svg>
-                  </span>
-                </div>
-
-                <div class="float-right">
-                  <span class="cursor-pointer m-2" v-on:click.prevent="addMetadata(image)">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                      <path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2zm0 2v14h14V5H5zm8 6h2a1 1 0 0 1 0 2h-2v2a1 1 0 0 1-2 0v-2H9a1 1 0 0 1 0-2h2V9a1 1 0 0 1 2 0v2z"/>
-                    </svg>
-                  </span>
-                </div>
-
-                <span class="hover:underline cursor-pointer block m-2" v-on:click.prevent="handleClickaway">
-                  Save &amp; Close
-                </span>
-              </div>
-            </div>
-          </div>
-        </modal>
+        <image-metadata-modal :isReadonly="isReadonly" v-bind:image.sync="image" @modalClose="handleClickaway"></image-metadata-modal>
       </portal>
-    </div> <!-- end !isReadonly block -->
+    </div>
   </div>
 </template>
 
 <script>
+  import ImageMetadataModal from './ImageMetadataModal'
+
   export default {
     props: ['image', 'isReadonly'],
+
+    components: {
+      ImageMetadataModal
+    },
 
     data () {
       return {
         metadataModalOpen: false,
         previewImageModalOpen: false
+      }
+    },
+
+    computed: {
+      isMissingMetadata() {
+          let missingAltText = this.image.metadata.findIndex(item => (item.key === 'altText' && item.value != '')) === -1
+          let missingAttribution = this.image.metadata.findIndex(item => (item.key === 'attribution' && item.value != '')) === -1
+          return missingAltText || missingAttribution
       }
     },
 
@@ -115,14 +102,6 @@
         this.metadataModalOpen = false
         this.previewImageModalOpen = false
       },
-
-      addMetadata (image) {
-        image.metadata.push({key: '', value: ''})
-      },
-
-      removeMetadata (image, index) {
-        image.metadata.splice(index, 1)
-      }
     }
   }
 </script>
