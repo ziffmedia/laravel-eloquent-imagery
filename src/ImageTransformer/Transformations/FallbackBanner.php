@@ -10,7 +10,7 @@ class FallbackBanner implements ImagickTransformationInterface
 {
     public function applyImagick(Collection $arguments, Imagick $imagick)
     {
-        if ($arguments->get('fallback', false) !== true) {
+        if (!isset($arguments['fallbackbanner'])) {
             return;
         }
 
