@@ -107,7 +107,6 @@ class EloquentImageryField extends Field
     protected function resolveImageFromFormData($formData, Image $image)
     {
         if ($formData === null) {
-
             if ($image->exists()) {
                 $image->remove();
             }
@@ -115,11 +114,11 @@ class EloquentImageryField extends Field
             return;
         }
 
-        if ($formData['fileData']) {
+        if (isset($formData['fileData'])) {
             $image->setData($formData['fileData']);
         }
 
-        $image->metadata = new Collection($formData['metadata']);
+        $image->metadata = new Collection($formData['metadata'] ?? []);
     }
 
     protected function resolveImageCollectionFromFormData(array $formData, ImageCollection $imageCollection)

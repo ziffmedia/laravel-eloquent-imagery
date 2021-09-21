@@ -40,7 +40,7 @@
 
         return images.map((image, i) => {
           return {
-            inputId: 'eloquent-imagery-' + this.field.name + '-' + i,
+            inputId: 'eloquent-imagery-' + this.field.attribute + '-' + i,
             previewUrl: image.previewUrl,
             thumbnailUrl: image.thumbnailUrl,
             metadata: Object.keys(image.metadata).map(key => ({'key': key, 'value': image.metadata[key]}))

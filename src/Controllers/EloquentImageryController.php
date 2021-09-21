@@ -37,9 +37,6 @@ class EloquentImageryController extends Controller
 
         $imageActualPath = $imageRequestData->get('path');
 
-        // $imageRequest = ImageRequest::create();
-        // $imageRequest->fillFromRequest($request);
-
         // assume the mime type is PNG unless otherwise specified
         $mimeType = 'image/png';
         $imageBytes = null;
@@ -68,9 +65,11 @@ class EloquentImageryController extends Controller
         if (!$imageBytes && config('eloquent-imagery.render.fallback.enable')) {
             /** @var Filesystem $fallbackFilesystem */
             $fallbackFilesystem = app(FilesystemManager::class)->disk(config('eloquent-imagery.render.fallback.filesystem'));
+
             try {
                 $imageBytes = $fallbackFilesystem->get($imageActualPath);
                 $mimeType = $fallbackFilesystem->getMimeType($imageActualPath);
+
                 if (config('eloquent-imagery.render.fallback.mark_images')) {
                     $imageRequestData['fallbackbanner'] = true;
                 }

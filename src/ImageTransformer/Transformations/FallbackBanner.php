@@ -8,9 +8,12 @@ use ImagickDraw;
 
 class FallbackBanner implements ImagickTransformationInterface
 {
-
     public function applyImagick(Collection $arguments, Imagick $imagick)
     {
+        if (!isset($arguments['fallbackbanner'])) {
+            return;
+        }
+
         [$originalWidth, $originalHeight] = [$imagick->getImageWidth(), $imagick->getImageHeight()];
 
         foreach ($imagick as $image) {
