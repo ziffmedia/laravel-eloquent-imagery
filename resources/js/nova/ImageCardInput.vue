@@ -1,39 +1,42 @@
 <template>
   <div class="px-6 py-4">
     <img style="max-height: 80px" class="block mx-auto mb-4 sm:mb-0 sm:mr-4 sm:ml-0"
-      v-bind:src="image.thumbnailUrl"
-      v-on:click.prevent="openPreviewImageModal"
+         v-bind:src="image.thumbnailUrl"
+         v-on:click.prevent="openPreviewImageModal"
     />
 
     <portal to="modals" v-if="previewImageModalOpen">
       <modal @modal-close="handleClickaway">
-        <img class="block mx-auto mb-4 sm:mb-0 sm:mr-4 sm:ml-0" v-bind:src="image.previewUrl" />
+        <img class="block mx-auto mb-4 sm:mb-0 sm:mr-4 sm:ml-0" v-bind:src="image.previewUrl"/>
       </modal>
     </portal>
 
     <div v-show="!isReadonly">
       <input
-        ref="replaceImageFileInput"
-        class="select-none form-file-input"
-        type="file"
-        :id="image.inputId"
-        @change="fileChange"
+          ref="replaceImageFileInput"
+          class="select-none form-file-input"
+          type="file"
+          :id="image.inputId"
+          @change="fileChange"
       />
 
       <div class="flex">
         <div class="flex-1 text-center cursor-pointer" v-on:click="() => this.$refs['replaceImageFileInput'].click()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-            <path d="M13 5.41V17a1 1 0 0 1-2 0V5.41l-3.3 3.3a1 1 0 0 1-1.4-1.42l5-5a1 1 0 0 1 1.4 0l5 5a1 1 0 1 1-1.4 1.42L13 5.4zM3 17a1 1 0 0 1 2 0v3h14v-3a1 1 0 0 1 2 0v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3z"/>
+            <path
+                d="M13 5.41V17a1 1 0 0 1-2 0V5.41l-3.3 3.3a1 1 0 0 1-1.4-1.42l5-5a1 1 0 0 1 1.4 0l5 5a1 1 0 1 1-1.4 1.42L13 5.4zM3 17a1 1 0 0 1 2 0v3h14v-3a1 1 0 0 1 2 0v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3z"/>
           </svg>
         </div>
-        <div class="flex-1 text-center cursor-pointer" v-on:click.prevent="openMetadataModal">
+        <div class="flex-1 text-center cursor-pointer" v-on:click.prevent="openMetadataModal(image)">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-            <path d="M2.59 13.41A1.98 1.98 0 0 1 2 12V7a5 5 0 0 1 5-5h4.99c.53 0 1.04.2 1.42.59l8 8a2 2 0 0 1 0 2.82l-8 8a2 2 0 0 1-2.82 0l-8-8zM20 12l-8-8H7a3 3 0 0 0-3 3v5l8 8 8-8zM7 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+            <path
+                d="M2.59 13.41A1.98 1.98 0 0 1 2 12V7a5 5 0 0 1 5-5h4.99c.53 0 1.04.2 1.42.59l8 8a2 2 0 0 1 0 2.82l-8 8a2 2 0 0 1-2.82 0l-8-8zM20 12l-8-8H7a3 3 0 0 0-3 3v5l8 8 8-8zM7 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
           </svg>
         </div>
         <div class="flex-1 text-center cursor-pointer" v-on:click.prevent="$emit('remove-image', image)">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-            <path d="M16.24 14.83a1 1 0 0 1-1.41 1.41L12 13.41l-2.83 2.83a1 1 0 0 1-1.41-1.41L10.59 12 7.76 9.17a1 1 0 0 1 1.41-1.41L12 10.59l2.83-2.83a1 1 0 0 1 1.41 1.41L13.41 12l2.83 2.83z"/>
+            <path
+                d="M16.24 14.83a1 1 0 0 1-1.41 1.41L12 13.41l-2.83 2.83a1 1 0 0 1-1.41-1.41L10.59 12 7.76 9.17a1 1 0 0 1 1.41-1.41L12 10.59l2.83-2.83a1 1 0 0 1 1.41 1.41L13.41 12l2.83 2.83z"/>
           </svg>
         </div>
       </div>
@@ -47,29 +50,49 @@
                 <h3>Image Metadata</h3>
 
                 <div class="flex px-3" v-for="(metadata, index) in image.metadata">
-                  <input type="text" class="w-1/3 text-xs form-control form-input form-input-bordered m-1" v-model="image.metadata[index].key" />
-                  <input type="text" class="w-full text-xs form-control form-input form-input-bordered m-1" v-model="image.metadata[index].value" />
+                  <input type="text" class="w-1/6 text-xs form-control form-input form-input-bordered m-1"
+                         v-if="[{'key':'altText', 'label':'Alt Text'},{'key':'attribution', 'label':'Attribution'}, {'key':'description', 'label':'Caption'}].filter(item=>item.key===image.metadata[index].key).length===0"
+                         v-model="image.metadata[index].key"/>
+                  <div v-else class="w-1/6 text-right my-auto">{{
+                      [{
+                        'key': 'altText',
+                        'label': 'Alt Text'
+                      },
+                        {'key': 'attribution', 'label': 'Attribution'},
+                        {
+                          'key': 'description',
+                          'label': 'Caption'
+                        }].filter(item => item.key === image.metadata[index].key)[0].label
+                    }}:
+                  </div>
+                  <input type="text" class="w-5/6 text-xs form-control form-input form-input-bordered m-1"
+                         v-model="image.metadata[index].value"/>
                   <span class="cursor-pointer m-2" v-on:click.prevent="removeMetadata(image, index)">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                      <path class="heroicon-ui" d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2zm0 2v14h14V5H5zm11 7a1 1 0 0 1-1 1H9a1 1 0 0 1 0-2h6a1 1 0 0 1 1 1z"/>
+                      <path class="heroicon-ui"
+                            d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2zm0 2v14h14V5H5zm11 7a1 1 0 0 1-1 1H9a1 1 0 0 1 0-2h6a1 1 0 0 1 1 1z"/>
                     </svg>
                   </span>
                 </div>
-
-                <div class="float-right">
-                  <span class="cursor-pointer m-2" v-on:click.prevent="addMetadata(image)">
+                <div class="flex mx-auto justify-center cursor-pointer" v-on:click.prevent="addMetadata(image)">
+                  <div class="m-2">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                      <path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2zm0 2v14h14V5H5zm8 6h2a1 1 0 0 1 0 2h-2v2a1 1 0 0 1-2 0v-2H9a1 1 0 0 1 0-2h2V9a1 1 0 0 1 2 0v2z"/>
+                      <path
+                          d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2zm0 2v14h14V5H5zm8 6h2a1 1 0 0 1 0 2h-2v2a1 1 0 0 1-2 0v-2H9a1 1 0 0 1 0-2h2V9a1 1 0 0 1 2 0v2z"/>
                     </svg>
-                  </span>
+                  </div>
+                  <div class="my-auto">Add Metadata</div>
                 </div>
-
-                <span class="hover:underline cursor-pointer block m-2" v-on:click.prevent="handleClickaway">
-                  Save &amp; Close
-                </span>
+                <div class="flex justify-end">
+                  <div class="hover:underline cursor-pointer block m-2" v-on:click.prevent="handleCancel(image)">
+                    Cancel
+                  </div>
+                  <div class="hover:underline cursor-pointer block m-2 ml-8" v-on:click.prevent="handleClickaway">
+                    Save &amp; Close
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
         </modal>
       </portal>
     </div> <!-- end !isReadonly block -->
@@ -77,52 +100,79 @@
 </template>
 
 <script>
-  export default {
-    props: ['image', 'isReadonly'],
+export default {
+  props: ['image', 'isReadonly'],
 
-    data () {
-      return {
-        metadataModalOpen: false,
-        previewImageModalOpen: false
-      }
+  data() {
+    return {
+      originalValue: [],
+      metadataModalOpen: false,
+      previewImageModalOpen: false
+    }
+  },
+
+  methods: {
+    fileChange(event) {
+
+      let file = event.target.files[0]
+
+      this.image.previewUrl = this.image.thumbnailUrl = URL.createObjectURL(file)
+
+      let reader = new FileReader()
+
+      reader.addEventListener('load', () => {
+        this.image.fileData = reader.result
+      })
+
+      reader.readAsDataURL(file)
     },
 
-    methods: {
-      fileChange (event) {
+    openPreviewImageModal(event) {
+      this.previewImageModalOpen = true
+    },
 
-        let file = event.target.files[0]
+    openMetadataModal(image) {
+      this.originalValue = JSON.parse(JSON.stringify(image.metadata));
 
-        this.image.previewUrl = this.image.thumbnailUrl = URL.createObjectURL(file)
+      const predefinedItems = [
+        {'key': 'altText', 'index': 0},
+        {'key': 'attribution', 'index': 1},
+        {'key': 'description', 'index': 2}
+      ];
 
-        let reader = new FileReader()
+      predefinedItems.forEach(item => {
+        if (image.metadata.filter(img => img.key === item.key).length === 0) {
+          image.metadata.push({key: item.key, value: ''});
+        }
+      });
 
-        reader.addEventListener('load', () => {
-          this.image.fileData = reader.result
-        })
+      image.metadata = image.metadata.map((item) => {
+        return {'item': item, 'index': (predefinedItems.find(pItem => pItem.key === item.key) ?? {'index': 100}).index}
+      }).sort((firstEl, secondEl) => {
+        return firstEl.index - secondEl.index;
+      }).map(info => info.item);
 
-        reader.readAsDataURL(file)
-      },
 
-      openPreviewImageModal (event) {
-        this.previewImageModalOpen = true
-      },
+      this.metadataModalOpen = true
+    },
 
-      openMetadataModal (event) {
-        this.metadataModalOpen = true
-      },
+    handleCancel(image) {
+      image.metadata = this.originalValue;
+      this.metadataModalOpen = false
+      this.previewImageModalOpen = false
+    },
 
-      handleClickaway () {
-        this.metadataModalOpen = false
-        this.previewImageModalOpen = false
-      },
+    handleClickaway() {
+      this.metadataModalOpen = false
+      this.previewImageModalOpen = false
+    },
 
-      addMetadata (image) {
-        image.metadata.push({key: '', value: ''})
-      },
-
-      removeMetadata (image, index) {
-        image.metadata.splice(index, 1)
-      }
+    addMetadata(image) {
+      image.metadata.push({key: '', value: ''})
+    },
+    removeMetadata(image, index) {
+      image.metadata.splice(index, 1)
     }
   }
+}
 </script>
