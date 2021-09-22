@@ -94,7 +94,7 @@ class Fit implements ImagickTransformationInterface
                             $width !== 0 ? $width : 1920,
                             $height !== 0 ? $height : 1920,
                             true,
-                            true
+                            ($background != null)
                         );
                     }
                 }
