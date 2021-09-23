@@ -53,16 +53,12 @@
                   <input type="text" class="w-1/6 text-xs form-control form-input form-input-bordered m-1"
                          v-if="[{'key':'altText', 'label':'Alt Text'},{'key':'attribution', 'label':'Attribution'}, {'key':'description', 'label':'Caption'}].filter(item=>item.key===image.metadata[index].key).length===0"
                          v-model="image.metadata[index].key"/>
-                  <div v-else class="w-1/6 text-right my-auto">{{
-                      [{
-                        'key': 'altText',
-                        'label': 'Alt Text'
-                      },
+                  <div v-else class="w-1/6 text-right my-auto">
+                    {{
+                      [{'key': 'altText', 'label': 'Alt Text'},
                         {'key': 'attribution', 'label': 'Attribution'},
-                        {
-                          'key': 'description',
-                          'label': 'Caption'
-                        }].filter(item => item.key === image.metadata[index].key)[0].label
+                        {'key': 'description', 'label': 'Caption'}
+                      ].filter(item => item.key === image.metadata[index].key)[0].label
                     }}:
                   </div>
                   <input type="text" class="w-5/6 text-xs form-control form-input form-input-bordered m-1"
