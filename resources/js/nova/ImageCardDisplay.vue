@@ -30,7 +30,7 @@
 
               <div class="flex px-3 mb-2" v-for="(metadata, index) in image.metadata">
                 <div class="w-1/6 p-2 text-xs border border-70"
-                     v-if="[{'key':'altText', 'label':'Alt Text'},{'key':'attribution', 'label':'Attribution'}, {'key':'description', 'label':'Caption'}].filter(item=>item.key===image.metadata[index].key).length===0">
+                     v-if="[{'key':'altText', 'label':'Alt Text'},{'key':'attribution', 'label':'Attribution'}, {'key':'caption', 'label':'Caption'}].filter(item=>item.key===image.metadata[index].key).length===0">
                   {{ image.metadata[index].key }}
                 </div>
                 <div class="w-1/6 p-2 text-xs border border-70"
@@ -38,7 +38,7 @@
                   {{
                     [{'key': 'altText', 'label': 'Alt Text'},
                       {'key': 'attribution', 'label': 'Attribution'},
-                      {'key': 'description', 'label': 'Caption'}
+                      {'key': 'caption', 'label': 'Caption'}
                     ].filter(item => item.key === image.metadata[index].key)[0].label
                   }}
                 </div>

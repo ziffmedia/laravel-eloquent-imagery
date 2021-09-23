@@ -51,13 +51,13 @@
 
                 <div class="flex px-3" v-for="(metadata, index) in image.metadata">
                   <input type="text" class="w-1/6 text-xs form-control form-input form-input-bordered m-1"
-                         v-if="[{'key':'altText', 'label':'Alt Text'},{'key':'attribution', 'label':'Attribution'}, {'key':'description', 'label':'Caption'}].filter(item=>item.key===image.metadata[index].key).length===0"
+                         v-if="[{'key':'altText', 'label':'Alt Text'},{'key':'attribution', 'label':'Attribution'}, {'key':'caption', 'label':'Caption'}].filter(item=>item.key===image.metadata[index].key).length===0"
                          v-model="image.metadata[index].key"/>
                   <div v-else class="w-1/6 text-right my-auto">
                     {{
                       [{'key': 'altText', 'label': 'Alt Text'},
                         {'key': 'attribution', 'label': 'Attribution'},
-                        {'key': 'description', 'label': 'Caption'}
+                        {'key': 'caption', 'label': 'Caption'}
                       ].filter(item => item.key === image.metadata[index].key)[0].label
                     }}:
                   </div>
@@ -133,7 +133,7 @@ export default {
       const predefinedItems = [
         {'key': 'altText', 'index': 0},
         {'key': 'attribution', 'index': 1},
-        {'key': 'description', 'index': 2}
+        {'key': 'caption', 'index': 2}
       ];
 
       predefinedItems.forEach(item => {
