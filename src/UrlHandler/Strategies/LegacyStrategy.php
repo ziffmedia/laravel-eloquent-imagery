@@ -113,7 +113,21 @@ class LegacyStrategy implements StrategyInterface
             $transformations['version'] = $version;
         }
 
-        $allTransformations = $transformations->map(function ($value, $key) {
+        // keyed with [dirname, filename, basename, extension]
+        $pathinfo = pathinfo($image->path);
+
+        if (!isset($pathinfo['dirname'])) {
+            throw new InvalidArgumentException("pathinfo() was unable to parse {$image->path} into path parts.");
+        }
+
+        if ($transformations->has('pngconvert')) {
+            $transformations['pngconvert'] = $pathinfo['extension'];
+            $extension = 'png';
+        } else {
+            $extension = ($transformations->has('pngconvert')) ? 'png' : $pathinfo['extension'];
+        }
+
+        $transformations = $transformations->map(function ($value, $key) {
             if ($key === 'version') {
                 return $value;
             }
@@ -125,19 +139,10 @@ class LegacyStrategy implements StrategyInterface
             return $key . '_' . $value;
         })->sort()->implode('.');
 
-        // keyed with [dirname, filename, basename, extension]
-        $pathinfo = pathinfo($image->path);
-
-        if (!isset($pathinfo['dirname'])) {
-            throw new InvalidArgumentException("pathinfo() was unable to parse {$image->path} into path parts.");
-        }
-
-        $extension = ($transformations->has('pngconvert')) ? 'png' : $pathinfo['extension'];
-
         $pathWithModifiers =
             (($pathinfo['dirname'] !== '.') ? "{$pathinfo['dirname']}/" : '')
             . $pathinfo['filename']
-            . ($allTransformations ? ".{$allTransformations}" : '')
+            . ($transformations ? ".{$transformations}" : '')
             . ".{$extension}";
 
         return url()->route('eloquent-imagery.render', $pathWithModifiers);
