@@ -52,13 +52,14 @@ class LegacyStrategy implements StrategyInterface
                     }
                 }
             }
-            $realFileExtension = $pathInfo['extension'];
+            $requestedFileExtension = $pathInfo['extension'];
             if (isset($imageRequestData['pngconvert'])) {
                 //meaning original file extension in value of pngconvert param
-                $realFileExtension = $imageRequestData['pngconvert'];
+                $imageRequestData['mime_type'] = 'image/' .  $requestedFileExtension;
+                $requestedFileExtension = $imageRequestData['pngconvert'];
             }
 
-            $imagePath .= "{$filenameWithoutExtension}.{$realFileExtension}";
+            $imagePath .= "{$filenameWithoutExtension}.{$requestedFileExtension}";
         } else {
             $imagePath .= $pathInfo['basename'];
         }
@@ -120,11 +121,14 @@ class LegacyStrategy implements StrategyInterface
             throw new InvalidArgumentException("pathinfo() was unable to parse {$image->path} into path parts.");
         }
 
+        $extension = $pathinfo['extension'];
         if ($transformations->has('pngconvert')) {
-            $transformations['pngconvert'] = $pathinfo['extension'];
-            $extension = 'png';
-        } else {
-            $extension = ($transformations->has('pngconvert')) ? 'png' : $pathinfo['extension'];
+            if ($pathinfo['extension'] == 'png') {
+                unset($transformations['pngconvert']);
+            } else {
+                $transformations['pngconvert'] = $pathinfo['extension'];
+                $extension = 'png';
+            }
         }
 
         $transformations = $transformations->map(function ($value, $key) {

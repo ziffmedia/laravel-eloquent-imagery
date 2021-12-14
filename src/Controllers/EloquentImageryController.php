@@ -55,7 +55,7 @@ class EloquentImageryController extends Controller
         if (!$imageBytes) {
             try {
                 $imageBytes = $filesystem->get($imageActualPath);
-                $mimeType = $filesystem->getMimeType($imageActualPath);
+                $mimeType = $imageRequestData['mime_type'] ?? $filesystem->getMimeType($imageActualPath);
             } catch (FileNotFoundException $e) {
                 $imageBytes = null;
             }
