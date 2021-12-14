@@ -126,7 +126,8 @@ return [
                 'grayscale',
                 'fallbackbanner',
                 'crop',
-                'fill'
+                'fill',
+                'pngconvert'
             ]
         ]
     ],

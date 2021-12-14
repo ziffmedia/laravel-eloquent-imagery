@@ -20,7 +20,8 @@ class LegacyStrategy implements StrategyInterface
         'crop'       => '/^crop_(?P<value>[\dx]+)$/', // crop operations
         'fill'       => '/^fill$/', // fill operation
         'gravity'    => '/^gravity_(?P<value>[\w_]+)$/', // optional gravity param, g_auto - means center, g_north or g_south
-        'static'     => '/^static(?:_(?P<value>\d*)){0,1}$/' // ensure even animated gifs are single frame
+        'static'     => '/^static(?:_(?P<value>\d*)){0,1}$/', // ensure even animated gifs are single frame
+        'pngconvert'       => '/^pngconvert_(?P<value>\w{1,4})/', // convert to png from value format
     ];
 
     public function getDataFromRequest(Request $request): Collection
@@ -39,7 +40,7 @@ class LegacyStrategy implements StrategyInterface
         if (strpos($filenameWithoutExtension, '.') !== false) {
             $filenameParts = explode('.', $filenameWithoutExtension);
             $filenameWithoutExtension = $filenameParts[0];
-            $imagePath .= "{$filenameWithoutExtension}.{$pathInfo['extension']}";
+
 
             $modifierSpecs = array_slice($filenameParts, 1);
 
@@ -51,9 +52,17 @@ class LegacyStrategy implements StrategyInterface
                     }
                 }
             }
+            $realFileExtension = $pathInfo['extension'];
+            if (isset($imageRequestData['pngconvert'])) {
+                //meaning original file extension in value of pngconvert param
+                $realFileExtension = $imageRequestData['pngconvert'];
+            }
+
+            $imagePath .= "{$filenameWithoutExtension}.{$realFileExtension}";
         } else {
             $imagePath .= $pathInfo['basename'];
         }
+
 
         $imageRequestData['path'] = $imagePath;
 
@@ -104,7 +113,7 @@ class LegacyStrategy implements StrategyInterface
             $transformations['version'] = $version;
         }
 
-        $transformations = $transformations->map(function ($value, $key) {
+        $allTransformations = $transformations->map(function ($value, $key) {
             if ($key === 'version') {
                 return $value;
             }
@@ -123,11 +132,13 @@ class LegacyStrategy implements StrategyInterface
             throw new InvalidArgumentException("pathinfo() was unable to parse {$image->path} into path parts.");
         }
 
+        $extension = ($transformations->has('pngconvert')) ? 'png' : $pathinfo['extension'];
+
         $pathWithModifiers =
             (($pathinfo['dirname'] !== '.') ? "{$pathinfo['dirname']}/" : '')
             . $pathinfo['filename']
-            . ($transformations ? ".{$transformations}" : '')
-            . ".{$pathinfo['extension']}";
+            . ($allTransformations ? ".{$allTransformations}" : '')
+            . ".{$extension}";
 
         return url()->route('eloquent-imagery.render', $pathWithModifiers);
     }

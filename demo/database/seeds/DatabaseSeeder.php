@@ -67,6 +67,7 @@ class DatabaseSeeder extends Seeder
             $model->name = 'Croppable Image WEBP Original 1600x1067';
             $model->variations = [
                 'Fill 500x100, gravity north-west (west is ignored due to requested aspect ratio)' => 'fill|size_500x100|gravity_north_west',
+                'Convert WEBP to PNG and fit Limit to 600 in width, 300 in height' => 'fit_limit|size_600x300|pngconvert_webp',
             ];
             $model->image->setData(file_get_contents(resource_path('example-images/multiple-people-1600x1067.webp')));
             $model->save();
