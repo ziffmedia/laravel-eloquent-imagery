@@ -56,6 +56,17 @@ class Image implements JsonSerializable
     protected $removeAtPathOnFlush = null;
     protected $isReadOnly = false;
 
+    const SUPPORTED_MIME_TYPES = [
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/webp' => 'webp',
+        'image/bmp' => 'bmp',
+        'image/x-ms-bmp' => 'bmp',
+    ];
+
+    const SUPPORTED_FORMATS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
+
     public function __construct(string $pathTemplate, array $presets)
     {
         if (!static::$filesystem) {
@@ -173,28 +184,14 @@ class Image implements JsonSerializable
         $this->timestamp = Carbon::now()->unix();
         $this->hash = md5($data);
 
-        switch ($mimeType) {
-            case 'image/jpeg':
-                $this->extension = 'jpg';
-                break;
-            case 'image/png':
-                $this->extension = 'png';
-                break;
-            case 'image/gif':
-                $this->extension = 'gif';
-
+        if (array_key_exists($mimeType, self::SUPPORTED_MIME_TYPES)) {
+            $this->extension = self::SUPPORTED_MIME_TYPES[$mimeType];
+            if ($mimeType === 'image/gif') {
                 // magic bytes
-                $this->animated = (bool) preg_match('#(\x00\x21\xF9\x04.{4}\x00\x2C.*){2,}#s', $data);
-                break;
-            case 'image/webp':
-                $this->extension = 'webp';
-                break;
-            case 'image/bmp':
-            case 'image/x-ms-bmp':
-                $this->extension = 'bmp';
-                break;
-            default:
-                throw new RuntimeException('Unsupported mime-type for expected image: ' . $mimeType);
+                $this->animated = (bool)preg_match('#(\x00\x21\xF9\x04.{4}\x00\x2C.*){2,}#s', $data);
+            }
+        } else {
+            throw new RuntimeException('Unsupported mime-type for expected image: ' . $mimeType);
         }
     }
 

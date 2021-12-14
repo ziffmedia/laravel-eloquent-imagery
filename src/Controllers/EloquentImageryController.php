@@ -55,7 +55,7 @@ class EloquentImageryController extends Controller
         if (!$imageBytes) {
             try {
                 $imageBytes = $filesystem->get($imageActualPath);
-                $mimeType = $filesystem->getMimeType($imageActualPath);
+                $mimeType = $imageRequestData['mime_type'] ?? $filesystem->getMimeType($imageActualPath);
             } catch (FileNotFoundException $e) {
                 $imageBytes = null;
             }
@@ -68,7 +68,7 @@ class EloquentImageryController extends Controller
 
             try {
                 $imageBytes = $fallbackFilesystem->get($imageActualPath);
-                $mimeType = $fallbackFilesystem->getMimeType($imageActualPath);
+                $mimeType = $imageRequestData['mime_type'] ?? $fallbackFilesystem->getMimeType($imageActualPath);
 
                 if (config('eloquent-imagery.render.fallback.mark_images')) {
                     $imageRequestData['fallbackbanner'] = true;

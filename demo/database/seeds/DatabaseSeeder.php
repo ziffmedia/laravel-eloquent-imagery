@@ -39,6 +39,7 @@ class DatabaseSeeder extends Seeder
                 'Fit Limit Pad Up to 500 pixels in width, extra space added has purple background' => 'fit_lpad|size_500x|bg_800080',
                 'Fit Resize to 100x50, will skew image' => 'fit_resize|size_100x50',
                 'Fit Limit to 300 in width, 200 in height - should not scale up' => 'fit_limit|size_300x200',
+                'Convert to PNG and fit Limit to 300 in width, 200 in height' => 'fit_limit|size_300x200|convert_png', //this one should result in just fit_limit, because source file is already png
             ];
             $model->image->setData(file_get_contents(resource_path('example-images/080-150x150.png')));
             $model->save();
@@ -58,6 +59,7 @@ class DatabaseSeeder extends Seeder
                 'Fill 100x100, gravity auto' => 'fill|size_100x100',
                 'Fill 400x200, gravity auto' => 'fill|size_400x200',
                 'Fill 2000x200, gravity auto (will do scale up and then fill)' => 'fill|size_2000x200',
+                'Convert to PNG and fit Limit to 600 in width, 300 in height' => 'fit_limit|size_600x300|convert_png',
             ];
             $model->image->setData(file_get_contents(resource_path('example-images/multiple-people-1600x1067.jpg')));
             $model->save();
@@ -67,6 +69,7 @@ class DatabaseSeeder extends Seeder
             $model->name = 'Croppable Image WEBP Original 1600x1067';
             $model->variations = [
                 'Fill 500x100, gravity north-west (west is ignored due to requested aspect ratio)' => 'fill|size_500x100|gravity_north_west',
+                'Convert to PNG and fit Limit to 600 in width, 300 in height' => 'fit_limit|size_600x300|convert_png',
             ];
             $model->image->setData(file_get_contents(resource_path('example-images/multiple-people-1600x1067.webp')));
             $model->save();
