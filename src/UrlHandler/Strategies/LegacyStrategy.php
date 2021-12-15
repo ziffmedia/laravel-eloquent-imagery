@@ -52,7 +52,7 @@ class LegacyStrategy implements StrategyInterface
         if (strpos($filenameWithoutExtension, '.') !== false) {
             $filenameParts = explode('.', $filenameWithoutExtension);
             $filenameWithoutExtension = $filenameParts[0];
-
+            $imagePath .= "{$filenameWithoutExtension}.{$pathInfo['extension']}";
 
             $modifierSpecs = array_slice($filenameParts, 1);
 
@@ -64,8 +64,6 @@ class LegacyStrategy implements StrategyInterface
                     }
                 }
             }
-
-            $imagePath .= "{$filenameWithoutExtension}.{$pathInfo['extension']}";
         } else {
             $imagePath .= $pathInfo['basename'];
         }
