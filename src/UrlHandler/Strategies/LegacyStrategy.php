@@ -52,11 +52,12 @@ class LegacyStrategy implements StrategyInterface
                     }
                 }
             }
-            $requestedFileExtension = $pathInfo['extension'];
             if (isset($imageRequestData['pngconvert'])) {
+                $imageRequestData['mime_type'] = 'image/png';
                 //meaning original file extension in value of pngconvert param
-                $imageRequestData['mime_type'] = 'image/' .  $requestedFileExtension;
                 $requestedFileExtension = $imageRequestData['pngconvert'];
+            } else {
+                $requestedFileExtension = $pathInfo['extension'];
             }
 
             $imagePath .= "{$filenameWithoutExtension}.{$requestedFileExtension}";
