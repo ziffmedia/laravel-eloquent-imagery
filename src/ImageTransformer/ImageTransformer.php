@@ -20,7 +20,7 @@ class ImageTransformer
         'jpegexif'       => Transformations\JpegExif::class,
         'jpegnormalize'  => Transformations\JpegNormalize::class,
         'quality'        => Transformations\Quality::class,
-        'pngconvert'     => Transformations\PngConvert::class,
+        'convert'        => Transformations\Convert::class,
     ];
 
     public $transformations;

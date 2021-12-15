@@ -21,7 +21,7 @@ class LegacyStrategy implements StrategyInterface
         'fill'       => '/^fill$/', // fill operation
         'gravity'    => '/^gravity_(?P<value>[\w_]+)$/', // optional gravity param, g_auto - means center, g_north or g_south
         'static'     => '/^static(?:_(?P<value>\d*)){0,1}$/', // ensure even animated gifs are single frame
-        'pngconvert'       => '/^pngconvert_(?P<value>\w{1,4})/', // convert to png from value format
+        'convert'    => '/^convert_(?P<value>\w{3,4})/', // convert to {value} format
     ];
 
     public function getDataFromRequest(Request $request): Collection
@@ -34,6 +34,18 @@ class LegacyStrategy implements StrategyInterface
         $imagePath = $pathInfo['dirname'] !== '.'
             ? $pathInfo['dirname'] . '/'
             : '';
+
+        if (in_array((pathinfo($pathInfo['filename'])['extension'] ?? ''), array_values(Image::SUPPORTED_MIME_TYPES))) {
+            //that means convert is happening, so we are getting target mime_type and original file extension
+            $imageRequestData['mime_type'] = collect(Image::SUPPORTED_MIME_TYPES)->filter(function ($value, $key) use ($pathInfo) {
+                return $value == $pathInfo['extension'];
+            })->map(function ($value, $key) {
+                return $key;
+            })->first();
+
+            $imageRequestData['convert'] = $pathInfo['extension'];
+            $pathInfo = pathinfo($pathInfo['filename']);
+        }
 
         $filenameWithoutExtension = $pathInfo['filename'];
 
@@ -52,15 +64,8 @@ class LegacyStrategy implements StrategyInterface
                     }
                 }
             }
-            if (isset($imageRequestData['pngconvert'])) {
-                $imageRequestData['mime_type'] = 'image/png';
-                //meaning original file extension in value of pngconvert param
-                $requestedFileExtension = $imageRequestData['pngconvert'];
-            } else {
-                $requestedFileExtension = $pathInfo['extension'];
-            }
 
-            $imagePath .= "{$filenameWithoutExtension}.{$requestedFileExtension}";
+            $imagePath .= "{$filenameWithoutExtension}.{$pathInfo['extension']}";
         } else {
             $imagePath .= $pathInfo['basename'];
         }
@@ -123,13 +128,11 @@ class LegacyStrategy implements StrategyInterface
         }
 
         $extension = $pathinfo['extension'];
-        if ($transformations->has('pngconvert')) {
-            if ($pathinfo['extension'] == 'png') {
-                unset($transformations['pngconvert']);
-            } else {
-                $transformations['pngconvert'] = $pathinfo['extension'];
-                $extension = 'png';
+        if ($transformations->has('convert')) {
+            if ($pathinfo['extension'] != $transformations['convert']) {
+                $extension = $extension . '.' . $transformations['convert'];
             }
+            unset($transformations['convert']);
         }
 
         $transformations = $transformations->map(function ($value, $key) {

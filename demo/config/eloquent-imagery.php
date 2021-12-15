@@ -127,7 +127,7 @@ return [
                 'fallbackbanner',
                 'crop',
                 'fill',
-                'pngconvert'
+                'convert'
             ]
         ]
     ],
