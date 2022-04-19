@@ -7,14 +7,18 @@
         "watch-poll": "mix watch -- --watch-options-poll=1000",
         "hot": "mix watch --hot",
         "prod": "npm run production",
-        "production": "mix --production"
+        "production": "mix --production",
+        "eslint": "eslint --ext .js,.vue --fix-dry-run --fix-type suggestion,problem resources/js"
     },
     "devDependencies": {
         "cross-env": "^5.0.0",
+        "eslint": "^7.32.0",
+        "eslint-config-standard": "^16.0.3",
+        "eslint-plugin-vue": "^8.3.0",
         "laravel-mix": "^6.0",
         "laravel-nova": "^1.7.0",
         "serialize-javascript": "^4.0.0",
-        "vue-loader": "^15.10.0",
+        "vue": "^2.6.12",
         "vue-template-compiler": "^2.6.11",
         "vuedraggable": "^2.21.0",
         "vuex": "^3.1.3"

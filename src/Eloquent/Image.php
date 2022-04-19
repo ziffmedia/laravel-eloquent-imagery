@@ -238,12 +238,12 @@ class Image implements JsonSerializable
         return $updatedPathParts;
     }
 
-    public function pathHasReplacements()
+    public function pathHasReplacements(): bool
     {
         return (bool) preg_match('#{(\w+)}#', $this->path);
     }
 
-    public function isFullyRemoved()
+    public function isFullyRemoved(): bool
     {
         return ($this->flush === true && $this->removeAtPathOnFlush !== '' && $this->path === '');
     }
@@ -340,7 +340,7 @@ class Image implements JsonSerializable
         return $this->getStateAsAttributeData();
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         if ($this->exists) {
             return [

@@ -6,6 +6,7 @@ use RuntimeException;
 
 /**
  * @mixin \Illuminate\Database\Eloquent\Model
+ * @property array $eloquentImagery
  */
 trait HasEloquentImagery
 {

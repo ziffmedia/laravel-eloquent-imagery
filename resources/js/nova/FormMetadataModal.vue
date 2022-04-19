@@ -62,50 +62,50 @@
 </template>
 
 <script>
-  export default {
-    props: ['image', 'isReadonly'],
+export default {
+  props: ['image', 'isReadonly'],
 
-    data () {
-      return {
-        originalMetadata: null,
-      }
-    },
-
-    created () {
-      this.originalMetadata = JSON.parse(JSON.stringify(this.image.metadata)) // Clone metadata to preserve state
-
-      if (this.getMetadataIndex('altText') === -1) {
-        this.image.metadata.push({key: 'altText', value: ''})
-      }
-      if (this.getMetadataIndex('attribution') === -1) {
-        this.image.metadata.push({key: 'attribution', value: ''})
-      }
-      if (this.getMetadataIndex('caption') === -1) {
-        this.image.metadata.push({key: 'caption', value: ''})
-      }
-    },
-
-    methods: {
-      closeModal () {
-        this.$emit('modalClose', true)
-      },
-
-      handleCancelMetadataUpdate (image) {
-        image.metadata = this.originalMetadata
-        this.closeModal()
-      },
-
-      addMetadata (image) {
-        image.metadata.push({key: '', value: ''})
-      },
-
-      removeMetadata (image, index) {
-        image.metadata.splice(index, 1)
-      },
-
-      getMetadataIndex (objectKey) {
-        return this.image.metadata.findIndex(item => item.key === objectKey)
-      },
+  data () {
+    return {
+      originalMetadata: null,
     }
+  },
+
+  created () {
+    this.originalMetadata = JSON.parse(JSON.stringify(this.image.metadata)) // Clone metadata to preserve state
+
+    if (this.getMetadataIndex('altText') === -1) {
+      this.image.metadata.push({key: 'altText', value: ''})
+    }
+    if (this.getMetadataIndex('attribution') === -1) {
+      this.image.metadata.push({key: 'attribution', value: ''})
+    }
+    if (this.getMetadataIndex('caption') === -1) {
+      this.image.metadata.push({key: 'caption', value: ''})
+    }
+  },
+
+  methods: {
+    closeModal () {
+      this.$emit('modalClose', true)
+    },
+
+    handleCancelMetadataUpdate (image) {
+      image.metadata = this.originalMetadata
+      this.closeModal()
+    },
+
+    addMetadata (image) {
+      image.metadata.push({key: '', value: ''})
+    },
+
+    removeMetadata (image, index) {
+      image.metadata.splice(index, 1)
+    },
+
+    getMetadataIndex (objectKey) {
+      return this.image.metadata.findIndex(item => item.key === objectKey)
+    },
   }
+}
 </script>

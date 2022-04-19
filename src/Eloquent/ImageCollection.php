@@ -3,6 +3,7 @@
 namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
 use ArrayAccess;
+use ArrayIterator;
 use Countable;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Traits\ForwardsCalls;
 use IteratorAggregate;
+use JetBrains\PhpStorm\ArrayShape;
 use JsonSerializable;
 
 /**
@@ -72,12 +74,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         return $this->metadata;
     }
 
-    /**
-     * Get an iterator for the items.
-     *
-     * @return \ArrayIterator
-     */
-    public function getIterator()
+    public function getIterator(): ArrayIterator
     {
         return $this->images->getIterator();
     }
@@ -88,7 +85,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
      * @param mixed $key
      * @return bool
      */
-    public function offsetExists($key)
+    public function offsetExists($key): bool
     {
         return $this->images->has($key);
     }
@@ -99,7 +96,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
      * @param mixed $key
      * @return mixed
      */
-    public function offsetGet($key)
+    public function offsetGet($key): mixed
     {
         return $this->images->get($key);
     }
@@ -111,7 +108,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
      * @param mixed $value
      * @return void
      */
-    public function offsetSet($key, $value)
+    public function offsetSet($key, $value): void
     {
         if (!$value instanceof Image) {
             $value = $this->createImage($value);
@@ -126,7 +123,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
      * @param mixed $key
      * @return void
      */
-    public function offsetUnset($key)
+    public function offsetUnset($key): void
     {
         $this->deletedImages[] = $this->images[$key];
 
@@ -140,7 +137,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         return $this->images->count();
     }
@@ -150,7 +147,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
      *
      * @return array
      */
-    public function toArray()
+    public function toArray(): array
     {
         return $this->getStateAsAttributeData();
     }
@@ -160,7 +157,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
      *
      * @return array
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->toArray();
     }
@@ -171,7 +168,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
      * @param int $options
      * @return string
      */
-    public function toJson($options = 0)
+    public function toJson($options = 0): string
     {
         return json_encode($this->jsonSerialize(), $options);
     }
@@ -198,7 +195,8 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         }
     }
 
-    public function getStateAsAttributeData()
+    #[ArrayShape(['autoincrement' => 'int', 'images' => 'mixed', 'metadata' => 'array'])]
+    public function getStateAsAttributeData(): array
     {
         $images = $this->images->map(function (Image $image) {
             return $image->getStateAsAttributeData();
@@ -211,7 +209,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         ];
     }
 
-    public function pathHasReplacements()
+    public function pathHasReplacements(): bool
     {
         if ($this->images->count() === 0) {
             return false;
@@ -267,7 +265,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         });
     }
 
-    public function exists()
+    public function exists(): bool
     {
         return true;
     }
