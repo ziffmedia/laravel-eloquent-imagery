@@ -2,23 +2,29 @@
 
 namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
+use Illuminate\Database\Eloquent\Model;
+use ReflectionException;
 use RuntimeException;
 
 /**
- * @mixin \Illuminate\Database\Eloquent\Model
+ * @mixin Model
  * @property array $eloquentImagery
  */
 trait HasEloquentImagery
 {
     /** @var Image[]|ImageCollection[] */
-    protected static $eloquentImageryPrototypes = [];
+    protected static array $eloquentImageryRuntime = ['configs' => [], 'prototypes' => []];
 
     /** @var Image[]|ImageCollection[] */
-    protected $eloquentImageryImages = [];
+    protected array $eloquentImageryImages = [];
 
-    public static function bootHasEloquentImagery()
+    public static function bootHasEloquentImagery(): void
     {
-        $observer = new EloquentImageryObserver(get_called_class());
+        try {
+            $observer = new EloquentImageryObserver(get_called_class());
+        } catch (ReflectionException $e) {
+            throw new RuntimeException('HasEloquentImagery appears to have been applied to a class that is not a Model');
+        }
 
         // register directly so that the instance is preserved (not preserved via static::observe())
         static::registerModelEvent('retrieved', [$observer, 'retrieved']);
@@ -27,7 +33,7 @@ trait HasEloquentImagery
         static::registerModelEvent('deleted', [$observer, 'deleted']);
     }
 
-    public function initializeHasEloquentImagery()
+    public function initializeHasEloquentImagery(): void
     {
         if (!empty($this->eloquentImageryImages)) {
             throw new RuntimeException('$eloquentImageryImages should be empty, are you sure you have your configuration in the right place?');
@@ -38,30 +44,37 @@ trait HasEloquentImagery
         }
 
         foreach ($this->eloquentImagery as $attribute => $config) {
-            if (is_string($config)) {
-                $config = ['path' => $config];
-            }
+            if (!isset(static::$eloquentImageryRuntime['configs'][$attribute])) {
+                if (is_string($config)) {
+                    $config = ['path' => $config];
+                }
 
-            if (!is_array($config)) {
-                throw new RuntimeException('configuration must be a string or array');
-            }
+                if (!is_array($config)) {
+                    throw new RuntimeException('configuration must be a string or array');
+                }
 
-            if (!isset(static::$eloquentImageryPrototypes[$attribute])) {
-                $prototype = app(Image::class, [
+                $config = [
                     'pathTemplate' => $config['path'],
-                    'presets' => $config['presets'] ?? []
+                    'presets'      => $config['presets'] ?? [],
+                    'collection'   => $config['collection'] ?? false,
+                    'attributes'   => $config['attributes'] ?? []
+                ];
+
+                static::$eloquentImageryRuntime['configs'][$attribute] = $config;
+
+                $prototype = app(Image::class, [
+                    'pathTemplate' => $config['pathTemplate'],
+                    'presets'      => $config['presets']
                 ]);
 
                 if (isset($config['collection']) && $config['collection'] === true) {
                     $prototype = app(ImageCollection::class, ['imagePrototype' => $prototype]);
                 }
 
-                static::$eloquentImageryPrototypes[$attribute] = $prototype;
-            } else {
-                $prototype = static::$eloquentImageryPrototypes[$attribute];
+                static::$eloquentImageryRuntime['prototypes'][$attribute] = $prototype;
             }
 
-            $this->attributes[$attribute] = $this->eloquentImageryImages[$attribute] = clone $prototype;
+            $this->attributes[$attribute] = $this->eloquentImageryImages[$attribute] = clone static::$eloquentImageryRuntime['prototypes'][$attribute];
         }
     }
 }

@@ -39,7 +39,6 @@ class EloquentImageryField extends Field
         $fieldAttribute->updatePath([], $model);
     }
 
-
     public function jsonSerialize()
     {
         if ($this->value instanceof ImageCollection) {

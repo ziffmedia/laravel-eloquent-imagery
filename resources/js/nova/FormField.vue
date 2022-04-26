@@ -122,6 +122,8 @@ export default {
         ? this.$store.getters[`eloquentImagery/${this.field.attribute}/serialize`]
         : this.image
 
+      debugger
+
       formData.append(this.field.attribute, JSON.stringify(value))
     },
 

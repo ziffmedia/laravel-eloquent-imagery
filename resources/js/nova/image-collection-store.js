@@ -14,12 +14,16 @@ export default {
       state.fieldName = payload.fieldName
 
       state.images = payload.images.map((image, i) => {
-        return { ...image, inputId: 'eloquent-imagery-' + payload.fieldName + '-' + (i + 1) }
+        return { ...image, id: 'eloquent-imagery-' + payload.fieldName + '-' + (i + 1) }
       })
     },
 
     updateImages (state, images) {
       state.images = images
+    },
+
+    updateImageAtIndex (state, { index, image }) {
+      state.images[index] = image
     }
   },
 
@@ -28,13 +32,14 @@ export default {
       const imageUrl = URL.createObjectURL(payload.file)
 
       // @todo handle metadata
-      const metadata = {}
+      const metadata = payload.metadata ?? {}
+      const id = 'eloquent-imagery-' + state.fieldName + '-' + (state.images.length + 1)
 
       // Object.keys(payload.metadata ?? [])
       // .map(key => ({ key, value: metadata[key] }))
 
       const image = {
-        inputId: 'eloquent-imagery-' + state.fieldName + '-' + (state.images.length + 1),
+        id,
         previewUrl: imageUrl,
         thumbnailUrl: imageUrl,
         metadata
@@ -60,6 +65,21 @@ export default {
 
     removeImage ({ state, commit }, imageToRemove) {
       commit('updateImages', state.images.filter(image => image !== imageToRemove))
+    },
+
+    updateImageMetadata ({ state, commit }, payload) {
+      const index = state.images.findIndex(image => image.id === payload.id)
+
+      if (index < 0) {
+        return
+      }
+
+      const image = state.images[index]
+      image.metadata[payload.key] = payload.value
+
+      commit('updateImageAtIndex', { index, image })
+
+      return image.metadata
     }
 
     // updateImageMetadata ({ state, commit }, payload) {

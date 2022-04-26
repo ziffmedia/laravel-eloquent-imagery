@@ -15,7 +15,7 @@
 
     <div v-show="!isReadonly">
       <input
-        :id="image.inputId"
+        :id="image.id"
         ref="replaceImageFileInput"
         class="select-none form-file-input"
         type="file"

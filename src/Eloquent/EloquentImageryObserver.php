@@ -9,11 +9,8 @@ use RuntimeException;
 
 class EloquentImageryObserver
 {
-    /** @var ReflectionProperty  */
-    protected $eloquentImageryImagesReflector;
-
-    /** @var ReflectionProperty */
-    protected $attributesReflector;
+    protected ReflectionProperty $eloquentImageryImagesReflector;
+    protected ReflectionProperty $attributesReflector;
 
     /**
      * EloquentImageryObserver constructor.
@@ -29,10 +26,7 @@ class EloquentImageryObserver
         $this->attributesReflector->setAccessible(true);
     }
 
-    /**
-     * @param \Illuminate\Database\Eloquent\Model|\ZiffMedia\LaravelEloquentImagery\Eloquent\HasEloquentImagery $model
-     */
-    public function retrieved(Model $model)
+    public function retrieved(Model $model): void
     {
         /** @var Image[]|ImageCollection[] $eloquentImageryImages */
         $eloquentImageryImages = $this->eloquentImageryImagesReflector->getValue($model);
@@ -62,10 +56,7 @@ class EloquentImageryObserver
         $this->attributesReflector->setValue($model, $modelAttributes);
     }
 
-    /**
-     * @param \Illuminate\Database\Eloquent\Model|\ZiffMedia\LaravelEloquentImagery\Eloquent\HasEloquentImagery $model
-     */
-    public function saving(Model $model)
+    public function saving(Model $model): void
     {
         /** @var Image[]|ImageCollection[] $eloquentImageryImages */
         $eloquentImageryImages = $this->eloquentImageryImagesReflector->getValue($model);
@@ -98,10 +89,7 @@ class EloquentImageryObserver
         $this->attributesReflector->setValue($model, $modelAttributes);
     }
 
-    /**
-     * @param \Illuminate\Database\Eloquent\Model|\ZiffMedia\LaravelEloquentImagery\Eloquent\HasEloquentImagery $model
-     */
-    public function saved(Model $model)
+    public function saved(Model $model): void
     {
         /** @var Image[]|ImageCollection[] $eloquentImageryImages */
         $eloquentImageryImages = $this->eloquentImageryImagesReflector->getValue($model);
@@ -144,10 +132,7 @@ class EloquentImageryObserver
         }
     }
 
-    /**
-     * @param \Illuminate\Database\Eloquent\Model|\ZiffMedia\LaravelEloquentImagery\Eloquent\HasEloquentImagery $model
-     */
-    public function deleted(Model $model)
+    public function deleted(Model $model): void
     {
         if (in_array(SoftDeletes::class, class_uses_recursive($model)) && !$model->isForceDeleting()) {
             return;
