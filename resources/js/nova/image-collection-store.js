@@ -14,7 +14,12 @@ export default {
       state.fieldName = payload.fieldName
 
       state.images = payload.images.map((image, i) => {
-        return { ...image, id: 'eloquent-imagery-' + payload.fieldName + '-' + (i + 1) }
+        return {
+          ...image,
+          id: 'eloquent-imagery-' + payload.fieldName + '-' + (i + 1),
+          // ensure empty metadata is in fact an object
+          metadata: Array.isArray(image.metadata) ? Object.fromEntries(image.metadata) : image.metadata
+        }
       })
     },
 
@@ -81,32 +86,38 @@ export default {
 
       return image.metadata
     }
-
-    // updateImageMetadata ({ state, commit }, payload) {
-    //   state.images.forEach((image) => {
-    //
-    //     if (payload.inputId && image.inputId && payload.inputId === image.inputId && payload.metadata) {
-    //
-    //       let newMetadata = Object.keys(payload.metadata).map(key => ({'key': key, 'value': payload.metadata[key]}))
-    //       let oldMetadata = image.metadata;
-    //       let metadata = {};
-    //
-    //       [oldMetadata, newMetadata].forEach((arr) => {
-    //         arr.forEach((item) => {
-    //           metadata[item['key']] = item['value']
-    //         })
-    //       });
-    //
-    //       image.metadata = Object.keys(metadata).map(key => ({'key': key, 'value': metadata[key]}))
-    //     }
-    //   });
-    //
-    //   commit('updateImages', images)
-    // }
   },
 
   getters: {
     getImages: (state) => state.images,
+
+    getImageByPath: (state) => (imagePath) => {
+      return state.images.find(image => image.path === imagePath)
+    },
+
+    getImageById: (state) => (imageId) => {
+      return state.images.find(image => image.id === imageId)
+    },
+
+    getImageByMetadata: (state) => (name, value) => {
+      return state.images.find(image => {
+        return image.metadata[name] && image.metadata[name] === value
+      })
+    },
+
+    getImageMetadata: (state) => (imageId, attribute) => {
+      const foundImage = state.images.find(image => image.id === imageId)
+
+      if (!foundImage) {
+        return
+      }
+
+      if (!attribute) {
+        return foundImage.metadata
+      }
+
+      return foundImage.metadata[attribute] ?? ''
+    },
 
     serialize: (state) => {
       return state.images.map(image => {
