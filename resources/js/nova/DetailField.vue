@@ -6,31 +6,44 @@
       </p>
 
       <div :class="`flex flex-wrap mb-2 laravel-eloquent-imagery-${resourceName}`">
-        <div
-          v-if="!field.isCollection"
-          class="flex flex-wrap mb-2 laravel-eloquent-imagery-articles"
-        >
-          <detail-image-card :image="field.value" />
-        </div>
-        <div v-else>
-          <detail-image-card
+        <template v-if="field.isCollection">
+          <div
             v-for="(image, index) in imageCollection"
             :key="index"
-            :image="image"
-          />
-        </div>
+            :class="`border border-70 flex items-end m-1 laravel-eloquent-imagery-image-${(index + 1)}`"
+          >
+            <image-card
+              :editable="false"
+              :metadata="image.metadata"
+              :metadata-form-configuration="field.metadataFormConfiguration"
+              :preview-url="image.previewUrl"
+              :thumbnail-url="image.thumbnailUrl"
+            />
+          </div>
+        </template>
+        <template v-else>
+          <div class="flex flex-wrap mb-2 laravel-eloquent-imagery">
+            <image-card
+              :editable="false"
+              :metadata="singleImage.metadata"
+              :metadata-form-configuration="field.metadataFormConfiguration"
+              :preview-url="singleImage.previewUrl"
+              :thumbnail-url="singleImage.thumbnailUrl"
+            />
+          </div>
+        </template>
       </div>
     </template>
   </panel-item>
 </template>
 
 <script>
-import DetailImageCard from './DetailImageCard'
-import imageCollectionStore from './image-collection-store'
+import ImageCard from './ImageCard'
+import createImageCollectionStore from './createImageCollectionStore'
 
 export default {
   components: {
-    DetailImageCard
+    ImageCard
   },
 
   props: {
@@ -44,21 +57,21 @@ export default {
     }
   },
 
-  computed: {
-    imageCollection: {
-      get () {
-        return this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
-      },
-      set (value) {
-        this.$store.commit(`eloquentImagery/${this.field.attribute}/updateImages`, value)
-      }
+  data () {
+    return {
+      imageCollection: null,
+      singleImage: null
     }
   },
 
   created () {
     if (this.field.isCollection) {
-      this.$store.registerModule(`eloquentImagery/${this.field.attribute}`, imageCollectionStore)
+      this.$store.registerModule(`eloquentImagery/${this.field.attribute}`, createImageCollectionStore())
       this.$store.commit(`eloquentImagery/${this.field.attribute}/initialize`, { fieldName: this.field.attribute, images: this.field.value.images })
+
+      this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
+    } else {
+      this.singleImage = this.field.value
     }
   },
 
@@ -67,21 +80,5 @@ export default {
       this.$store.unregisterModule(`eloquentImagery/${this.field.attribute}`)
     }
   }
-
-  // computed: {
-  //   images () {
-  //     const images = (this.field.isCollection) ? this.field.value.images : (this.field.value ? [this.field.value] : [])
-  //
-  //     return images.map((image, i) => {
-  //       return {
-  //         inputId: 'eloquent-imagery-' + this.field.attribute + '-' + i,
-  //         previewUrl: image.previewUrl,
-  //         thumbnailUrl: image.thumbnailUrl,
-  //         metadata: Object.keys(image.metadata).map(key => ({ key, value: image.metadata[key] }))
-  //       }
-  //     })
-  //   }
-  // }
-
 }
 </script>

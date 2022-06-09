@@ -14,6 +14,8 @@ class EloquentImageryField extends Field
 
     public $showOnIndex = false;
 
+    protected $metadataFormConfiguration = [];
+
     protected $thumbnailUrlModifiers;
     protected $previewUrlModifiers;
 
@@ -39,6 +41,16 @@ class EloquentImageryField extends Field
         $fieldAttribute->updatePath([], $model);
     }
 
+    public function withMetadataFormConfiguration(array $metadataFormConfiguration)
+    {
+        $this->metadataFormConfiguration = array_merge(
+            ['fields' => [], 'allow_add_metadata' => false, 'preserve_existing_metadata' => true],
+            $metadataFormConfiguration
+        );
+
+        return $this;
+    }
+
     public function jsonSerialize()
     {
         if ($this->value instanceof ImageCollection) {
@@ -59,8 +71,9 @@ class EloquentImageryField extends Field
         }
 
         return array_merge(parent::jsonSerialize(), [
-            'value'        => $value,
-            'isCollection' => $isCollection
+            'value'                     => $value,
+            'isCollection'              => $isCollection,
+            'metadataFormConfiguration' => $this->metadataFormConfiguration
         ]);
     }
 

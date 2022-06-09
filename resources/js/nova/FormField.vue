@@ -12,25 +12,38 @@
             :value="imageCollection"
             class="flex flex-wrap mb-2"
             group="image-group"
-            @update="updateImageCollectionOrder"
+            @update="handleImageCollectionUpdateOrder"
           >
             <div
               v-for="(image, index) in imageCollection"
               :key="index"
               :class="`border border-70 flex items-end m-1 laravel-eloquent-imagery-image-${(index + 1)}`"
             >
-              <form-image-card
-                :image="image"
-                @remove-image="removeImageFromImageCollection(image)"
+              <image-card
+                :editable="true"
+                :metadata="image.metadata"
+                :metadata-form-configuration="field.metadataFormConfiguration"
+                :preview-url="image.previewUrl"
+                :thumbnail-url="image.thumbnailUrl"
+                @remove-image="handleImageCollectionRemoveImage(image)"
+                @replace-image="handleImageCollectionReplaceImage(image, $event)"
+                @update-metadata="handleImageCollectionUpdateMetadataForImage(image, $event)"
               />
             </div>
           </draggable>
         </template>
         <template v-else>
-          <form-image-card
-            :image="field.image"
-            @remove-image="removeImage"
-          />
+          TODO
+          <!--<image-card-->
+          <!--  :editable="true"-->
+          <!--  :metadata="singleImage.metadata"-->
+          <!--  :metadata-form-configuration="field.metadataFormConfiguration"-->
+          <!--  :preview-url="singleImage.previewUrl"-->
+          <!--  :thumbnail-url="singleImage.thumbnailUrl"-->
+          <!--  @remove-image="handleRemoveSingleImage"-->
+          <!--  @replace-image="handleReplaceSingleImage($event)"-->
+          <!--  @update-metadata="handleUpdateMetadataForSingleImage($event)"-->
+          <!--/>-->
         </template>
 
         <div class="content-center px-6 py-4">
@@ -41,7 +54,7 @@
             type="file"
             name="name"
             @change="uploadNewImageFromFileInput($event.target.files[0])"
-          />
+          >
 
           <span
             class="cursor-pointer"
@@ -62,14 +75,14 @@
 <script>
 import { FormField, HandlesValidationErrors } from 'laravel-nova'
 import Draggable from 'vuedraggable'
-import FormImageCard from './FormImageCard'
+import ImageCard from './ImageCard'
 
-import imageCollectionStore from './image-collection-store'
+import createImageCollectionStore from './createImageCollectionStore'
 
 export default {
   components: {
-    FormImageCard,
-    Draggable
+    Draggable,
+    ImageCard
   },
 
   mixins: [
@@ -87,26 +100,26 @@ export default {
       required: true
     },
     field: {
-      type: String,
+      type: Object,
       required: true
     }
   },
 
-  computed: {
-    imageCollection: {
-      get () {
-        return this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
-      },
-      set (value) {
-        this.$store.commit(`eloquentImagery/${this.field.attribute}/updateImages`, value)
-      }
+  data () {
+    return {
+      imageCollection: null,
+      singleImage: null
     }
   },
 
   created () {
     if (this.field.isCollection) {
-      this.$store.registerModule(`eloquentImagery/${this.field.attribute}`, imageCollectionStore)
+      this.$store.registerModule(`eloquentImagery/${this.field.attribute}`, createImageCollectionStore())
       this.$store.commit(`eloquentImagery/${this.field.attribute}/initialize`, { isReadOnly: false, fieldName: this.field.attribute, images: this.field.value.images })
+
+      this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
+    } else {
+      this.singleImage = this.field.image
     }
   },
 
@@ -120,26 +133,44 @@ export default {
     fill (formData) {
       const value = (this.field.isCollection)
         ? this.$store.getters[`eloquentImagery/${this.field.attribute}/serialize`]
-        : this.image
+        : this.singleImage
 
       formData.append(this.field.attribute, JSON.stringify(value))
     },
 
-    removeImageFromImageCollection (image) {
+    handleImageCollectionRemoveImage (image) {
       this.$store.dispatch(`eloquentImagery/${this.field.attribute}/removeImage`, image)
+
+      this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
     },
 
-    removeImage () {
-      console.log('just remove the image please')
+    handleImageCollectionReplaceImage (image, event) {
     },
 
-    updateImageCollectionOrder (dragEvent) {
-      console.log('todo, update order', dragEvent)
+    handleImageCollectionUpdateMetadataForImage (image, metadatas) {
+      console.log(metadatas)
+      this.$root.$store.dispatch(
+        `eloquentImagery/${this.field.attribute}/updateImageMetadata`,
+        { id: image.id, metadatas, replace: true }
+      )
+    },
+
+    handleImageCollectionUpdateOrder (dragEvent) {
+      this.$root.$store.dispatch(
+        `eloquentImagery/${this.field.attribute}/updateOrder`,
+        { oldIndex: dragEvent.oldIndex, newIndex: dragEvent.newIndex }
+      )
+    },
+
+    handleRemoveImage (image) {
+      console.log('just remove the image please' + image.id)
     },
 
     uploadNewImageFromFileInput (file) {
       if (this.field.isCollection) {
         this.$store.dispatch(`eloquentImagery/${this.field.attribute}/addImageFromFile`, { file })
+
+        this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
         return
       }
 
