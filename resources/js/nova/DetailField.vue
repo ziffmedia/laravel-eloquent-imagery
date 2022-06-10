@@ -22,7 +22,10 @@
           </div>
         </template>
         <template v-else>
-          <div class="flex flex-wrap mb-2 laravel-eloquent-imagery">
+          <div
+            v-if="singleImage"
+            class="flex flex-wrap mb-2 laravel-eloquent-imagery"
+          >
             <image-card
               :editable="false"
               :metadata="singleImage.metadata"
@@ -30,6 +33,9 @@
               :preview-url="singleImage.previewUrl"
               :thumbnail-url="singleImage.thumbnailUrl"
             />
+          </div>
+          <div v-else>
+            No Image
           </div>
         </template>
       </div>
@@ -71,6 +77,7 @@ export default {
 
       this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
     } else {
+      console.log(this.field)
       this.singleImage = this.field.value
     }
   },

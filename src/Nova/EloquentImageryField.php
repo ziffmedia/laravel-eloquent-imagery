@@ -3,6 +3,7 @@
 namespace ZiffMedia\LaravelEloquentImagery\Nova;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Laravel\Nova\Fields\Field;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use ZiffMedia\LaravelEloquentImagery\Eloquent\Image;
@@ -43,10 +44,7 @@ class EloquentImageryField extends Field
 
     public function withMetadataFormConfiguration(array $metadataFormConfiguration)
     {
-        $this->metadataFormConfiguration = array_merge(
-            ['fields' => [], 'allow_add_metadata' => false, 'preserve_existing_metadata' => true],
-            $metadataFormConfiguration
-        );
+        $this->metadataFormConfiguration = $metadataFormConfiguration;
 
         return $this;
     }
@@ -73,7 +71,10 @@ class EloquentImageryField extends Field
         return array_merge(parent::jsonSerialize(), [
             'value'                     => $value,
             'isCollection'              => $isCollection,
-            'metadataFormConfiguration' => $this->metadataFormConfiguration
+            'metadataFormConfiguration' => collect(['fields' => [], 'allowAddMetadata' => false, 'preserveExistingMetadata' => true])
+                ->merge($this->metadataFormConfiguration)
+                ->mapWithKeys(fn ($value, $key) => [Str::camel($key) => $value])
+                ->toArray()
         ]);
     }
 

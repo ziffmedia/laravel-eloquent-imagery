@@ -43,7 +43,6 @@ class Image implements JsonSerializable
     protected ?int $height = null;
     protected ?string $hash = null;
     protected ?int $timestamp = 0;
-    public Collection $attributes;
     public Collection $metadata;
 
     protected bool $exists = false;
@@ -61,7 +60,6 @@ class Image implements JsonSerializable
 
         $this->pathTemplate = $pathTemplate;
         $this->presets = $presets;
-        $this->attributes = new Collection;
         $this->metadata = new Collection;
     }
 
@@ -128,7 +126,6 @@ class Image implements JsonSerializable
             'height'     => $this->height,
             'hash'       => $this->hash,
             'timestamp'  => $this->timestamp,
-            'attributes' => $this->attributes->toArray(),
             'metadata'   => $this->metadata->toArray()
         ];
     }
@@ -311,11 +308,6 @@ class Image implements JsonSerializable
             return $properties[$name];
         }
 
-        // not complete yet, need to check configuration
-        if ($this->attributes[$name]) {
-            return $this->attributes[$name];
-        }
-
         throw new OutOfBoundsException("Property $name is not accessible");
     }
 
@@ -349,7 +341,6 @@ class Image implements JsonSerializable
         if ($this->exists) {
             return [
                 'path'       => $this->path,
-                'attributes' => $this->attributes,
                 'metadata'   => $this->metadata
             ];
         }

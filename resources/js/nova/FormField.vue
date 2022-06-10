@@ -33,27 +33,30 @@
           </draggable>
         </template>
         <template v-else>
-          TODO
-          <!--<image-card-->
-          <!--  :editable="true"-->
-          <!--  :metadata="singleImage.metadata"-->
-          <!--  :metadata-form-configuration="field.metadataFormConfiguration"-->
-          <!--  :preview-url="singleImage.previewUrl"-->
-          <!--  :thumbnail-url="singleImage.thumbnailUrl"-->
-          <!--  @remove-image="handleRemoveSingleImage"-->
-          <!--  @replace-image="handleReplaceSingleImage($event)"-->
-          <!--  @update-metadata="handleUpdateMetadataForSingleImage($event)"-->
-          <!--/>-->
+          <image-card
+            v-if="singleImage"
+            :editable="true"
+            :metadata="singleImage.metadata"
+            :metadata-form-configuration="field.metadataFormConfiguration"
+            :preview-url="singleImage.previewUrl"
+            :thumbnail-url="singleImage.thumbnailUrl"
+            @remove-image="handleRemoveSingleImage"
+            @replace-image="handleReplaceSingleImage"
+            @update-metadata="handleUpdateMetadataForSingleImage"
+          />
         </template>
 
-        <div class="content-center px-6 py-4">
+        <div
+          v-if="imageCollection || (!imageCollection && !singleImage)"
+          class="content-center px-6 py-4"
+        >
           <input
             :id="`eloquent-imagery-` + field.name + `-add-image`"
             ref="uploadNewImageFromFileInput"
             class="select-none form-file-input"
             type="file"
             name="name"
-            @change="uploadNewImageFromFileInput($event.target.files[0])"
+            @change="handleNewImageFromFileInput($event.target.files[0])"
           >
 
           <span
@@ -115,11 +118,29 @@ export default {
   created () {
     if (this.field.isCollection) {
       this.$store.registerModule(`eloquentImagery/${this.field.attribute}`, createImageCollectionStore())
-      this.$store.commit(`eloquentImagery/${this.field.attribute}/initialize`, { isReadOnly: false, fieldName: this.field.attribute, images: this.field.value.images })
+
+      const requiredMetadataFields = []
+
+      this.field.metadataFormConfiguration.fields.forEach(field => {
+        if (field.required) {
+          requiredMetadataFields.push(field.key)
+        }
+      })
+
+      this.$store.commit(`eloquentImagery/${this.field.attribute}/initialize`, {
+        isReadOnly: false,
+        fieldName: this.field.attribute,
+        images: this.field.value.images,
+        requiredMetadataFields
+      })
 
       this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
     } else {
-      this.singleImage = this.field.image
+      this.singleImage = this.field.value
+
+      if (this.singleImage) {
+        this.$set(this.singleImage, 'metadata', this.singleImage.metadata)
+      }
     }
   },
 
@@ -144,7 +165,11 @@ export default {
       this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
     },
 
-    handleImageCollectionReplaceImage (image, event) {
+    handleImageCollectionReplaceImage (image, file) {
+      this.$store.dispatch(`eloquentImagery/${this.field.attribute}/replaceImageWithFile`, { id: image.id, file })
+        .then(() => {
+          this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
+        })
     },
 
     handleImageCollectionUpdateMetadataForImage (image, metadatas) {
@@ -162,19 +187,60 @@ export default {
       )
     },
 
-    handleRemoveImage (image) {
-      console.log('just remove the image please' + image.id)
+    handleReplaceSingleImage (file) {
+      const imageUrl = URL.createObjectURL(file)
+
+      this.singleImage.previewUrl = imageUrl
+      this.singleImage.thumbnailUrl = imageUrl
+
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+
+        reader.addEventListener('load', () => {
+          this.singleImage.fileData = reader.result
+        })
+
+        reader.readAsDataURL(file)
+      })
     },
 
-    uploadNewImageFromFileInput (file) {
+    handleRemoveSingleImage (image) {
+      this.singleImage = null
+    },
+
+    handleUpdateMetadataForSingleImage (metadata) {
+      const newm = metadata.reduce((o, m) => Object.assign(o, { [m.key]: m.value }), {})
+      this.$set(this.singleImage, 'metadata', newm)
+      // this.singleImage.metadata = newm
+    },
+
+    handleNewImageFromFileInput (file) {
       if (this.field.isCollection) {
         this.$store.dispatch(`eloquentImagery/${this.field.attribute}/addImageFromFile`, { file })
+          .then(() => {
+            this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
+          })
+      } else {
+        const imageUrl = URL.createObjectURL(file)
 
-        this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
-        return
+        this.singleImage = {
+          id: this.field.attribute,
+          previewUrl: imageUrl,
+          thumbnailUrl: imageUrl
+        }
+
+        this.$set(this.singleImage, 'metadata', {})
+
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader()
+
+          reader.addEventListener('load', () => {
+            this.singleImage.fileData = reader.result
+          })
+
+          reader.readAsDataURL(file)
+        })
       }
-
-      console.log('update image')
     }
   }
 }

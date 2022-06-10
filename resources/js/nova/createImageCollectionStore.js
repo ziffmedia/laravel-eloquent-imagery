@@ -1,3 +1,14 @@
+import Vue from 'vue'
+
+function createMetadata (metadata, requiredFields) {
+  requiredFields.forEach(field => {
+    if (!metadata[field]) {
+      Vue.set(metadata, field, '')
+    }
+  })
+
+  return metadata
+}
 
 export default function createImageCollectionStore () {
   return {
@@ -6,26 +17,36 @@ export default function createImageCollectionStore () {
     state: () => ({
       fieldName: '',
       isReadonly: true,
-      images: []
+      images: [],
+      requiredMetadataFields: []
     }),
 
     mutations: {
       initialize (state, payload) {
         state.isReadonly = payload.isReadOnly ?? true
         state.fieldName = payload.fieldName
+        state.requiredMetadataFields = payload.requiredMetadataFields ?? []
 
-        state.images = payload.images.map((image, i) => {
-          return {
+        // this should keep images reactive (but it doesn't?)
+        Vue.set(state, 'images', payload.images.map((image, i) => {
+          const storeImage = {
             ...image,
-            id: 'eloquent-imagery-' + payload.fieldName + '-' + (i + 1),
-            // ensure empty metadata is in fact an object
-            metadata: Array.isArray(image.metadata) ? Object.fromEntries(image.metadata) : image.metadata
+            id: 'eloquent-imagery-' + payload.fieldName + '-' + (i + 1)
           }
-        })
+
+          const metadata = createMetadata(
+            Array.isArray(image.metadata) ? Object.fromEntries(image.metadata) : image.metadata,
+            state.requiredMetadataFields
+          )
+
+          Vue.set(storeImage, 'metadata', metadata)
+
+          return storeImage
+        }))
       },
 
       updateImages (state, images) {
-        state.images = images
+        Vue.set(state, 'images', images)
       },
 
       updateImageAtIndex (state, { index, image }) {
@@ -35,21 +56,19 @@ export default function createImageCollectionStore () {
 
     actions: {
       addImageFromFile ({ state, commit }, payload) {
-        const imageUrl = URL.createObjectURL(payload.file)
-
-        // @todo handle metadata
-        const metadata = payload.metadata ?? {}
         const id = 'eloquent-imagery-' + state.fieldName + '-' + (state.images.length + 1)
 
-        // Object.keys(payload.metadata ?? [])
-        // .map(key => ({ key, value: metadata[key] }))
+        const imageUrl = URL.createObjectURL(payload.file)
 
         const image = {
           id,
           previewUrl: imageUrl,
-          thumbnailUrl: imageUrl,
-          metadata
+          thumbnailUrl: imageUrl
         }
+
+        const metadata = createMetadata(payload.metadata ?? {}, state.requiredMetadataFields)
+
+        Vue.set(image, 'metadata', metadata)
 
         const images = state.images
         images.push(image)
@@ -63,6 +82,35 @@ export default function createImageCollectionStore () {
             image.fileData = reader.result
 
             resolve(image)
+          })
+
+          reader.readAsDataURL(payload.file)
+        })
+      },
+
+      replaceImageWithFile ({ state, commit }, payload) {
+        const index = state.images.findIndex(image => image.id === payload.id)
+
+        if (index < 0) {
+          console.warn('Attempted to update metadata that could not be found in this image collection store')
+
+          return
+        }
+
+        const image = state.images[index]
+
+        const imageUrl = URL.createObjectURL(payload.file)
+
+        image.previewUrl = imageUrl
+        image.thumbnailUrl = imageUrl
+
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader()
+
+          reader.addEventListener('load', () => {
+            image.fileData = reader.result
+
+            resolve()
           })
 
           reader.readAsDataURL(payload.file)
@@ -88,7 +136,7 @@ export default function createImageCollectionStore () {
           image.metadata[payload.key] = payload.value
         } else if (payload.metadatas && Array.isArray(payload.metadatas)) {
           if (payload.replace) {
-            image.metadata = {}
+            Vue.set(image, 'metadata', {})
           }
 
           payload.metadatas.forEach(metadata => {

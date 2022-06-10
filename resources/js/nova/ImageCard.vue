@@ -1,6 +1,7 @@
 <template>
   <div class="px-2 py-2">
     <img
+      v-if="thumbnailUrl"
       alt="An eloquent imagery image"
       style="max-height: 100px"
       class="block mx-auto mb-2 sm:mb-0 sm:mr-4 sm:ml-0"
@@ -26,7 +27,7 @@
       ref="replaceImageFileInput"
       class="select-none form-file-input"
       type="file"
-      @change="handleFileChange"
+      @change="handleReplaceImage"
     >
 
     <div class="flex">
@@ -178,12 +179,6 @@
             </button>
 
             <div class="text-right mt-2 p-4">
-              <!--<button-->
-              <!--  class="btn btn-link dim cursor-pointer text-80 ml-auto mr-6"-->
-              <!--  @click.prevent="handleCloseMetadataModal"-->
-              <!--&gt;-->
-              <!--  Close-->
-              <!--</button>-->
               <button
                 class="btn btn-link dim cursor-pointer text-80 ml-auto mr-6"
                 @click.prevent="handleCloseMetadataModal"
@@ -232,74 +227,40 @@ export default {
 
   data () {
     return {
+      isMetadataModalOpen: false,
+      isPreviewImageModalOpen: false,
       metadataForm: {
         allowAddMetadata: false,
-        fields: []
-      },
-      isMetadataModalOpen: false,
-      isPreviewImageModalOpen: false
+        fields: [],
+        requiredFields: []
+      }
     }
   },
 
   computed: {
     metadataMessaging () {
+      for (const field of this.metadataForm.requiredFields) {
+        if (!this.metadata[field] || this.metadata[field] === '') {
+          return 'Required metadata is missing.'
+        }
+      }
+
       return null
     }
   },
 
   created () {
-    // console.log(this.metadata)
+    this.refreshMetadataForm()
   },
 
   methods: {
-    handleFileChange (event) {
-      // console.log('handle file replacement')
-      // let file = event.target.files[0]
-      //
-      // this.image.previewUrl = this.image.thumbnailUrl = URL.createObjectURL(file)
-      //
-      // let reader = new FileReader()
-      //
-      // reader.addEventListener('load', () => {
-      //   this.image.fileData = reader.result
-      // })
-      //
-      // reader.readAsDataURL(file)
+    handleReplaceImage (event) {
+      this.$emit('replace-image', event.target.files[0])
     },
 
     handleOpenMetadataModal (event) {
       this.isMetadataModalOpen = true
-
-      // configuration of the form
-      this.metadataForm.allowAddMetadata = this.metadataFormConfiguration.allow_add_metadata ?? false
-
-      this.metadataFormConfiguration.fields.forEach(field => {
-        this.metadataForm.fields.push({
-          key: field.key,
-          label: field.label ?? field.key,
-          value: this.metadata[field.key] ?? null,
-          isKeyEditable: false,
-          isHidden: false,
-          isRequired: field.required ?? false,
-          isRemovable: field.removable ?? true
-        })
-      })
-
-      Object.entries(this.metadata).forEach(([key, value]) => {
-        if (this.metadataForm.fields.findIndex(field => field.key === key) !== -1) {
-          return
-        }
-
-        this.metadataForm.fields.push({
-          key,
-          label: key,
-          value: value,
-          isKeyEditable: true,
-          isHidden: false,
-          isRequired: false,
-          isRemovable: true
-        })
-      })
+      this.refreshMetadataForm()
     },
 
     handleUpdateAndCloseMetadataModal () {
@@ -310,7 +271,7 @@ export default {
       })
 
       this.$emit('update-metadata', metadatas)
-      this.handleCloseMetadataModal()
+      this.isMetadataModalOpen = false
     },
 
     handleAddMetadata () {
@@ -327,12 +288,55 @@ export default {
 
     handleCloseMetadataModal () {
       this.isMetadataModalOpen = false
-      this.metadataForm.fields = []
+      this.refreshMetadataForm()
     },
 
     handleClickaway () {
       this.isMetadataModalOpen = false
       this.isPreviewImageModalOpen = false
+    },
+
+    refreshMetadataForm () {
+      // configuration of the form
+      this.metadataForm.allowAddMetadata = this.metadataFormConfiguration.allowAddMetadata ?? false
+
+      this.metadataForm.fields = []
+
+      this.metadataFormConfiguration.fields.forEach(field => {
+        if (field.required) {
+          this.metadataForm.requiredFields.push(field.key)
+        }
+
+        this.metadataForm.fields.push({
+          key: field.key,
+          label: field.label ?? field.key,
+          value: null,
+          isKeyEditable: false,
+          isHidden: false,
+          isRequired: field.required ?? false,
+          isRemovable: field.removable ?? true
+        })
+      })
+
+      Object.entries(this.metadata).forEach(([key, value]) => {
+        const foundFieldIndex = this.metadataForm.fields.findIndex(field => field.key === key)
+
+        if (foundFieldIndex !== -1) {
+          this.metadataForm.fields[foundFieldIndex].value = value
+
+          return
+        }
+
+        this.metadataForm.fields.push({
+          key,
+          label: key,
+          value: value,
+          isKeyEditable: true,
+          isHidden: false,
+          isRequired: false,
+          isRemovable: true
+        })
+      })
     }
   }
 }
