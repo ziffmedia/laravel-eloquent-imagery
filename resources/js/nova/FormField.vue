@@ -25,9 +25,9 @@
                 :metadata-form-configuration="field.metadataFormConfiguration"
                 :preview-url="image.previewUrl"
                 :thumbnail-url="image.thumbnailUrl"
-                @remove-image="handleImageCollectionRemoveImage(image)"
-                @replace-image="handleImageCollectionReplaceImage(image, $event)"
-                @update-metadata="handleImageCollectionUpdateMetadataForImage(image, $event)"
+                @removeImage="handleImageCollectionRemoveImage(image)"
+                @replaceImage="handleImageCollectionReplaceImage(image, $event)"
+                @updateMetadata="handleImageCollectionUpdateMetadataForImage(image, $event)"
               />
             </div>
           </draggable>
@@ -40,9 +40,9 @@
             :metadata-form-configuration="field.metadataFormConfiguration"
             :preview-url="singleImage.previewUrl"
             :thumbnail-url="singleImage.thumbnailUrl"
-            @remove-image="handleRemoveSingleImage"
-            @replace-image="handleReplaceSingleImage"
-            @update-metadata="handleUpdateMetadataForSingleImage"
+            @removeImage="handleRemoveSingleImage"
+            @replaceImage="handleReplaceSingleImage"
+            @updateMetadata="handleUpdateMetadataForSingleImage"
           />
         </template>
 
@@ -167,9 +167,9 @@ export default {
 
     handleImageCollectionReplaceImage (image, file) {
       this.$store.dispatch(`eloquentImagery/${this.field.attribute}/replaceImageWithFile`, { id: image.id, file })
-        .then(() => {
-          this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
-        })
+        // .then(() => {
+        //   this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
+        // })
     },
 
     handleImageCollectionUpdateMetadataForImage (image, metadatas) {

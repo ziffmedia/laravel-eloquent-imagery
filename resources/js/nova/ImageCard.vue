@@ -61,7 +61,7 @@
       <div
         v-if="editable"
         class="flex-1 text-center cursor-pointer"
-        @click.prevent="$emit('remove-image')"
+        @click.prevent="$emit('removeImage')"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -255,7 +255,7 @@ export default {
 
   methods: {
     handleReplaceImage (event) {
-      this.$emit('replace-image', event.target.files[0])
+      this.$emit('replaceImage', event.target.files[0])
     },
 
     handleOpenMetadataModal (event) {
@@ -270,7 +270,7 @@ export default {
         metadatas.push({ key: field.key, value: field.value })
       })
 
-      this.$emit('update-metadata', metadatas)
+      this.$emit('updateMetadata', metadatas)
       this.isMetadataModalOpen = false
     },
 
