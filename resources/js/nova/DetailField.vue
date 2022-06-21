@@ -77,7 +77,6 @@ export default {
 
       this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
     } else {
-      console.log(this.field)
       this.singleImage = this.field.value
     }
   },

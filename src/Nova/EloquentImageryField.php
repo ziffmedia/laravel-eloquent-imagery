@@ -71,7 +71,7 @@ class EloquentImageryField extends Field
         return array_merge(parent::jsonSerialize(), [
             'value'                     => $value,
             'isCollection'              => $isCollection,
-            'metadataFormConfiguration' => collect(['fields' => [], 'allowAddMetadata' => false, 'preserveExistingMetadata' => true])
+            'metadataFormConfiguration' => collect(['fields' => [], 'allowAddMetadata' => true, 'preserveExistingMetadata' => true])
                 ->merge($this->metadataFormConfiguration)
                 ->mapWithKeys(fn ($value, $key) => [Str::camel($key) => $value])
                 ->toArray()

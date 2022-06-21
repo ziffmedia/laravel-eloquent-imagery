@@ -143,7 +143,7 @@ export default function createImageCollectionStore () {
             image.metadata[metadata.key] = metadata.value
           })
         } else {
-          console.log('Payload was neither a single key/value or array of key/value objects')
+          console.warn('Payload was neither a single key/value or array of key/value objects')
 
           return
         }

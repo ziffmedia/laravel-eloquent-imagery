@@ -6,7 +6,10 @@
     :show-help-text="field.helpText != null"
   >
     <template slot="field">
-      <div :class="`bg-white rounded-lg laravel-eloquent-imagery-${resourceName}`">
+      <div
+        class="flex flex-wrap mb-2 bg-white rounded-lg"
+        :class="`laravel-eloquent-imagery-${resourceName}`"
+      >
         <template v-if="field.isCollection">
           <draggable
             :value="imageCollection"
@@ -173,7 +176,6 @@ export default {
     },
 
     handleImageCollectionUpdateMetadataForImage (image, metadatas) {
-      console.log(metadatas)
       this.$root.$store.dispatch(
         `eloquentImagery/${this.field.attribute}/updateImageMetadata`,
         { id: image.id, metadatas, replace: true }
