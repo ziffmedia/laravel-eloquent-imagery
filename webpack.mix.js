@@ -5,4 +5,8 @@ mix.setPublicPath('dist')
     .options({
       terser: { extractComments: false }
     })
-    .sourceMaps()
+    .vue()
+
+if (!mix.inProduction()) {
+    mix.sourceMaps()
+}
