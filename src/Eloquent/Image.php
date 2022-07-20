@@ -145,6 +145,7 @@ class Image implements JsonSerializable
         }
 
         static $fInfo = null;
+
         if (!$fInfo) {
             $fInfo = new finfo;
         }

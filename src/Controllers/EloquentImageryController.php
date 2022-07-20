@@ -2,6 +2,7 @@
 
 namespace ZiffMedia\LaravelEloquentImagery\Controllers;
 
+use finfo;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Filesystem\FilesystemManager;
@@ -58,7 +59,7 @@ class EloquentImageryController extends Controller
         if (!$imageBytes) {
             try {
                 $imageBytes = $filesystem->get($imageActualPath);
-                $mimeType = $filesystem->getMimeType($imageActualPath);
+                $mimeType = $this->getMimeTypeFromBytes($imageBytes);
             } catch (FileNotFoundException $e) {
                 $imageBytes = null;
             }
@@ -68,9 +69,11 @@ class EloquentImageryController extends Controller
         if (!$imageBytes && config('eloquent-imagery.render.fallback.enable')) {
             /** @var Filesystem $fallbackFilesystem */
             $fallbackFilesystem = app(FilesystemManager::class)->disk(config('eloquent-imagery.render.fallback.filesystem'));
+
             try {
                 $imageBytes = $fallbackFilesystem->get($imageActualPath);
-                $mimeType = $fallbackFilesystem->getMimeType($imageActualPath);
+                $mimeType = $this->getMimeTypeFromBytes($imageBytes);
+
                 if (config('eloquent-imagery.render.fallback.mark_images')) {
                     $imageRequestData['fallbackbanner'] = true;
                 }
@@ -101,6 +104,23 @@ class EloquentImageryController extends Controller
         }
 
         return $response;
+    }
+
+    /**
+     * Use this since Flysystem v2+ no longer has Mime-Type detection capabilities
+     *
+     * @param $bytes
+     * @return false|string
+     */
+    protected function getMimeTypeFromBytes($bytes)
+    {
+        static $fInfo = null;
+
+        if (!$fInfo) {
+            $fInfo = new finfo;
+        }
+
+        return $fInfo->buffer($bytes, FILEINFO_MIME_TYPE);
     }
 
     protected function createPlaceHolderImage(Collection $imageRequestData)
