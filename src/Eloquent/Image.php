@@ -30,34 +30,30 @@ class Image implements JsonSerializable
 {
     use Macroable;
 
-    /** @var Filesystem|Cloud */
-    protected static $filesystem = null;
+    protected static ?Filesystem $filesystem = null;
 
-    /** @var string */
-    protected $pathTemplate = null;
-    protected $presets = [];
+    protected string $pathTemplate;
+    protected array $presets = [];
 
-    /** @var null|integer This is filled when an image is used in an ImageCollection */
-    protected $index = null;
-    protected $path = '';
-    protected $extension = '';
-    protected $animated = false;
-    protected $width = null;
-    protected $height = null;
-    protected $hash = '';
-    protected $timestamp = 0;
+    protected ?int $index = null;
+    protected string $path = '';
+    protected string $extension = '';
+    protected bool $animated = false;
+    protected ?int $width = null;
+    protected ?int $height = null;
+    protected ?string $hash = null;
+    protected ?int $timestamp = 0;
+    public Collection $metadata;
 
-    /** @var Collection */
-    public $metadata = null;
-
-    protected $exists = false;
-    protected $flush = false;
-    protected $data = null;
-    protected $removeAtPathOnFlush = null;
-    protected $isReadOnly = false;
+    protected bool $exists = false;
+    protected bool $flush = false;
+    protected ?string $data = null;
+    protected ?string $removeAtPathOnFlush = null;
+    protected bool $isReadOnly = false;
 
     public function __construct(string $pathTemplate, array $presets)
     {
+        // the filesystem should come from the configuration, unless Image is extended and configured statically set with a filesystem
         if (!static::$filesystem) {
             static::$filesystem = app(FilesystemManager::class)->disk(config('eloquent-imagery.filesystem', config('filesystems.default')));
         }
@@ -67,22 +63,22 @@ class Image implements JsonSerializable
         $this->metadata = new Collection;
     }
 
-    public function setIndex($index)
+    public function setIndex($index): void
     {
         $this->index = $index;
     }
 
-    public function setReadOnly()
+    public function setReadOnly(): void
     {
         $this->isReadOnly = true;
     }
 
-    public function exists()
+    public function exists(): bool
     {
         return $this->exists;
     }
 
-    public function url($transformations = null)
+    public function url($transformations = null): string
     {
         $renderRouteEnabled = config('eloquent-imagery.render.enable');
 
@@ -103,7 +99,7 @@ class Image implements JsonSerializable
         return app(UrlHandler::class)->createUrl($this, $transformations);
     }
 
-    public function setStateFromAttributeData($attributeData)
+    public function setStateFromAttributeData($attributeData): void
     {
         $this->index = $attributeData['index'] ?? null;
         $this->path = $attributeData['path'] ?? null;
@@ -119,22 +115,22 @@ class Image implements JsonSerializable
         $this->exists = true;
     }
 
-    public function getStateAsAttributeData()
+    public function getStateAsAttributeData(): array
     {
         return [
-            'index'     => $this->index,
-            'path'      => $this->path,
-            'extension' => $this->extension,
-            'animated'  => $this->animated,
-            'width'     => $this->width,
-            'height'    => $this->height,
-            'hash'      => $this->hash,
-            'timestamp' => $this->timestamp,
-            'metadata'  => $this->metadata->toArray()
+            'index'      => $this->index,
+            'path'       => $this->path,
+            'extension'  => $this->extension,
+            'animated'   => $this->animated,
+            'width'      => $this->width,
+            'height'     => $this->height,
+            'hash'       => $this->hash,
+            'timestamp'  => $this->timestamp,
+            'metadata'   => $this->metadata->toArray()
         ];
     }
 
-    public function setData($data)
+    public function setData($data): void
     {
         if ($this->isReadOnly) {
             throw new RuntimeException('Cannot call setData on an image marked as read only');
@@ -154,7 +150,7 @@ class Image implements JsonSerializable
             $data = file_get_contents($data->getRealPath());
         }
 
-        if (strpos($data, 'data:') === 0) {
+        if (str_starts_with($data, 'data:')) {
             $data = file_get_contents($data);
         }
 
@@ -199,7 +195,7 @@ class Image implements JsonSerializable
         }
     }
 
-    public function metadata()
+    public function metadata(): Collection
     {
         return $this->metadata;
     }
@@ -238,17 +234,17 @@ class Image implements JsonSerializable
         return $updatedPathParts;
     }
 
-    public function pathHasReplacements()
+    public function pathHasReplacements(): bool
     {
         return (bool) preg_match('#{(\w+)}#', $this->path);
     }
 
-    public function isFullyRemoved()
+    public function isFullyRemoved(): bool
     {
         return ($this->flush === true && $this->removeAtPathOnFlush !== '' && $this->path === '');
     }
 
-    public function remove()
+    public function remove(): void
     {
         if ($this->isReadOnly) {
             throw new RuntimeException('Cannot remove an image marked as read only');
@@ -295,7 +291,27 @@ class Image implements JsonSerializable
         $this->flush = false;
     }
 
-    public function __get($name)
+    public function __get($name): mixed
+    {
+        $properties = [
+            'index'     => $this->index,
+            'path'      => $this->path,
+            'extension' => $this->extension,
+            'animated'  => $this->animated,
+            'width'     => $this->width,
+            'height'    => $this->height,
+            'hash'      => $this->hash,
+            'timestamp' => $this->timestamp,
+        ];
+
+        if (array_key_exists($name, $properties)) {
+            return $properties[$name];
+        }
+
+        throw new OutOfBoundsException("Property $name is not accessible");
+    }
+
+    public function __isset(string $name): bool
     {
         $properties = [
             'index'     => $this->index,
@@ -312,20 +328,20 @@ class Image implements JsonSerializable
             throw new OutOfBoundsException("Property $name is not accessible");
         }
 
-        return $properties[$name];
+        return isset($properties[$name]);
     }
 
-    public function toArray()
+    public function toArray(): array
     {
         return $this->getStateAsAttributeData();
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         if ($this->exists) {
             return [
-                'path'     => $this->path,
-                'metadata' => $this->metadata
+                'path'       => $this->path,
+                'metadata'   => $this->metadata
             ];
         }
 

@@ -1,125 +1,249 @@
 <template>
-  <default-field :field="field" :errors="errors" :full-width-content="true" :show-help-text="field.helpText != null">
+  <default-field
+    :field="field"
+    :errors="errors"
+    :full-width-content="true"
+    :show-help-text="field.helpText != null"
+  >
     <template slot="field">
-      <div class="bg-white rounded-lg">
-        <draggable v-model="images" group="image-group" v-on:start="drag=true" v-on:end="drag=false" :class="`flex flex-wrap mb-2 laravel-eloquent-imagery-${this.resourceName}`">
-          <div v-for="(image, index) in images" :class="`pl-1 pr-1 border border-70 flex items-end m-1 laravel-eloquent-imagery-image-${(index + 1)}`">
-              <image-card-input :isReadonly="isReadonly" v-bind:image.sync="image" v-on:remove-image="removeImage"></image-card-input>
-          </div>
-
-          <!--<button v-on:click.prevent="debugThis">De</button>-->
-
-          <div v-show="!isReadonly"  v-if="(isCollection == false && images.length == 0) || isCollection" slot="footer" class="flex items-center pl-1 pr-1 m-1 border border-70">
-            <div class="content-center px-6 py-4">
-              <input
-                ref="addNewImageFileInput"
-                class="select-none form-file-input"
-                type="file"
-                v-bind:id="`eloquent-imagery-` + this.field.name + `-add-image`"
-                name="name"
-                v-on:change="addImage"
+      <div
+        class="flex flex-wrap mb-2 bg-white rounded-lg"
+        :class="`laravel-eloquent-imagery-${resourceName}`"
+      >
+        <template v-if="field.isCollection">
+          <draggable
+            :value="imageCollection"
+            class="flex flex-wrap mb-2"
+            group="image-group"
+            @update="handleImageCollectionUpdateOrder"
+          >
+            <div
+              v-for="(image, index) in imageCollection"
+              :key="index"
+              :class="`border border-70 flex items-end m-1 laravel-eloquent-imagery-image-${(index + 1)}`"
+            >
+              <image-card
+                :editable="true"
+                :metadata="image.metadata"
+                :metadata-form-configuration="field.metadataFormConfiguration"
+                :preview-url="image.previewUrl"
+                :thumbnail-url="image.thumbnailUrl"
+                @removeImage="handleImageCollectionRemoveImage(image)"
+                @replaceImage="handleImageCollectionReplaceImage(image, $event)"
+                @updateMetadata="handleImageCollectionUpdateMetadataForImage(image, $event)"
               />
-
-              <span class="cursor-pointer" v-on:click="() => this.$refs['addNewImageFileInput'].click()">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="72" width="72">
-                  <path fill="#888" d="M6 2h9a1 1 0 0 1 .7.3l4 4a1 1 0 0 1 .3.7v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4c0-1.1.9-2 2-2zm9 2.41V7h2.59L15 4.41zM18 9h-3a2 2 0 0 1-2-2V4H6v16h12V9zm-5 4h2a1 1 0 0 1 0 2h-2v2a1 1 0 0 1-2 0v-2H9a1 1 0 0 1 0-2h2v-2a1 1 0 0 1 2 0v2z"/>
-                </svg>
-              </span>
             </div>
-          </div>
-        </draggable>
-      </div>
+          </draggable>
+        </template>
+        <template v-else>
+          <image-card
+            v-if="singleImage"
+            :editable="true"
+            :metadata="singleImage.metadata"
+            :metadata-form-configuration="field.metadataFormConfiguration"
+            :preview-url="singleImage.previewUrl"
+            :thumbnail-url="singleImage.thumbnailUrl"
+            @removeImage="handleRemoveSingleImage"
+            @replaceImage="handleReplaceSingleImage"
+            @updateMetadata="handleUpdateMetadataForSingleImage"
+          />
+        </template>
 
+        <div
+          v-if="imageCollection || (!imageCollection && !singleImage)"
+          class="content-center px-6 py-4"
+        >
+          <input
+            :id="`eloquent-imagery-` + field.name + `-add-image`"
+            ref="uploadNewImageFromFileInput"
+            class="select-none form-file-input"
+            type="file"
+            name="name"
+            @change="handleNewImageFromFileInput($event.target.files[0])"
+          >
+
+          <span
+            class="cursor-pointer"
+            @click.prevent="$refs['uploadNewImageFromFileInput'].click()"
+          >
+            <!-- eslint-disable vue/max-attributes-per-line -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="72" width="72">
+              <path fill="#888" d="M6 2h9a1 1 0 0 1 .7.3l4 4a1 1 0 0 1 .3.7v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4c0-1.1.9-2 2-2zm9 2.41V7h2.59L15 4.41zM18 9h-3a2 2 0 0 1-2-2V4H6v16h12V9zm-5 4h2a1 1 0 0 1 0 2h-2v2a1 1 0 0 1-2 0v-2H9a1 1 0 0 1 0-2h2v-2a1 1 0 0 1 2 0v2z"/>
+            </svg>
+            <!-- eslint-enable -->
+          </span>
+        </div>
+      </div>
     </template>
   </default-field>
 </template>
 
 <script>
-  import { FormField, HandlesValidationErrors, Errors } from 'laravel-nova'
-  import Draggable from 'vuedraggable'
-  import ImageCardInput from './ImageCardInput'
+import { FormField, HandlesValidationErrors } from 'laravel-nova'
+import Draggable from 'vuedraggable'
+import ImageCard from './ImageCard'
 
-  import store from './store'
+import createImageCollectionStore from './createImageCollectionStore'
 
-  export default {
-    mixins: [FormField, HandlesValidationErrors],
+export default {
+  components: {
+    Draggable,
+    ImageCard
+  },
 
-    props: ['resourceName', 'resourceId', 'field'],
+  mixins: [
+    FormField,
+    HandlesValidationErrors
+  ],
 
-    components: {
-      ImageCardInput,
-      Draggable
+  props: {
+    resourceName: {
+      type: String,
+      required: true
     },
+    resourceId: {
+      type: String,
+      required: true
+    },
+    field: {
+      type: Object,
+      required: true
+    }
+  },
 
-    computed: {
-      images: {
-        get () {
-          return this.$store.getters[`eloquentImagery/${this.field.name}/getImages`]
-        },
-        set (value) {
-          this.$store.commit(`eloquentImagery/${this.field.name}/updateImages`, value)
+  data () {
+    return {
+      imageCollection: null,
+      singleImage: null
+    }
+  },
+
+  created () {
+    if (this.field.isCollection) {
+      this.$store.registerModule(`eloquentImagery/${this.field.attribute}`, createImageCollectionStore())
+
+      const requiredMetadataFields = []
+
+      this.field.metadataFormConfiguration.fields.forEach(field => {
+        if (field.required) {
+          requiredMetadataFields.push(field.key)
         }
-      },
+      })
 
-      isCollection () {
-        return this.$store.getters[`eloquentImagery/${this.field.name}/getIsCollection`]
+      this.$store.commit(`eloquentImagery/${this.field.attribute}/initialize`, {
+        isReadOnly: false,
+        fieldName: this.field.attribute,
+        images: this.field.value.images,
+        requiredMetadataFields
+      })
+
+      this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
+    } else {
+      this.singleImage = this.field.value
+
+      if (this.singleImage) {
+        this.$set(this.singleImage, 'metadata', this.singleImage.metadata)
       }
+    }
+  },
+
+  destroyed () {
+    if (this.field.isCollection) {
+      this.$store.unregisterModule(`eloquentImagery/${this.field.attribute}`)
+    }
+  },
+
+  methods: {
+    fill (formData) {
+      const value = (this.field.isCollection)
+        ? this.$store.getters[`eloquentImagery/${this.field.attribute}/serialize`]
+        : this.singleImage
+
+      formData.append(this.field.attribute, JSON.stringify(value))
     },
 
-    methods: {
-      debugThis () {
-        console.log(this.images)
-      },
+    handleImageCollectionRemoveImage (image) {
+      this.$store.dispatch(`eloquentImagery/${this.field.attribute}/removeImage`, image)
 
-      setInitialValue () {
-        let isCollection = this.field.isCollection
+      this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
+    },
 
-        let images = (isCollection ? this.field.value.images : (this.field.value ? [this.field.value] : []))
-          .map((image, i) => {
-            return {
-              inputId: 'eloquent-imagery-' + this.field.name + '-' + i,
-              previewUrl: image.previewUrl,
-              thumbnailUrl: image.thumbnailUrl,
-              path: image.path,
-              metadata: Object.keys(image.metadata).map(key => ({'key': key, 'value': image.metadata[key]}))
-            }
+    handleImageCollectionReplaceImage (image, file) {
+      this.$store.dispatch(`eloquentImagery/${this.field.attribute}/replaceImageWithFile`, { id: image.id, file })
+        // .then(() => {
+        //   this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
+        // })
+    },
+
+    handleImageCollectionUpdateMetadataForImage (image, metadatas) {
+      this.$root.$store.dispatch(
+        `eloquentImagery/${this.field.attribute}/updateImageMetadata`,
+        { id: image.id, metadatas, replace: true }
+      )
+    },
+
+    handleImageCollectionUpdateOrder (dragEvent) {
+      this.$root.$store.dispatch(
+        `eloquentImagery/${this.field.attribute}/updateOrder`,
+        { oldIndex: dragEvent.oldIndex, newIndex: dragEvent.newIndex }
+      )
+    },
+
+    handleReplaceSingleImage (file) {
+      const imageUrl = URL.createObjectURL(file)
+
+      this.singleImage.previewUrl = imageUrl
+      this.singleImage.thumbnailUrl = imageUrl
+
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+
+        reader.addEventListener('load', () => {
+          this.singleImage.fileData = reader.result
+        })
+
+        reader.readAsDataURL(file)
+      })
+    },
+
+    handleRemoveSingleImage (image) {
+      this.singleImage = null
+    },
+
+    handleUpdateMetadataForSingleImage (metadata) {
+      const newm = metadata.reduce((o, m) => Object.assign(o, { [m.key]: m.value }), {})
+      this.$set(this.singleImage, 'metadata', newm)
+      // this.singleImage.metadata = newm
+    },
+
+    handleNewImageFromFileInput (file) {
+      if (this.field.isCollection) {
+        this.$store.dispatch(`eloquentImagery/${this.field.attribute}/addImageFromFile`, { file })
+          .then(() => {
+            this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
+          })
+      } else {
+        const imageUrl = URL.createObjectURL(file)
+
+        this.singleImage = {
+          id: this.field.attribute,
+          previewUrl: imageUrl,
+          thumbnailUrl: imageUrl
+        }
+
+        this.$set(this.singleImage, 'metadata', {})
+
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader()
+
+          reader.addEventListener('load', () => {
+            this.singleImage.fileData = reader.result
           })
 
-        this.$store.commit(`eloquentImagery/${this.field.name}/initialize`, { fieldName: this.field.name, isCollection, images })
-      },
-
-      addImage (event, metadata = {}) {
-        this.$store.dispatch(`eloquentImagery/${this.field.name}/addImageFromFile`, {
-          file: event.target.files[0]
+          reader.readAsDataURL(file)
         })
-      },
-
-      removeImage (image) {
-        this.$store.dispatch(`eloquentImagery/${this.field.name}/removeImage`, image)
-      },
-
-      fill (formData) {
-        let serializedImages = this.images.map(image => ({
-          fileData: (image.hasOwnProperty('fileData') ? image.fileData : null),
-
-          path: (image.hasOwnProperty('path') ? image.path : null),
-
-          metadata: image.metadata.reduce((object, next) => {
-            object[next.key] = next.value
-            return object
-          }, {})
-        }))
-
-        formData.append(this.field.attribute, JSON.stringify(this.isCollection ? serializedImages : serializedImages.pop()))
       }
-    },
-
-    created () {
-      this.$store.registerModule(`eloquentImagery/${this.field.name}`, store)
-    },
-
-    destroyed () {
-      this.$store.unregisterModule(`eloquentImagery/${this.field.name}`)
     }
   }
+}
 </script>

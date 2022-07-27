@@ -1,53 +1,90 @@
 <template>
   <panel-item :field="field">
     <template slot="value">
-      <p v-if="images.length == 0">
+      <p v-if="(field.isCollection && field.value.images.length === 0) || (!field.isCollection && field.value === null)">
         —
       </p>
 
-      <div v-if="images.length > 0" :class="`flex flex-wrap mb-2 laravel-eloquent-imagery-${this.resourceName}`">
-
-        <div v-if="!field.isCollection" class="flex flex-wrap mb-2 laravel-eloquent-imagery-articles">
-          <image-card-display v-if="images.length == 1" v-bind:image.sync="images[0]"></image-card-display>
-        </div>
-
-        <image-card-display
-          v-if="field.isCollection"
-          v-bind:image.sync="image"
-          v-for="(image, index) in images"
-          :key="index"
-        >
-        </image-card-display>
-
+      <div :class="`flex flex-wrap mb-2 laravel-eloquent-imagery-${resourceName}`">
+        <template v-if="field.isCollection">
+          <div
+            v-for="(image, index) in imageCollection"
+            :key="index"
+            :class="`border border-70 flex items-end m-1 laravel-eloquent-imagery-image-${(index + 1)}`"
+          >
+            <image-card
+              :editable="false"
+              :metadata="image.metadata"
+              :metadata-form-configuration="field.metadataFormConfiguration"
+              :preview-url="image.previewUrl"
+              :thumbnail-url="image.thumbnailUrl"
+            />
+          </div>
+        </template>
+        <template v-else>
+          <div
+            v-if="singleImage"
+            class="flex flex-wrap mb-2 laravel-eloquent-imagery"
+          >
+            <image-card
+              :editable="false"
+              :metadata="singleImage.metadata"
+              :metadata-form-configuration="field.metadataFormConfiguration"
+              :preview-url="singleImage.previewUrl"
+              :thumbnail-url="singleImage.thumbnailUrl"
+            />
+          </div>
+          <div v-else>
+            No Image
+          </div>
+        </template>
       </div>
     </template>
   </panel-item>
 </template>
 
 <script>
-  import ImageCardDisplay from './ImageCardDisplay'
+import ImageCard from './ImageCard'
+import createImageCollectionStore from './createImageCollectionStore'
 
-  export default {
-    props: ['resource', 'resourceName', 'resourceId', 'field'],
+export default {
+  components: {
+    ImageCard
+  },
 
-    components: {
-      ImageCardDisplay,
+  props: {
+    field: {
+      type: Object,
+      required: true
     },
-
-    computed: {
-      images () {
-        let images = (this.field.isCollection) ? this.field.value.images : (this.field.value ? [this.field.value] : [])
-
-        return images.map((image, i) => {
-          return {
-            inputId: 'eloquent-imagery-' + this.field.name + '-' + i,
-            previewUrl: image.previewUrl,
-            thumbnailUrl: image.thumbnailUrl,
-            metadata: Object.keys(image.metadata).map(key => ({'key': key, 'value': image.metadata[key]}))
-          }
-        })
-      }
+    resourceName: {
+      type: String,
+      required: true
     }
+  },
 
+  data () {
+    return {
+      imageCollection: null,
+      singleImage: null
+    }
+  },
+
+  created () {
+    if (this.field.isCollection) {
+      this.$store.registerModule(`eloquentImagery/${this.field.attribute}`, createImageCollectionStore())
+      this.$store.commit(`eloquentImagery/${this.field.attribute}/initialize`, { fieldName: this.field.attribute, images: this.field.value.images })
+
+      this.imageCollection = this.$store.getters[`eloquentImagery/${this.field.attribute}/getImages`]
+    } else {
+      this.singleImage = this.field.value
+    }
+  },
+
+  destroyed () {
+    if (this.field.isCollection) {
+      this.$store.unregisterModule(`eloquentImagery/${this.field.attribute}`)
+    }
   }
+}
 </script>

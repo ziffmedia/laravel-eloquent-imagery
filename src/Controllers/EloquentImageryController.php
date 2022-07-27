@@ -38,9 +38,6 @@ class EloquentImageryController extends Controller
 
         $imageActualPath = $imageRequestData->get('path');
 
-        // $imageRequest = ImageRequest::create();
-        // $imageRequest->fillFromRequest($request);
-
         // assume the mime type is PNG unless otherwise specified
         $mimeType = 'image/png';
         $imageBytes = null;

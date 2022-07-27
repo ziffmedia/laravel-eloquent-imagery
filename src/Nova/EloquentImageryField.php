@@ -3,6 +3,7 @@
 namespace ZiffMedia\LaravelEloquentImagery\Nova;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Laravel\Nova\Fields\Field;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use ZiffMedia\LaravelEloquentImagery\Eloquent\Image;
@@ -13,6 +14,8 @@ class EloquentImageryField extends Field
     public $component = 'eloquent-imagery';
 
     public $showOnIndex = false;
+
+    protected $metadataFormConfiguration = [];
 
     protected $thumbnailUrlModifiers;
     protected $previewUrlModifiers;
@@ -39,6 +42,12 @@ class EloquentImageryField extends Field
         $fieldAttribute->updatePath([], $model);
     }
 
+    public function withMetadataFormConfiguration(array $metadataFormConfiguration)
+    {
+        $this->metadataFormConfiguration = $metadataFormConfiguration;
+
+        return $this;
+    }
 
     public function jsonSerialize()
     {
@@ -60,8 +69,12 @@ class EloquentImageryField extends Field
         }
 
         return array_merge(parent::jsonSerialize(), [
-            'value'        => $value,
-            'isCollection' => $isCollection
+            'value'                     => $value,
+            'isCollection'              => $isCollection,
+            'metadataFormConfiguration' => collect(['fields' => [], 'allowAddMetadata' => true, 'preserveExistingMetadata' => true])
+                ->merge($this->metadataFormConfiguration)
+                ->mapWithKeys(fn ($value, $key) => [Str::camel($key) => $value])
+                ->toArray()
         ]);
     }
 
@@ -107,7 +120,6 @@ class EloquentImageryField extends Field
     protected function resolveImageFromFormData($formData, Image $image)
     {
         if ($formData === null) {
-
             if ($image->exists()) {
                 $image->remove();
             }
@@ -115,11 +127,11 @@ class EloquentImageryField extends Field
             return;
         }
 
-        if ($formData['fileData']) {
+        if (isset($formData['fileData'])) {
             $image->setData($formData['fileData']);
         }
 
-        $image->metadata = new Collection($formData['metadata']);
+        $image->metadata = new Collection($formData['metadata'] ?? []);
     }
 
     protected function resolveImageCollectionFromFormData(array $formData, ImageCollection $imageCollection)
