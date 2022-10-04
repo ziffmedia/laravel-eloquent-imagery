@@ -4,7 +4,6 @@ namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
 use Carbon\Carbon;
 use Closure;
-use Exception;
 use finfo;
 use Illuminate\Contracts\Filesystem\Cloud;
 use Illuminate\Contracts\Filesystem\Filesystem;
@@ -79,11 +78,6 @@ class Image implements JsonSerializable
         }
 
         return $return;
-    }
-
-    public static function replaceFilesystem(Filesystem $filesystem): void
-    {
-        static::$filesystem = $filesystem;
     }
 
     public function __construct(string $pathTemplate, array $presets)
