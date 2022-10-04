@@ -10,19 +10,19 @@ class Crop implements ImagickTransformationInterface
     use Concerns\HasGravityFeatures;
 
     /**
-     * @param Collection $arguments
-     * @param Imagick $imagick
+     * @param  Collection  $arguments
+     * @param  Imagick  $imagick
      */
     public function applyImagick(Collection $arguments, Imagick $imagick)
     {
-        if (!$arguments->has('crop') || $arguments->has('fill')) {
+        if (! $arguments->has('crop') || $arguments->has('fill')) {
             return;
         }
 
         $crop = $arguments->get('crop');
 
         // crop command must be in the format \dx\d
-        if (!preg_match('#(?P<x>\d+){0,1}x(?P<y>\d+){0,1}#', $crop, $matches)) {
+        if (! preg_match('#(?P<x>\d+){0,1}x(?P<y>\d+){0,1}#', $crop, $matches)) {
             return;
         }
 
@@ -49,4 +49,3 @@ class Crop implements ImagickTransformationInterface
         }
     }
 }
-

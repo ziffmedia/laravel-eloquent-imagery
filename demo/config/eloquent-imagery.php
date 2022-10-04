@@ -55,7 +55,7 @@ return [
              * (This is useful for dev enviroment where a copy of all the production
              *  images is not available)
              */
-            'use_for_missing_files' => env('IMAGERY_RENDER_PLACEHOLDER_USE_FOR_MISSING_FILES', false)
+            'use_for_missing_files' => env('IMAGERY_RENDER_PLACEHOLDER_USE_FOR_MISSING_FILES', false),
         ],
 
         /**
@@ -101,7 +101,7 @@ return [
             /**
              * Header TTL
              */
-            'ttl' => 60
+            'ttl' => 60,
         ],
 
         /**
@@ -126,9 +126,9 @@ return [
                 'grayscale',
                 'fallbackbanner',
                 'crop',
-                'fill'
-            ]
-        ]
+                'fill',
+            ],
+        ],
     ],
 
     /**
@@ -154,8 +154,8 @@ return [
          * name instead of a full set of url transformations
          */
         'presets' => [
-            'global_thumbnail' => 'fit_resize|size_50x50|v|grayscale'
-        ]
+            'global_thumbnail' => 'fit_resize|size_50x50|v|grayscale',
+        ],
 
-    ]
+    ],
 ];

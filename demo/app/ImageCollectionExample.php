@@ -11,8 +11,8 @@ class ImageCollectionExample extends Model
 
     protected $eloquentImagery = [
         'images' => [
-            'path' => 'image-collection-examples/{id}/{index}.{extension}',
-            'collection' => true
-        ]
+            'path'       => 'image-collection-examples/{id}/{index}.{extension}',
+            'collection' => true,
+        ],
     ];
 }

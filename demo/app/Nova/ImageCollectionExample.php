@@ -5,7 +5,6 @@ namespace App\Nova;
 use Illuminate\Http\Request;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
-use Laravel\Nova\Http\Requests\NovaRequest;
 use ZiffMedia\LaravelEloquentImagery\Nova\EloquentImageryField;
 
 class ImageCollectionExample extends Resource
@@ -46,7 +45,7 @@ class ImageCollectionExample extends Resource
 
             Text::make('Name'),
 
-            EloquentImageryField::make('Images')
+            EloquentImageryField::make('Images'),
         ];
     }
 

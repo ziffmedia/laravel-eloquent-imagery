@@ -1,4 +1,5 @@
 <?php
+
 namespace ZiffMedia\LaravelEloquentImagery\View;
 
 class BladeDirectives
@@ -7,6 +8,7 @@ class BladeDirectives
     {
         $placeholderFilename = config('eloquent-imagery.render.placeholder.filename');
         $path = "{$placeholderFilename}.{$args}.png";
+
         return route('eloquent-imagery.render', $path);
     }
 }

@@ -52,7 +52,6 @@ $app->singleton(
 |
 */
 
-
 /**
  * Custom stuff specific to this demo app
  */
@@ -60,7 +59,7 @@ if (file_exists(__DIR__ . '/../nova/composer.json')) {
     $app->register(App\Providers\NovaServiceProvider::class);
 }
 
-if (!file_exists(__DIR__ . '/../database/eloquent-imagery-demo.sqlite')) {
+if (! file_exists(__DIR__ . '/../database/eloquent-imagery-demo.sqlite')) {
     file_put_contents(__DIR__ . '/../database/eloquent-imagery-demo.sqlite', '');
 }
 

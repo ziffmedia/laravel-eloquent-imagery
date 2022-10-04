@@ -20,7 +20,7 @@ class LegacyStrategy implements StrategyInterface
         'crop'       => '/^crop_(?P<value>[\dx]+)$/', // crop operations
         'fill'       => '/^fill$/', // fill operation
         'gravity'    => '/^gravity_(?P<value>[\w_]+)$/', // optional gravity param, g_auto - means center, g_north or g_south
-        'static'     => '/^static(?:_(?P<value>\d*)){0,1}$/' // ensure even animated gifs are single frame
+        'static'     => '/^static(?:_(?P<value>\d*)){0,1}$/', // ensure even animated gifs are single frame
     ];
 
     public function getDataFromRequest(Request $request): Collection
@@ -85,7 +85,7 @@ class LegacyStrategy implements StrategyInterface
             unset($transformations[$version]);
         }
 
-        if (!$version && $transformations->has('version') || $transformations->has('v')) {
+        if (! $version && $transformations->has('version') || $transformations->has('v')) {
             $version = $transformations->get('v', $transformations->get('version'));
         }
 
@@ -119,7 +119,7 @@ class LegacyStrategy implements StrategyInterface
         // keyed with [dirname, filename, basename, extension]
         $pathinfo = pathinfo($image->path);
 
-        if (!isset($pathinfo['dirname'])) {
+        if (! isset($pathinfo['dirname'])) {
             throw new InvalidArgumentException("pathinfo() was unable to parse {$image->path} into path parts.");
         }
 
@@ -132,4 +132,3 @@ class LegacyStrategy implements StrategyInterface
         return url()->route('eloquent-imagery.render', $pathWithModifiers);
     }
 }
-

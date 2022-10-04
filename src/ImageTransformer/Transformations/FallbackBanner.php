@@ -10,7 +10,7 @@ class FallbackBanner implements ImagickTransformationInterface
 {
     public function applyImagick(Collection $arguments, Imagick $imagick)
     {
-        if (!isset($arguments['fallbackbanner'])) {
+        if (! isset($arguments['fallbackbanner'])) {
             return;
         }
 
@@ -20,10 +20,9 @@ class FallbackBanner implements ImagickTransformationInterface
             $draw = new ImagickDraw();
             $draw->setStrokeWidth(1);
             $draw->line(1, 1, $originalWidth - 1, $originalHeight - 1);
-            $draw->line(1, $originalHeight-1, $originalWidth-1, 1);
+            $draw->line(1, $originalHeight - 1, $originalWidth - 1, 1);
 
             $image->drawImage($draw);
         }
     }
 }
-

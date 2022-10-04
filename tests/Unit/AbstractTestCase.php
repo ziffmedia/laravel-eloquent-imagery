@@ -14,7 +14,7 @@ abstract class AbstractTestCase extends TestCase
         $application['config']->set('eloquent-imagery.filesystem', 'imagery');
         $application['config']->set('filesystems.disks.imagery', [
             'driver' => 'local',
-            'root' => realpath(__DIR__ . '/../') . '/storage',
+            'root'   => realpath(__DIR__ . '/../') . '/storage',
         ]);
 
         Carbon::setTestNow(Carbon::now());

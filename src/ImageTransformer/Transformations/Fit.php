@@ -4,13 +4,12 @@ namespace ZiffMedia\LaravelEloquentImagery\ImageTransformer\Transformations;
 
 use Illuminate\Support\Collection;
 use Imagick;
-use RuntimeException;
 
 class Fit implements ImagickTransformationInterface
 {
     public function applyImagick(Collection $arguments, Imagick $imagick)
     {
-        if (!$arguments->has('fit')) {
+        if (! $arguments->has('fit')) {
             return;
         }
 
@@ -25,7 +24,6 @@ class Fit implements ImagickTransformationInterface
         [$originalWidth, $originalHeight] = [$imagick->getImageWidth(), $imagick->getImageHeight()];
 
         switch ($fit) {
-
             case 'resize':
                 foreach ($imagick as $image) {
                     $image->resizeImage(
@@ -77,7 +75,6 @@ class Fit implements ImagickTransformationInterface
                 $background = $arguments->get('background');
 
                 foreach ($imagick as $image) {
-
                     if ($background) {
                         $image->setImageBackgroundColor($background);
                     }
@@ -86,7 +83,7 @@ class Fit implements ImagickTransformationInterface
                         $image->extentImage(
                             $width,
                             $height,
-                            ($originalWidth - $width ) / 2,
+                            ($originalWidth - $width) / 2,
                             ($originalHeight - $height) / 2
                         );
                     } else {

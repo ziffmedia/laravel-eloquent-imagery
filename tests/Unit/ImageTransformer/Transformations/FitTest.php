@@ -84,16 +84,16 @@ class FitTest extends TestCase
     }
 
     /**
-     * @param \Iterator|MockObject $iterator
-     * @param array $items
-     * @param int $startSequenceAt
-     * @param false $includeCallsToKey
+     * @param  \Iterator|MockObject  $iterator
+     * @param  array  $items
+     * @param  int  $startSequenceAt
+     * @param  false  $includeCallsToKey
      */
     protected function createMockIterator(\Iterator $iterator, array $items)
     {
         $iteratorState = new \ArrayObject([
             'iteration' => 0,
-            'values' => $items
+            'values'    => $items,
         ]);
 
         $iterator->method('rewind');
@@ -111,4 +111,3 @@ class FitTest extends TestCase
         }));
     }
 }
-

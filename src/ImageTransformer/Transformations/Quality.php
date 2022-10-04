@@ -20,7 +20,7 @@ class Quality implements ImagickTransformationInterface
     public function applyImagick(Collection $arguments, Imagick $imagick)
     {
         // if has command || automatic
-        if (!$arguments->has('quality') && !$this->automatic) {
+        if (! $arguments->has('quality') && ! $this->automatic) {
             return;
         }
 

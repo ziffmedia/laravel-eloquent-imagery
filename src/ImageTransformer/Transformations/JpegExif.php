@@ -16,4 +16,3 @@ class JpegExif implements ImagickTransformationInterface
         }
     }
 }
-

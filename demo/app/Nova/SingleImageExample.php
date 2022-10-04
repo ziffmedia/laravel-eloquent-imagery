@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\KeyValue;
 use Laravel\Nova\Fields\Text;
-use Laravel\Nova\Http\Requests\NovaRequest;
 use ZiffMedia\LaravelEloquentImagery\Nova\EloquentImageryField;
 
 class SingleImageExample extends Resource
@@ -49,7 +48,7 @@ class SingleImageExample extends Resource
 
             KeyValue::make('Variations'),
 
-            EloquentImageryField::make('Image')
+            EloquentImageryField::make('Image'),
         ];
     }
 

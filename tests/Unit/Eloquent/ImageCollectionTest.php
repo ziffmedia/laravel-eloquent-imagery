@@ -31,12 +31,12 @@ class ImageCollectionTest extends AbstractTestCase
                     'height'    => 1,
                     'hash'      => '1234567890',
                     'timestamp' => 12345,
-                    'metadata'  => []
-                ]
+                    'metadata'  => [],
+                ],
             ],
-            'metadata'      => [
-                'foo' => 'bar'
-            ]
+            'metadata' => [
+                'foo' => 'bar',
+            ],
         ];
 
         $imageCollection->setStateFromAttributeData($state);
@@ -55,7 +55,7 @@ class ImageCollectionTest extends AbstractTestCase
         $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}', []));
 
         $state = [
-            'images'   => [
+            'images' => [
                 [
                     'path'      => 'foo/bar.jpg',
                     'extension' => 'jpg',
@@ -63,12 +63,12 @@ class ImageCollectionTest extends AbstractTestCase
                     'height'    => 1,
                     'hash'      => '1234567890',
                     'timestamp' => 12345,
-                    'metadata'  => []
-                ]
+                    'metadata'  => [],
+                ],
             ],
             'metadata' => [
-                'foo' => 'bar'
-            ]
+                'foo' => 'bar',
+            ],
         ];
 
         $imageCollection->setStateFromAttributeData($state);
@@ -127,7 +127,6 @@ class ImageCollectionTest extends AbstractTestCase
 
         $this->assertCount(1, $imageCollection);
     }
-
 
     public function testFlush()
     {
@@ -193,9 +192,9 @@ class ImageCollectionTest extends AbstractTestCase
                     'timestamp' => Carbon::getTestNow()->unix(),
                     'metadata'  => [],
                     'index'     => 2,
-                ]
+                ],
             ],
-            'metadata'      => []
+            'metadata' => [],
         ];
 
         $this->assertEquals($expected, $imageCollection->getStateAsAttributeData());
@@ -257,4 +256,3 @@ class ImageCollectionTest extends AbstractTestCase
         $this->assertInstanceOf(ArrayIterator::class, $imageCollection->getIterator());
     }
 }
-

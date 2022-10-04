@@ -10,16 +10,16 @@ class SingleImageExample extends Model
     use HasEloquentImagery;
 
     protected $casts = [
-        'variations' => 'json'
+        'variations' => 'json',
     ];
 
     protected $eloquentImagery = [
         'image' => [
-            'path' => 'single-image-examples/{id}.{extension}',
+            'path'    => 'single-image-examples/{id}.{extension}',
             'presets' => [
-                'thumbnail' => 'fit_resize|size_50x50|v',
-                'timestamped' => 'v' // ?
-            ]
-        ]
+                'thumbnail'   => 'fit_resize|size_50x50|v',
+                'timestamped' => 'v', // ?
+            ],
+        ],
     ];
 }

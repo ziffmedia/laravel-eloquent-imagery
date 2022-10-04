@@ -32,4 +32,3 @@ class ImageTransformerTest extends AbstractTestCase
         $this->assertLessThan(strlen($bytesOriginal), strlen($newBytes));
     }
 }
-

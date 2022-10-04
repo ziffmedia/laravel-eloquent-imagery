@@ -12,8 +12,8 @@ class EloquentImageryObserverTest extends AbstractTestCase
     {
         $foo = new TestAssets\FooModel();
         $foo->setRawAttributes([
-            'id' => 1,
-            'image' => '{"path": "foo/bar.jpg", "extension": "jpg", "width": 1, "height": 1, "hash": "1234", "timestamp": 12345, "metadata": []}'
+            'id'    => 1,
+            'image' => '{"path": "foo/bar.jpg", "extension": "jpg", "width": 1, "height": 1, "hash": "1234", "timestamp": 12345, "metadata": []}',
         ], true);
 
         $observer = new EloquentImageryObserver(TestAssets\FooModel::class);
@@ -27,14 +27,14 @@ class EloquentImageryObserverTest extends AbstractTestCase
     {
         $foo = new TestAssets\FooModel();
         $foo->image->setStateFromAttributeData([
-            'path' => 'foo/bar.jpg',
+            'path'      => 'foo/bar.jpg',
             'extension' => 'jpg',
-            'animated' => false,
-            'width' => 1,
-            'height' => 1,
-            'hash' => '1234',
+            'animated'  => false,
+            'width'     => 1,
+            'height'    => 1,
+            'hash'      => '1234',
             'timestamp' => 12345,
-            'metadata' => []
+            'metadata'  => [],
         ]);
 
         $observer = new EloquentImageryObserver(TestAssets\FooModel::class);
@@ -47,8 +47,8 @@ class EloquentImageryObserverTest extends AbstractTestCase
     {
         $foo = new TestAssets\FooModel();
         $foo->setRawAttributes([
-            'id' => 1,
-            'image' => '{"path": "foo/bar.jpg", "extension": "jpg", "width": 1, "height": 1, "hash": "1234", "timestamp": 12345, "metadata": []}'
+            'id'    => 1,
+            'image' => '{"path": "foo/bar.jpg", "extension": "jpg", "width": 1, "height": 1, "hash": "1234", "timestamp": 12345, "metadata": []}',
         ], true);
 
         $observer = new EloquentImageryObserver(TestAssets\FooModel::class);
@@ -57,4 +57,3 @@ class EloquentImageryObserverTest extends AbstractTestCase
         $this->assertInstanceOf(Image::class, $foo->image);
     }
 }
-

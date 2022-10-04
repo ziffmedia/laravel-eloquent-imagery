@@ -33,28 +33,41 @@ class Image implements JsonSerializable
     protected static ?Filesystem $filesystem = null;
 
     protected string $pathTemplate;
+
     protected array $presets = [];
 
     protected ?int $index = null;
+
     protected string $path = '';
+
     protected string $extension = '';
+
     protected bool $animated = false;
+
     protected ?int $width = null;
+
     protected ?int $height = null;
+
     protected ?string $hash = null;
+
     protected ?int $timestamp = 0;
+
     public Collection $metadata;
 
     protected bool $exists = false;
+
     protected bool $flush = false;
+
     protected ?string $data = null;
+
     protected ?string $removeAtPathOnFlush = null;
+
     protected bool $isReadOnly = false;
 
     public function __construct(string $pathTemplate, array $presets)
     {
         // the filesystem should come from the configuration, unless Image is extended and configured statically set with a filesystem
-        if (!static::$filesystem) {
+        if (! static::$filesystem) {
             static::$filesystem = app(FilesystemManager::class)->disk(config('eloquent-imagery.filesystem', config('filesystems.default')));
         }
 
@@ -118,15 +131,15 @@ class Image implements JsonSerializable
     public function getStateAsAttributeData(): array
     {
         return [
-            'index'      => $this->index,
-            'path'       => $this->path,
-            'extension'  => $this->extension,
-            'animated'   => $this->animated,
-            'width'      => $this->width,
-            'height'     => $this->height,
-            'hash'       => $this->hash,
-            'timestamp'  => $this->timestamp,
-            'metadata'   => $this->metadata->toArray()
+            'index'     => $this->index,
+            'path'      => $this->path,
+            'extension' => $this->extension,
+            'animated'  => $this->animated,
+            'width'     => $this->width,
+            'height'    => $this->height,
+            'hash'      => $this->hash,
+            'timestamp' => $this->timestamp,
+            'metadata'  => $this->metadata->toArray(),
         ];
     }
 
@@ -142,7 +155,7 @@ class Image implements JsonSerializable
 
         static $fInfo = null;
 
-        if (!$fInfo) {
+        if (! $fInfo) {
             $fInfo = new finfo;
         }
 
@@ -154,10 +167,11 @@ class Image implements JsonSerializable
             $data = file_get_contents($data);
         }
 
-        list ($width, $height) = getimagesizefromstring($data);
+        [$width, $height] = getimagesizefromstring($data);
 
         $mimeType = $fInfo->buffer($data, FILEINFO_MIME_TYPE);
-        if (!$mimeType) {
+
+        if (! $mimeType) {
             throw new RuntimeException('Mime type could not be discovered');
         }
 
@@ -213,18 +227,21 @@ class Image implements JsonSerializable
             if (in_array($pathReplacement, ['index', 'extension', 'width', 'height', 'hash', 'timestamp'])) {
                 $path = str_replace("{{$pathReplacement}}", $this->{$pathReplacement}, $path);
                 $updatedPathParts[] = $pathReplacement;
+
                 continue;
             }
 
             if ($replacements && isset($replacements[$pathReplacement]) && $replacements[$pathReplacement] != '') {
                 $path = str_replace("{{$pathReplacement}}", $replacements[$pathReplacement], $path);
                 $updatedPathParts[] = $pathReplacement;
+
                 continue;
             }
 
             if ($model && $model->offsetExists($pathReplacement) && $model->offsetGet($pathReplacement) != '') {
                 $path = str_replace("{{$pathReplacement}}", $model->offsetGet($pathReplacement), $path);
                 $updatedPathParts[] = $pathReplacement;
+
                 continue;
             }
         }
@@ -241,7 +258,7 @@ class Image implements JsonSerializable
 
     public function isFullyRemoved(): bool
     {
-        return ($this->flush === true && $this->removeAtPathOnFlush !== '' && $this->path === '');
+        return $this->flush === true && $this->removeAtPathOnFlush !== '' && $this->path === '';
     }
 
     public function remove(): void
@@ -253,6 +270,7 @@ class Image implements JsonSerializable
         if ($this->path == '') {
             throw new RuntimeException('Called remove on an image that has no path');
         }
+
         $this->exists = false;
         $this->flush = true;
         $this->removeAtPathOnFlush = $this->path;
@@ -273,7 +291,7 @@ class Image implements JsonSerializable
             throw new RuntimeException('Cannot flush an image marked as read only');
         }
 
-        if (!$this->flush) {
+        if (! $this->flush) {
             return;
         }
 
@@ -324,7 +342,7 @@ class Image implements JsonSerializable
             'timestamp' => $this->timestamp,
         ];
 
-        if (!array_key_exists($name, $properties)) {
+        if (! array_key_exists($name, $properties)) {
             throw new OutOfBoundsException("Property $name is not accessible");
         }
 
@@ -340,8 +358,8 @@ class Image implements JsonSerializable
     {
         if ($this->exists) {
             return [
-                'path'       => $this->path,
-                'metadata'   => $this->metadata
+                'path'     => $this->path,
+                'metadata' => $this->metadata,
             ];
         }
 

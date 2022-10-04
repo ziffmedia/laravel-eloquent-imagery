@@ -3,8 +3,8 @@
 namespace ZiffMedia\LaravelEloquentImagery\Controllers;
 
 use finfo;
-use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -48,12 +48,12 @@ class EloquentImageryController extends Controller
             config('eloquent-imagery.render.placeholder.enable')
             && $imageActualPath === config('eloquent-imagery.render.placeholder.filename')
         ) {
-            list ($placeholderWidth, $placeholderHeight) = isset($modifierOperators['size']) ? explode('x', $modifierOperators['size']) : [400, 400];
+            [$placeholderWidth, $placeholderHeight] = isset($modifierOperators['size']) ? explode('x', $modifierOperators['size']) : [400, 400];
             $imageBytes = $this->createPlaceHolderImage($imageRequestData);
         }
 
         // step 2: no placeholder, look for actual file on designated filesystem
-        if (!$imageBytes) {
+        if (! $imageBytes) {
             try {
                 $imageBytes = $filesystem->get($imageActualPath);
                 $mimeType = $this->getMimeTypeFromBytes($imageBytes);
@@ -63,7 +63,7 @@ class EloquentImageryController extends Controller
         }
 
         // step 3: no placeholder, no primary FS image, look for fallback image on alternative filesystem if enabled
-        if (!$imageBytes && config('eloquent-imagery.render.fallback.enable')) {
+        if (! $imageBytes && config('eloquent-imagery.render.fallback.enable')) {
             /** @var Filesystem $fallbackFilesystem */
             $fallbackFilesystem = app(FilesystemManager::class)->disk(config('eloquent-imagery.render.fallback.filesystem'));
 
@@ -80,12 +80,12 @@ class EloquentImageryController extends Controller
         }
 
         // step 4: no placeholder, no primary FS image, no fallback, generate a placeholder if enabled for missing files
-        if (!$imageBytes && config('eloquent-imagery.render.placeholder.use_for_missing_files') === true) {
-            list ($placeholderWidth, $placeholderHeight) = isset($modifierOperators['size']) ? explode('x', $modifierOperators['size']) : [400, 400];
+        if (! $imageBytes && config('eloquent-imagery.render.placeholder.use_for_missing_files') === true) {
+            [$placeholderWidth, $placeholderHeight] = isset($modifierOperators['size']) ? explode('x', $modifierOperators['size']) : [400, 400];
             $imageBytes = $this->createPlaceHolderImage($imageRequestData);
         }
 
-        abort_if(!$imageBytes, 404); // no image, no fallback, no placeholder
+        abort_if(! $imageBytes, 404); // no image, no fallback, no placeholder
 
         $imageBytes = app(ImageTransformer::class)->transform($imageRequestData, $imageBytes);
 
@@ -113,7 +113,7 @@ class EloquentImageryController extends Controller
     {
         static $fInfo = null;
 
-        if (!$fInfo) {
+        if (! $fInfo) {
             $fInfo = new finfo;
         }
 

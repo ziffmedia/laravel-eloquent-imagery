@@ -18,11 +18,12 @@ class EloquentImageryField extends Field
     protected $metadataFormConfiguration = [];
 
     protected $thumbnailUrlModifiers;
+
     protected $previewUrlModifiers;
 
     protected function fillAttribute(NovaRequest $request, $requestAttribute, $model, $attribute)
     {
-        if (!$request->exists($requestAttribute)) {
+        if (! $request->exists($requestAttribute)) {
             return;
         }
 
@@ -31,7 +32,7 @@ class EloquentImageryField extends Field
         /** @var Image|ImageCollection $fieldAttribute */
         $fieldAttribute = $model->{$attribute};
 
-        if (!$fieldAttribute instanceof Image && !$fieldAttribute instanceof ImageCollection) {
+        if (! $fieldAttribute instanceof Image && ! $fieldAttribute instanceof ImageCollection) {
             throw new \RuntimeException('Field must be an EloquentImagery field');
         }
 
@@ -56,7 +57,7 @@ class EloquentImageryField extends Field
 
             $value = [
                 'autoincrement' => $this->value->getAutoincrement(),
-                'images'        => []
+                'images'        => [],
             ];
 
             foreach ($this->value as $image) {
@@ -74,7 +75,7 @@ class EloquentImageryField extends Field
             'metadataFormConfiguration' => collect(['fields' => [], 'allowAddMetadata' => true, 'preserveExistingMetadata' => true])
                 ->merge($this->metadataFormConfiguration)
                 ->mapWithKeys(fn ($value, $key) => [Str::camel($key) => $value])
-                ->toArray()
+                ->toArray(),
         ]);
     }
 
@@ -89,8 +90,8 @@ class EloquentImageryField extends Field
                 ($this->thumbnailUrlModifiers ? $this->thumbnailUrlModifiers . '|' : '')
                 . 'v' . $image->timestamp
             ),
-            'path'       => $image->path,
-            'metadata'   => $image->metadata
+            'path'     => $image->path,
+            'metadata' => $image->metadata,
         ];
     }
 
@@ -115,7 +116,6 @@ class EloquentImageryField extends Field
 
         return $this;
     }
-
 
     protected function resolveImageFromFormData($formData, Image $image)
     {
@@ -172,4 +172,3 @@ class EloquentImageryField extends Field
         $imageCollection->replaceWrappedCollectionForImages($newCollectionForImages);
     }
 }
-

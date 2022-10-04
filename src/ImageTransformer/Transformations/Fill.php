@@ -11,7 +11,7 @@ class Fill implements ImagickTransformationInterface
 
     public function applyImagick(Collection $arguments, Imagick $imagick)
     {
-        if (!$arguments->has('fill')) {
+        if (! $arguments->has('fill')) {
             return;
         }
 
@@ -35,7 +35,6 @@ class Fill implements ImagickTransformationInterface
         $gravity = $this->getGravityParam($arguments);
 
         if ($imgWidth < $targetWidth || $imgHeight < $targetHeight) {
-
             // img needs to be scaled up so it covers target area.
             $scaleUpFactor = ($targetWidth - $imgWidth > $targetHeight - $imgHeight)
                 ? $targetWidth / $imgWidth

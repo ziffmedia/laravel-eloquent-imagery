@@ -26,7 +26,7 @@ class ImageTest extends AbstractTestCase
             'height'    => 1,
             'hash'      => '1234567890',
             'timestamp' => 12345,
-            'metadata'  => []
+            'metadata'  => [],
         ];
 
         $image->setStateFromAttributeData($state);
@@ -84,8 +84,8 @@ class ImageTest extends AbstractTestCase
             'metadata'  => [
                 'one'            => 1,
                 'two'            => 2,
-                'negative_three' => -3
-            ]
+                'negative_three' => -3,
+            ],
         ];
 
         $image->setStateFromAttributeData($state);
@@ -97,7 +97,9 @@ class ImageTest extends AbstractTestCase
         $this->assertCount(3, $image->metadata);
 
         // assert a filtered collection can be created
-        $this->assertCount(2, $image->metadata->filter(function ($value) { return $value > 0; }));
+        $this->assertCount(2, $image->metadata->filter(function ($value) {
+            return $value > 0;
+        }));
 
         // assert the previous filter did not alter the initial collection
         $this->assertCount(3, $image->metadata);
@@ -144,4 +146,3 @@ class ImageTest extends AbstractTestCase
         $image->flush();
     }
 }
-

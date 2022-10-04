@@ -6,15 +6,17 @@ use ZiffMedia\LaravelEloquentImagery\Eloquent\Image;
 use ZiffMedia\LaravelEloquentImagery\UrlHandler\UrlHandler;
 
 if (! function_exists('eloquent_imagery_url')) {
-
     /**
      * Apply transformations to a url
-     * @param string $relativePath
-     * @param array $transformations
+     *
+     * @param  string  $relativePath
+     * @param  array  $transformations
      * @return string
+     *
      * @deprecated
      */
-    function eloquent_imagery_url($relativePath, string $transformations = '') {
+    function eloquent_imagery_url($relativePath, string $transformations = '')
+    {
         static $renderRouteEnabled = null;
         static $imageryFilesystem = null;
 
@@ -39,7 +41,7 @@ if (! function_exists('eloquent_imagery_url')) {
         $image = new Image($relativePath, []);
 
         $image->setStateFromAttributeData([
-            'path' => $relativePath,
+            'path'      => $relativePath,
             'extension' => pathinfo($relativePath, PATHINFO_EXTENSION), // suffix of relative path?
         ]);
 

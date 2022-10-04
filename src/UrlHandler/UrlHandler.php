@@ -10,7 +10,7 @@ use ZiffMedia\LaravelEloquentImagery\Eloquent\Image;
 class UrlHandler
 {
     const BUILTIN_STRATEGIES = [
-        'legacy' => Strategies\LegacyStrategy::class
+        'legacy' => Strategies\LegacyStrategy::class,
     ];
 
     protected $strategy;
@@ -63,4 +63,3 @@ class UrlHandler
         return $this->strategy->toUrl($image, $transformations);
     }
 }
-

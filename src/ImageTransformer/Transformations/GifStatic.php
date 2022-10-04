@@ -9,11 +9,11 @@ class GifStatic implements ImagickTransformationInterface
 {
     public function applyImagick(Collection $arguments, Imagick $imagick)
     {
-        if (!$arguments->has('static')) {
+        if (! $arguments->has('static')) {
             return;
         }
 
-        if (!$imagick->getImageFormat() === 'GIF' || $imagick->getNumberImages() < 2) {
+        if (! $imagick->getImageFormat() === 'GIF' || $imagick->getNumberImages() < 2) {
             return;
         }
 
@@ -32,6 +32,7 @@ class GifStatic implements ImagickTransformationInterface
         for ($index = 0; $index < $frames; $index++) {
             if ($index === $keep) {
                 $keptFramesIndex++;
+
                 continue;
             }
 
@@ -40,4 +41,3 @@ class GifStatic implements ImagickTransformationInterface
         }
     }
 }
-

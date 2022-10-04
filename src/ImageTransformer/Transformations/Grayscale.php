@@ -9,7 +9,7 @@ class Grayscale implements ImagickTransformationInterface
 {
     public function applyImagick(Collection $arguments, Imagick $imagick)
     {
-        if (!$arguments->has('grayscale')) {
+        if (! $arguments->has('grayscale')) {
             return;
         }
 
@@ -18,4 +18,3 @@ class Grayscale implements ImagickTransformationInterface
         }
     }
 }
-

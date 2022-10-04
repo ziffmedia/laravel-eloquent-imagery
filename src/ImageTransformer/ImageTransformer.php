@@ -39,7 +39,7 @@ class ImageTransformer
             } elseif (is_array($transformerConfig)) {
                 [$name, $args] = [
                     $transformerConfig['name'] ?? null,
-                    $transformerConfig['with'] ?? null
+                    $transformerConfig['with'] ?? null,
                 ];
             }
 
@@ -53,8 +53,7 @@ class ImageTransformer
 
             if (class_exists($name) &&
                 ($name instanceof Transformations\ImagickTransformationInterface
-                || $name instanceof Transformations\GdTransformationInterface))
-            {
+                || $name instanceof Transformations\GdTransformationInterface)) {
                 $transformers->push(
                     app($name, $args)
                 );
@@ -62,7 +61,7 @@ class ImageTransformer
                 continue;
             }
 
-           if (is_null($name)) {
+            if (is_null($name)) {
                 throw new InvalidArgumentException('Provided configuration for transforms does not have a valid transformerName');
             }
         }
@@ -92,7 +91,6 @@ class ImageTransformer
     public function transform(Collection $arguments, $imageBytes)
     {
         if ($this->extension === 'imagick') {
-
             // normalize background for imagick
             if ($arguments->has('background')) {
                 $background = $arguments->get('background');

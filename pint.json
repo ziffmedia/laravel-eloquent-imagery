@@ -1,0 +1,13 @@
+{
+  "preset": "laravel",
+  "rules": {
+    "concat_space": {
+      "spacing": "one"
+    },
+    "binary_operator_spaces": {
+      "operators": {
+        "=>": "align"
+      }
+    }
+  }
+}

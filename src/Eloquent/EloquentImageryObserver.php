@@ -10,11 +10,14 @@ use RuntimeException;
 class EloquentImageryObserver
 {
     protected ReflectionProperty $eloquentImageryImagesReflector;
+
     protected ReflectionProperty $attributesReflector;
 
     /**
      * EloquentImageryObserver constructor.
+     *
      * @param $modelClassToObserve
+     *
      * @throws \ReflectionException
      */
     public function __construct($modelClassToObserve)
@@ -35,7 +38,7 @@ class EloquentImageryObserver
 
         foreach ($eloquentImageryImages as $attribute => $image) {
             // in the case a model was retrieved and the image column was not returned
-            if (!array_key_exists($attribute, $modelAttributes)) {
+            if (! array_key_exists($attribute, $modelAttributes)) {
                 continue;
             }
 
@@ -72,8 +75,9 @@ class EloquentImageryObserver
 
             if ($image instanceof ImageCollection) {
                 $image->purgeRemovedImages();
-            } elseif ($image instanceof Image && !$image->exists()) {
+            } elseif ($image instanceof Image && ! $image->exists()) {
                 $modelAttributes[$attribute] = null;
+
                 continue;
             }
 
@@ -102,7 +106,6 @@ class EloquentImageryObserver
 
         foreach ($eloquentImageryImages as $attribute => $image) {
             if ($image->pathHasReplacements()) {
-
                 $image->updatePath([], $model);
 
                 if ($image->pathHasReplacements()) {
@@ -134,7 +137,7 @@ class EloquentImageryObserver
 
     public function deleted(Model $model): void
     {
-        if (in_array(SoftDeletes::class, class_uses_recursive($model)) && !$model->isForceDeleting()) {
+        if (in_array(SoftDeletes::class, class_uses_recursive($model)) && ! $model->isForceDeleting()) {
             return;
         }
 

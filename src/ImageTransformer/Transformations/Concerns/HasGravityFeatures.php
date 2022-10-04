@@ -37,4 +37,3 @@ trait HasGravityFeatures
         return (int) ($imgWidth - $targetWidth) / 2;
     }
 }
-

@@ -14,6 +14,6 @@ class FooModel extends Model
     use HasEloquentImagery;
 
     protected $eloquentImagery = [
-        'image' => 'images/{id}.{extension}'
+        'image' => 'images/{id}.{extension}',
     ];
 }

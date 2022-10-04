@@ -13,8 +13,6 @@ class LegacyStrategyTest extends AbstractTestCase
 {
     public function tearDown(): void
     {
-
-
         parent::tearDown();
     }
 
@@ -58,13 +56,13 @@ class LegacyStrategyTest extends AbstractTestCase
     {
         $image = new Image('{id}.{extension}', []);
         $image->setStateFromAttributeData([
-            'path' => 'test/1.gif',
+            'path'      => 'test/1.gif',
             'extension' => 'gif',
-            'width' => '50',
-            'height' => '50',
-            'hash' => '12345',
+            'width'     => '50',
+            'height'    => '50',
+            'hash'      => '12345',
             'timestamp' => 1234567890,
-            'metadata' => []
+            'metadata'  => [],
         ]);
 
         $legacyStrategy = new LegacyStrategy;
@@ -76,8 +74,7 @@ class LegacyStrategyTest extends AbstractTestCase
     public function dataForToUrl()
     {
         return [
-            [collect([]), 'test/1.gif']
+            [collect([]), 'test/1.gif'],
         ];
     }
 }
-
