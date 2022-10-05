@@ -3,6 +3,7 @@
 namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
 use Carbon\Carbon;
+use Closure;
 use finfo;
 use Illuminate\Contracts\Filesystem\Cloud;
 use Illuminate\Contracts\Filesystem\Filesystem;
@@ -63,6 +64,21 @@ class Image implements JsonSerializable
     protected ?string $removeAtPathOnFlush = null;
 
     protected bool $isReadOnly = false;
+
+    public static function onFilesystemWith(Filesystem $filesystem, Closure $callback): mixed
+    {
+        $previousFilesystem = static::$filesystem;
+
+        try {
+            static::$filesystem = $filesystem;
+
+            $return = $callback();
+        } finally {
+            static::$filesystem = $previousFilesystem;
+        }
+
+        return $return;
+    }
 
     public function __construct(string $pathTemplate, array $presets)
     {
