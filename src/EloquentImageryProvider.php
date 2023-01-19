@@ -57,11 +57,5 @@ class EloquentImageryProvider extends ServiceProvider
 
             Blade::directive('placeholderImageUrl', [View\BladeDirectives::class, 'placeholderImageUrl']);
         }
-
-        if ($this->app->getProviders(NovaCoreServiceProvider::class)) {
-            Nova::serving(function (ServingNova $event) {
-                Nova::script('eloquent-imagery', __DIR__ . '/../dist/js/nova.js');
-            });
-        }
     }
 }

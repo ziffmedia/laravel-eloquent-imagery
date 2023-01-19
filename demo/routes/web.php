@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\SingleImageExample;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,4 +14,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', 'Controller@welcome');
+Route::get('/', function () {
+    $singleImageExamples = SingleImageExample::all();
+
+    return view('welcome', compact('singleImageExamples'));
+});

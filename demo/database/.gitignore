@@ -1,2 +1,1 @@
-eloquent-imagery-demo.sqlite
-
+*.sqlite*
