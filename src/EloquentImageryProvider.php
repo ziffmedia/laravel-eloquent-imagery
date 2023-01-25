@@ -5,9 +5,6 @@ namespace ZiffMedia\LaravelEloquentImagery;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Nova\Events\ServingNova;
-use Laravel\Nova\Nova;
-use Laravel\Nova\NovaCoreServiceProvider;
 use RuntimeException;
 use ZiffMedia\LaravelEloquentImagery\ImageTransformer\ImageTransformer;
 use ZiffMedia\LaravelEloquentImagery\UrlHandler\UrlHandler;
@@ -43,9 +40,20 @@ class EloquentImageryProvider extends ServiceProvider
             $this->publishes([$this->packageConfigPath => config_path('eloquent-imagery.php')], 'config');
         }
 
+        // ensure this config key is null, since it is computed
+        config(['eloquent-imagery.extension' => null]);
+
+        foreach ((array) config('eloquent-imagery.extension_priority') as $extension) {
+            if (extension_loaded($extension)) {
+                config(['eloquent-imagery.extension' => $extension]);
+
+                break;
+            }
+        }
+
         if (config('eloquent-imagery.render.enable')) {
-            if (! $this->app->runningInConsole() && ! extension_loaded('imagick')) {
-                throw new RuntimeException('Eloquent Imagery requires ext/ImageMagick in order to render images');
+            if (! $this->app->runningInConsole() && !config('eloquent-imagery.extension')) {
+                throw new RuntimeException('Eloquent Imagery requires ext/ImageMagick or ext/gd in order to render images');
             }
 
             $imageRoute = rtrim(config('eloquent-imagery.render.route', '/imagery'), '/');

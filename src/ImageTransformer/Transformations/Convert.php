@@ -16,13 +16,7 @@ class Convert implements ImagickTransformationInterface
             return;
         }
 
-        $currentFormat = strtolower($imagick->getImageFormat());
-        if (in_array($currentFormat, Image::SUPPORTED_FORMATS)
-            && in_array($arguments['convert'], Image::SUPPORTED_FORMATS)
-            && $currentFormat != $arguments['convert']) {
-            $imagick->setImageFormat($arguments['convert']);
-        }
-
+        $imagick->setImageFormat($arguments->get('convert'));
     }
 }
 

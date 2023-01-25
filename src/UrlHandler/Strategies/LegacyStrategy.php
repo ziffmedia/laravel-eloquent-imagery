@@ -4,6 +4,7 @@ namespace ZiffMedia\LaravelEloquentImagery\UrlHandler\Strategies;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use ZiffMedia\LaravelEloquentImagery\Eloquent\Image;
 
@@ -21,39 +22,41 @@ class LegacyStrategy implements StrategyInterface
         'fill'       => '/^fill$/', // fill operation
         'gravity'    => '/^gravity_(?P<value>[\w_]+)$/', // optional gravity param, g_auto - means center, g_north or g_south
         'static'     => '/^static(?:_(?P<value>\d*)){0,1}$/', // ensure even animated gifs are single frame
-        'convert'    => '/^convert_(?P<value>\w{3,4})/', // convert to {value} format
+        // 'convert'    => '/^convert_(?P<value>\w{3,4})/', // convert to {value} format
     ];
+
+    protected string $extensionsRegex;
+
+    public function __construct()
+    {
+        $this->extensionsRegex = '(' . implode('|', Image::MIME_TYPE_EXTENSIONS) . ')';
+    }
 
     public function getDataFromRequest(Request $request): Collection
     {
         $path = $request->route('path');
-
         $imageRequestData = new Collection();
 
         $pathInfo = pathinfo($path);
-        $imagePath = $pathInfo['dirname'] !== '.'
-            ? $pathInfo['dirname'] . '/'
-            : '';
-
-        // @todo check this whole block
-        if (in_array((pathinfo($pathInfo['filename'])['extension'] ?? ''), array_values(Image::SUPPORTED_MIME_TYPES))) {
-            //that means convert is happening, so we are getting target mime_type and original file extension
-            $imageRequestData['mime_type'] = collect(Image::SUPPORTED_MIME_TYPES)->filter(function ($value, $key) use ($pathInfo) {
-                return $value == $pathInfo['extension'];
-            })->map(function ($value, $key) {
-                return $key;
-            })->first();
-
-            $imageRequestData['convert'] = $pathInfo['extension'];
-            $pathInfo = pathinfo($pathInfo['filename']);
-        }
+        $imagePath = $pathInfo['dirname'] !== '.' ? $pathInfo['dirname'] . '/' : '';
 
         $filenameWithoutExtension = $pathInfo['filename'];
+        $actualExtension = $pathInfo['extension'];
 
-        if (strpos($filenameWithoutExtension, '.') !== false) {
+        // does it still have an extension?
+        if (preg_match("#\\.{$this->extensionsRegex}$#", $filenameWithoutExtension, $matches)) {
+            $filenameWithoutExtension = Str::replaceLast($matches[0], '', $filenameWithoutExtension);
+
+            if ($matches[1] !== $pathInfo['extension']) {
+                $imageRequestData['convert'] = $pathInfo['extension'];
+                $actualExtension = $matches[1];
+            }
+        }
+
+        if (str_contains($filenameWithoutExtension, '.')) {
             $filenameParts = explode('.', $filenameWithoutExtension);
             $filenameWithoutExtension = $filenameParts[0];
-            $imagePath .= "{$filenameWithoutExtension}.{$pathInfo['extension']}";
+            $imagePath .= "{$filenameWithoutExtension}.{$actualExtension}";
 
             $modifierSpecs = array_slice($filenameParts, 1);
 
@@ -69,8 +72,8 @@ class LegacyStrategy implements StrategyInterface
             $imagePath .= $pathInfo['basename'];
         }
 
-
         $imageRequestData['path'] = $imagePath;
+        $imageRequestData['optimized_path'] = Str::replaceLast($actualExtension, "optimized.{$actualExtension}", $imagePath);
 
         if (isset($imageRequestData['fit']) && $imageRequestData['fit'] === 'lim') {
             $imageRequestData['fit'] = 'limit';

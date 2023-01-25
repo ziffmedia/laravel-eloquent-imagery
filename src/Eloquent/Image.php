@@ -11,10 +11,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use JsonSerializable;
 use OutOfBoundsException;
 use RuntimeException;
+use ZiffMedia\LaravelEloquentImagery\ImageTransformer\ImageTransformer;
 use ZiffMedia\LaravelEloquentImagery\UrlHandler\UrlHandler;
 
 /**
@@ -30,6 +32,14 @@ use ZiffMedia\LaravelEloquentImagery\UrlHandler\UrlHandler;
 class Image implements JsonSerializable
 {
     use Macroable;
+
+    const MIME_TYPE_EXTENSIONS = [
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/webp' => 'webp',
+        'image/bmp' => 'bmp',
+    ];
 
     protected static ?Filesystem $filesystem = null;
 
@@ -79,17 +89,6 @@ class Image implements JsonSerializable
 
         return $return;
     }
-
-    const SUPPORTED_MIME_TYPES = [
-        'image/jpeg' => 'jpg',
-        'image/png' => 'png',
-        'image/gif' => 'gif',
-        'image/webp' => 'webp',
-        'image/bmp' => 'bmp',
-        'image/x-ms-bmp' => 'bmp',
-    ];
-
-    const SUPPORTED_FORMATS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
 
     public function __construct(string $pathTemplate, array $presets)
     {
@@ -211,11 +210,12 @@ class Image implements JsonSerializable
         $this->timestamp = Carbon::now()->unix();
         $this->hash = md5($data);
 
-        if (array_key_exists($mimeType, self::SUPPORTED_MIME_TYPES)) {
-            $this->extension = self::SUPPORTED_MIME_TYPES[$mimeType];
+        if (isset(static::MIME_TYPE_EXTENSIONS[$mimeType])) {
+            $this->extension = static::MIME_TYPE_EXTENSIONS[$mimeType];
+
             if ($mimeType === 'image/gif') {
                 // magic bytes
-                $this->animated = (bool)preg_match('#(\x00\x21\xF9\x04.{4}\x00\x2C.*){2,}#s', $data);
+                $this->animated = (bool) preg_match('#(\x00\x21\xF9\x04.{4}\x00\x2C.*){2,}#s', $data);
             }
         } else {
             throw new RuntimeException('Unsupported mime-type for expected image: ' . $mimeType);
@@ -310,16 +310,50 @@ class Image implements JsonSerializable
 
         if ($this->removeAtPathOnFlush) {
             static::$filesystem->delete($this->removeAtPathOnFlush);
+
+            $removeAtPathExtension = pathinfo($this->removeAtPathOnFlush, PATHINFO_EXTENSION);
+            $optimizedRemoveAtPath = Str::replace(".{$removeAtPathExtension}", ".optimized.{$removeAtPathExtension}", $this->removeAtPathOnFlush);
+
+            if (static::$filesystem->exists($optimizedRemoveAtPath)) {
+                static::$filesystem->delete($optimizedRemoveAtPath);
+            }
         }
 
         if ($this->data) {
             if ($this->pathHasReplacements()) {
                 throw new RuntimeException('The image path still has an unresolved replacement in it ("{...}") and cannot be saved: ' . $this->path);
             }
+
             static::$filesystem->put($this->path, $this->data);
         }
 
         $this->flush = false;
+    }
+
+    public function hasOptimizedCopy()
+    {
+        $pathExtension = pathinfo($this->path, PATHINFO_EXTENSION);
+        $optimizedPath = Str::replace(".{$pathExtension}", ".optimized.{$pathExtension}", $this->path);
+
+        return static::$filesystem->exists($optimizedPath);
+    }
+
+    public function canBeOptimized()
+    {
+        return $this->width > 1920 || $this->height > 1080;
+    }
+
+    public function optimize()
+    {
+        $transformer = new ImageTransformer(ImageTransformer::createTransformationCollection(['gifoptimize', 'fit', 'quality']));
+
+        $pathExtension = pathinfo($this->path, PATHINFO_EXTENSION);
+        $optimizedPath = Str::replace(".{$pathExtension}", ".optimized.{$pathExtension}", $this->path);
+
+        $imageBytes = static::$filesystem->get($this->path);
+
+        static::$filesystem->put($optimizedPath, $transformer->transform(collect(['fit' => 'limit', 'height' => 1080, 'width' => 1920]), $imageBytes));
+
     }
 
     public function __get($name): mixed
@@ -356,27 +390,6 @@ class Image implements JsonSerializable
         ];
 
         if (! array_key_exists($name, $properties)) {
-            throw new OutOfBoundsException("Property $name is not accessible");
-        }
-
-        return isset($properties[$name]);
-    }
-
-    public function __isset(string $name): bool
-    {
-        // @todo check this against "metadata" key
-        $properties = [
-            'index'     => $this->index,
-            'path'      => $this->path,
-            'extension' => $this->extension,
-            'animated'  => $this->animated,
-            'width'     => $this->width,
-            'height'    => $this->height,
-            'hash'      => $this->hash,
-            'timestamp' => $this->timestamp,
-        ];
-
-        if (!array_key_exists($name, $properties)) {
             throw new OutOfBoundsException("Property $name is not accessible");
         }
 
