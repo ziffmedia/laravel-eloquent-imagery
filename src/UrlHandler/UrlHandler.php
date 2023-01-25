@@ -13,7 +13,7 @@ class UrlHandler
         'legacy' => Strategies\LegacyStrategy::class,
     ];
 
-    protected $strategy;
+    protected Strategies\StrategyInterface $strategy;
 
     public static function createStrategy($nameOrClassConfig)
     {

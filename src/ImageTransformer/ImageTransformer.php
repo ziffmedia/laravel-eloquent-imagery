@@ -2,8 +2,10 @@
 
 namespace ZiffMedia\LaravelEloquentImagery\ImageTransformer;
 
+use Exception;
 use Illuminate\Support\Collection;
 use Imagick;
+use ImagickException;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -20,13 +22,14 @@ class ImageTransformer
         'jpegexif'       => Transformations\JpegExif::class,
         'jpegnormalize'  => Transformations\JpegNormalize::class,
         'quality'        => Transformations\Quality::class,
+        'convert'        => Transformations\Convert::class,
     ];
 
-    public $transformations;
+    public Collection $transformations;
 
-    protected $extension;
+    protected readonly string $extension;
 
-    public static function createTransformationCollection($transformerConfigs)
+    public static function createTransformationCollection($transformerConfigs): Collection
     {
         $transformers = new Collection;
 
@@ -73,7 +76,7 @@ class ImageTransformer
     {
         $this->transformations = $transformations;
 
-        $extensions = (array) config('eloquent-imagery.render.transformation.extension_priority');
+        $extensions = (array) config('eloquent-imagery.extension_priority');
 
         foreach ($extensions as $extension) {
             if (extension_loaded($extension)) {
@@ -83,23 +86,27 @@ class ImageTransformer
             }
         }
 
-        if ($this->extension === null) {
+        if (! $this->extension) {
             throw new RuntimeException('No valid image library was found in php, tried: ' . implode(', ', $extensions));
         }
     }
 
-    public function transform(Collection $arguments, $imageBytes)
+    public function transform(Collection $arguments, $imageBytes): string
     {
-        if ($this->extension === 'imagick') {
-            // normalize background for imagick
-            if ($arguments->has('background')) {
-                $background = $arguments->get('background');
+        if ($this->extension !== 'imagick') {
+            throw new RuntimeException('Currently only imagick is supported');
+        }
 
-                if (preg_match('/^[A-Fa-f0-9]{3,6}$/', $background)) {
-                    $arguments['background'] = '#' . $background;
-                }
+        // normalize background for imagick
+        if ($arguments->has('background')) {
+            $background = $arguments->get('background');
+
+            if (preg_match('/^[A-Fa-f0-9]{3,6}$/', $background)) {
+                $arguments['background'] = '#' . $background;
             }
+        }
 
+        try {
             $imagick = new Imagick();
             $imagick->readImageBlob($imageBytes);
 
@@ -120,10 +127,12 @@ class ImageTransformer
             if ($isCoalesced) {
                 $imagick = $imagick->deconstructImages();
             }
-
-            return $imagick->getImagesBlob();
+        } catch (ImagickException $imagickException) {
+            // throw?
+        } catch (Exception $exception) {
+            // throw?
         }
 
-        throw new RuntimeException('Currently only imagick is supported');
+        return $imagick->getImagesBlob();
     }
 }

@@ -10,6 +10,10 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Imagick;
+use ImagickPixel;
+use RuntimeException;
+use ZiffMedia\LaravelEloquentImagery\Eloquent\Image;
 use ZiffMedia\LaravelEloquentImagery\ImageTransformer\ImageTransformer;
 use ZiffMedia\LaravelEloquentImagery\UrlHandler\UrlHandler;
 
@@ -27,7 +31,7 @@ class EloquentImageryController extends Controller
         }
 
         // Path traversal detection: 404 the user, no need to give additional information
-        abort_if((in_array($path[0], ['.', '/']) || strpos($path, '../') !== false), 404);
+        abort_if(in_array($path[0], ['.', '/']) || str_contains($path, '../'), 404);
 
         $disk = config('eloquent-imagery.filesystem', config('filesystems.default'));
 
@@ -38,56 +42,62 @@ class EloquentImageryController extends Controller
 
         $imageActualPath = $imageRequestData->get('path');
 
-        // assume the mime type is PNG unless otherwise specified
-        $mimeType = 'image/png';
-        $imageBytes = null;
-
         // step 1: if placeholder request, generate a placeholder
-        // if ($filenameWithoutExtension === config('eloquent-imagery.render.placeholder.filename') && config('eloquent-imagery.render.placeholder.enable')) {
-        if (
-            config('eloquent-imagery.render.placeholder.enable')
-            && $imageActualPath === config('eloquent-imagery.render.placeholder.filename')
-        ) {
+        if (config('eloquent-imagery.render.placeholder.enable') && $imageActualPath === config('eloquent-imagery.render.placeholder.filename')) {
             [$placeholderWidth, $placeholderHeight] = isset($modifierOperators['size']) ? explode('x', $modifierOperators['size']) : [400, 400];
-            $imageBytes = $this->createPlaceHolderImage($imageRequestData);
+
+            $imageBytes = $this->createPlaceHolderImage($placeholderWidth, $placeholderHeight);
+
+            goto SERVE_BYTES;
         }
 
         // step 2: no placeholder, look for actual file on designated filesystem
+        $imageBytes = $filesystem->get($imageRequestData['optimized_path']);
+
         if (! $imageBytes) {
-            try {
-                $imageBytes = $filesystem->get($imageActualPath);
-                $mimeType = $this->getMimeTypeFromBytes($imageBytes);
-            } catch (FileNotFoundException $e) {
-                $imageBytes = null;
-            }
+            $imageBytes = $filesystem->get($imageActualPath);
+        }
+
+        if ($imageBytes) {
+            goto SERVE_BYTES;
         }
 
         // step 3: no placeholder, no primary FS image, look for fallback image on alternative filesystem if enabled
-        if (! $imageBytes && config('eloquent-imagery.render.fallback.enable')) {
+        if (config('eloquent-imagery.render.fallback.enable')) {
             /** @var Filesystem $fallbackFilesystem */
             $fallbackFilesystem = app(FilesystemManager::class)->disk(config('eloquent-imagery.render.fallback.filesystem'));
 
             try {
                 $imageBytes = $fallbackFilesystem->get($imageActualPath);
-                $mimeType = $this->getMimeTypeFromBytes($imageBytes);
 
                 if (config('eloquent-imagery.render.fallback.mark_images')) {
                     $imageRequestData['fallbackbanner'] = true;
                 }
+
+                goto SERVE_BYTES;
             } catch (FileNotFoundException $e) {
                 $imageBytes = null;
             }
         }
 
         // step 4: no placeholder, no primary FS image, no fallback, generate a placeholder if enabled for missing files
-        if (! $imageBytes && config('eloquent-imagery.render.placeholder.use_for_missing_files') === true) {
+        if (config('eloquent-imagery.render.placeholder.use_for_missing_files') === true) {
             [$placeholderWidth, $placeholderHeight] = isset($modifierOperators['size']) ? explode('x', $modifierOperators['size']) : [400, 400];
-            $imageBytes = $this->createPlaceHolderImage($imageRequestData);
+
+            $imageBytes = $this->createPlaceHolderImage($placeholderWidth, $placeholderHeight);
+
+            goto SERVE_BYTES;
         }
 
-        abort_if(! $imageBytes, 404); // no image, no fallback, no placeholder
+        // No Bytes = 404
+        abort_if(! $imageBytes, 404);
+
+        SERVE_BYTES:
 
         $imageBytes = app(ImageTransformer::class)->transform($imageRequestData, $imageBytes);
+
+        // @todo determine mime type
+        $mimeType = $this->getMimeTypeFromBytes($imageBytes);
 
         $browserCacheMaxAge = config('eloquent-imagery.render.browser_cache_max_age');
 
@@ -103,13 +113,7 @@ class EloquentImageryController extends Controller
         return $response;
     }
 
-    /**
-     * Use this since Flysystem v2+ no longer has Mime-Type detection capabilities
-     *
-     * @param $bytes
-     * @return false|string
-     */
-    protected function getMimeTypeFromBytes($bytes)
+    protected function getMimeTypeFromBytes($bytes): false|string
     {
         static $fInfo = null;
 
@@ -120,18 +124,18 @@ class EloquentImageryController extends Controller
         return $fInfo->buffer($bytes, FILEINFO_MIME_TYPE);
     }
 
-    protected function createPlaceHolderImage(Collection $imageRequestData)
+    protected function createPlaceHolderImage($width, $height, $backgroundColor = 'FFFFFF'): string
     {
-        // $image = (new ImageManager(['driver' => 'imagick']))->canvas($width, $height, $backgroundColor);
-        //
-        // $image->text("{$width}x{$height}", $width / 2, $height / 2, function(AbstractFont $font) use ($width) {
-        //     $font->align('center');
-        //     $font->valign('middle');
-        //     $font->color('000000');
-        //     $font->file(__DIR__ . '/../../fonts/OverpassMono-Regular.ttf');
-        //     $font->size(ceil((.9 * $width) / 7));
-        // });
-        //
-        // return $image->encode('png')->__toString();
+        $extension = config('eloquent-imagery.extension');
+
+        if ($extension === 'imagick') {
+            $image = new Imagick();
+            $image->newImage($width, $height, new ImagickPixel('red'));
+            $image->setImageFormat('png');
+
+            return $image->getImageBlob();
+        }
+
+        throw new RuntimeException('A suitable extension does not appear to be loaded to create a placeholder image');
     }
 }

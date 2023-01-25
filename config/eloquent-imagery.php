@@ -8,6 +8,11 @@ return [
      */
     'filesystem' => env('IMAGERY_FILESYSTEM', 'public'),
 
+    'extension_priority' => [
+        'imagick',
+        'gd'
+    ],
+
     /**
      * The route to use to render with
      */
@@ -113,9 +118,6 @@ return [
          * Transformation pipeline configuration
          */
         'transformation' => [
-
-            'extension_priority' => ['imagick', 'gd'],
-
             'transformers' => [
                 'jpegnormalize',
                 'jpegexif',
@@ -126,6 +128,7 @@ return [
                 'fallbackbanner',
                 'crop',
                 'fill',
+                'convert'
             ],
         ],
     ],

@@ -4,6 +4,7 @@ namespace ZiffMedia\LaravelEloquentImagery\UrlHandler\Strategies;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use ZiffMedia\LaravelEloquentImagery\Eloquent\Image;
 
@@ -21,25 +22,41 @@ class LegacyStrategy implements StrategyInterface
         'fill'       => '/^fill$/', // fill operation
         'gravity'    => '/^gravity_(?P<value>[\w_]+)$/', // optional gravity param, g_auto - means center, g_north or g_south
         'static'     => '/^static(?:_(?P<value>\d*)){0,1}$/', // ensure even animated gifs are single frame
+        // 'convert'    => '/^convert_(?P<value>\w{3,4})/', // convert to {value} format
     ];
+
+    protected string $extensionsRegex;
+
+    public function __construct()
+    {
+        $this->extensionsRegex = '(' . implode('|', Image::MIME_TYPE_EXTENSIONS) . ')';
+    }
 
     public function getDataFromRequest(Request $request): Collection
     {
         $path = $request->route('path');
-
         $imageRequestData = new Collection();
 
         $pathInfo = pathinfo($path);
-        $imagePath = $pathInfo['dirname'] !== '.'
-            ? $pathInfo['dirname'] . '/'
-            : '';
+        $imagePath = $pathInfo['dirname'] !== '.' ? $pathInfo['dirname'] . '/' : '';
 
         $filenameWithoutExtension = $pathInfo['filename'];
+        $actualExtension = $pathInfo['extension'];
 
-        if (strpos($filenameWithoutExtension, '.') !== false) {
+        // does it still have an extension?
+        if (preg_match("#\\.{$this->extensionsRegex}$#", $filenameWithoutExtension, $matches)) {
+            $filenameWithoutExtension = Str::replaceLast($matches[0], '', $filenameWithoutExtension);
+
+            if ($matches[1] !== $pathInfo['extension']) {
+                $imageRequestData['convert'] = $pathInfo['extension'];
+                $actualExtension = $matches[1];
+            }
+        }
+
+        if (str_contains($filenameWithoutExtension, '.')) {
             $filenameParts = explode('.', $filenameWithoutExtension);
             $filenameWithoutExtension = $filenameParts[0];
-            $imagePath .= "{$filenameWithoutExtension}.{$pathInfo['extension']}";
+            $imagePath .= "{$filenameWithoutExtension}.{$actualExtension}";
 
             $modifierSpecs = array_slice($filenameParts, 1);
 
@@ -56,6 +73,7 @@ class LegacyStrategy implements StrategyInterface
         }
 
         $imageRequestData['path'] = $imagePath;
+        $imageRequestData['optimized_path'] = Str::replaceLast($actualExtension, "optimized.{$actualExtension}", $imagePath);
 
         if (isset($imageRequestData['fit']) && $imageRequestData['fit'] === 'lim') {
             $imageRequestData['fit'] = 'limit';
@@ -104,6 +122,22 @@ class LegacyStrategy implements StrategyInterface
             $transformations['version'] = $version;
         }
 
+        // @todo check next 12 lines
+        // keyed with [dirname, filename, basename, extension]
+        $pathinfo = pathinfo($image->path);
+
+        if (!isset($pathinfo['dirname'])) {
+            throw new InvalidArgumentException("pathinfo() was unable to parse {$image->path} into path parts.");
+        }
+
+        $extension = $pathinfo['extension'];
+        if ($transformations->has('convert')) {
+            if ($pathinfo['extension'] != $transformations['convert']) {
+                $extension = $extension . '.' . $transformations['convert'];
+            }
+            unset($transformations['convert']);
+        }
+
         $transformations = $transformations->map(function ($value, $key) {
             if ($key === 'version') {
                 return $value;
@@ -127,7 +161,7 @@ class LegacyStrategy implements StrategyInterface
             (($pathinfo['dirname'] !== '.') ? "{$pathinfo['dirname']}/" : '')
             . $pathinfo['filename']
             . ($transformations ? ".{$transformations}" : '')
-            . ".{$pathinfo['extension']}";
+            . ".{$extension}";
 
         return url()->route('eloquent-imagery.render', $pathWithModifiers);
     }
