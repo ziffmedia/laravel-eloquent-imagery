@@ -56,7 +56,7 @@ class LegacyStrategy implements StrategyInterface
         if (str_contains($filenameWithoutExtension, '.')) {
             $filenameParts = explode('.', $filenameWithoutExtension);
             $filenameWithoutExtension = $filenameParts[0];
-            $imagePath .= "{$filenameWithoutExtension}.{$actualExtension}";
+
 
             $modifierSpecs = array_slice($filenameParts, 1);
 
@@ -68,9 +68,9 @@ class LegacyStrategy implements StrategyInterface
                     }
                 }
             }
-        } else {
-            $imagePath .= $pathInfo['basename'];
         }
+
+        $imagePath .= "{$filenameWithoutExtension}.{$actualExtension}";
 
         $imageRequestData['path'] = $imagePath;
         $imageRequestData['optimized_path'] = Str::replaceLast($actualExtension, "optimized.{$actualExtension}", $imagePath);

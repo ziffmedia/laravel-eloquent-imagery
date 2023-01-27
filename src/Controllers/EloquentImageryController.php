@@ -67,16 +67,14 @@ class EloquentImageryController extends Controller
             /** @var Filesystem $fallbackFilesystem */
             $fallbackFilesystem = app(FilesystemManager::class)->disk(config('eloquent-imagery.render.fallback.filesystem'));
 
-            try {
-                $imageBytes = $fallbackFilesystem->get($imageActualPath);
+            $imageBytes = $fallbackFilesystem->get($imageActualPath);
 
-                if (config('eloquent-imagery.render.fallback.mark_images')) {
-                    $imageRequestData['fallbackbanner'] = true;
-                }
+            if (config('eloquent-imagery.render.fallback.mark_images')) {
+                $imageRequestData['fallbackbanner'] = true;
+            }
 
+            if ($imageBytes) {
                 goto SERVE_BYTES;
-            } catch (FileNotFoundException $e) {
-                $imageBytes = null;
             }
         }
 
