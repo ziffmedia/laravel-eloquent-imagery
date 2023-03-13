@@ -298,6 +298,11 @@ class Image implements JsonSerializable
         $this->metadata = new Collection;
     }
 
+    public function requiresFlush(): bool
+    {
+        return $this->flush;
+    }
+
     public function flush()
     {
         if ($this->isReadOnly) {

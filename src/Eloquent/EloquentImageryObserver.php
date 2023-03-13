@@ -9,102 +9,50 @@ use RuntimeException;
 
 class EloquentImageryObserver
 {
-    protected ReflectionProperty $eloquentImageryImagesReflector;
+    /** @var array<array<Image|ImageCollection>> */
+    protected static array $trackedModelImages = [];
 
-    protected ReflectionProperty $attributesReflector;
-
-    /**
-     * EloquentImageryObserver constructor.
-     *
-     * @param $modelClassToObserve
-     *
-     * @throws \ReflectionException
-     */
-    public function __construct($modelClassToObserve)
+    public static function trackModelImage(Model $model, string $attribute, Image|ImageCollection $image): void
     {
-        $this->eloquentImageryImagesReflector = new ReflectionProperty($modelClassToObserve, 'eloquentImageryImages');
-        $this->eloquentImageryImagesReflector->setAccessible(true);
+        $modelId = spl_object_id($model);
 
-        $this->attributesReflector = new ReflectionProperty($modelClassToObserve, 'attributes');
-        $this->attributesReflector->setAccessible(true);
-    }
-
-    public function retrieved(Model $model): void
-    {
-        /** @var Image[]|ImageCollection[] $eloquentImageryImages */
-        $eloquentImageryImages = $this->eloquentImageryImagesReflector->getValue($model);
-
-        $modelAttributes = $this->attributesReflector->getValue($model);
-
-        foreach ($eloquentImageryImages as $attribute => $image) {
-            // in the case a model was retrieved and the image column was not returned
-            if (! array_key_exists($attribute, $modelAttributes)) {
-                continue;
-            }
-
-            $attributeData = $modelAttributes[$attribute];
-            $modelAttributes[$attribute] = $image;
-
-            if ($attributeData == '') {
-                continue;
-            }
-
-            if (is_string($attributeData)) {
-                $attributeData = json_decode($attributeData, true);
-            }
-
-            $image->setStateFromAttributeData($attributeData);
+        if (!isset(static::$trackedModelImages[$modelId])) {
+            static::$trackedModelImages[$modelId] = [];
         }
 
-        $this->attributesReflector->setValue($model, $modelAttributes);
+        static::$trackedModelImages[$modelId][$attribute] = $image;
     }
 
     public function saving(Model $model): void
     {
-        /** @var Image[]|ImageCollection[] $eloquentImageryImages */
-        $eloquentImageryImages = $this->eloquentImageryImagesReflector->getValue($model);
+        $modelId = spl_object_id($model);
 
-        $casts = $model->getCasts();
+        if (!isset(static::$trackedModelImages[$modelId])) {
+            return;
+        }
 
-        $modelAttributes = $this->attributesReflector->getValue($model);
-
-        foreach ($eloquentImageryImages as $attribute => $image) {
+        foreach (static::$trackedModelImages[$modelId] as $attribute => $image) {
             if ($image->pathHasReplacements()) {
                 $image->updatePath([], $model);
             }
 
             if ($image instanceof ImageCollection) {
                 $image->purgeRemovedImages();
-            } elseif ($image instanceof Image && ! $image->exists()) {
-                $modelAttributes[$attribute] = null;
-
-                continue;
             }
-
-            $attributeData = $image->getStateAsAttributeData();
-
-            $value = (isset($casts[$attribute]) && $casts[$attribute] === 'json')
-                ? $attributeData
-                : json_encode($attributeData);
-
-            $modelAttributes[$attribute] = $value;
         }
-
-        $this->attributesReflector->setValue($model, $modelAttributes);
     }
 
     public function saved(Model $model): void
     {
-        /** @var Image[]|ImageCollection[] $eloquentImageryImages */
-        $eloquentImageryImages = $this->eloquentImageryImagesReflector->getValue($model);
+        $modelId = spl_object_id($model);
 
-        $casts = $model->getCasts();
+        if (!isset(static::$trackedModelImages[$modelId])) {
+            return;
+        }
 
         $errors = [];
 
-        $modelAttributes = $this->attributesReflector->getValue($model);
-
-        foreach ($eloquentImageryImages as $attribute => $image) {
+        foreach (static::$trackedModelImages[$modelId] as $attribute => $image) {
             if ($image->pathHasReplacements()) {
                 $image->updatePath([], $model);
 
@@ -114,25 +62,22 @@ class EloquentImageryObserver
 
                 $imageState = $image->getStateAsAttributeData();
 
-                $value = (isset($casts[$attribute]) && $casts[$attribute] === 'json')
-                    ? $imageState
-                    : json_encode($imageState);
+                $value = json_encode($imageState);
 
                 $model->getConnection()
                     ->table($model->getTable())
                     ->where($model->getKeyName(), $model->getKey())
                     ->update([$attribute => $value]);
             }
+
             $image->flush();
-
-            $modelAttributes[$attribute] = $image;
         }
-
-        $this->attributesReflector->setValue($model, $modelAttributes);
 
         if ($errors) {
             throw new RuntimeException(implode('; ', $errors));
         }
+
+        unset(static::$trackedModelImages[$modelId]);
     }
 
     public function deleted(Model $model): void
@@ -141,10 +86,13 @@ class EloquentImageryObserver
             return;
         }
 
-        /** @var Image[]|ImageCollection[] $eloquentImageryImages */
-        $eloquentImageryImages = $this->eloquentImageryImagesReflector->getValue($model);
+        $modelId = spl_object_id($model);
 
-        foreach ($eloquentImageryImages as $image) {
+        if (!isset(static::$trackedModelImages[$modelId])) {
+            return;
+        }
+
+        foreach (static::$trackedModelImages[$modelId] as $attribute => $image) {
             if ($image->exists()) {
                 $image->remove();
                 $image->flush();

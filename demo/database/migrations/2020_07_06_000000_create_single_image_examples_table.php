@@ -16,7 +16,7 @@ class CreateSingleImageExamplesTable extends Migration
         Schema::create('single_image_examples', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->json('variations');
+            $table->json('variations')->nullable();
             $table->json('image');
             $table->timestamps();
         });
