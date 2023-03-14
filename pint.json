@@ -9,5 +9,9 @@
         "=>": "align"
       }
     }
-  }
+  },
+  "exclude": [
+    "demo/",
+    "config/"
+  ]
 }

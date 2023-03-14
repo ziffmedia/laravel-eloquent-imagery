@@ -17,7 +17,7 @@ class EloquentImageryObserver
     {
         $modelId = spl_object_id($model);
 
-        if (!isset(static::$trackedModelImages[$modelId])) {
+        if (! isset(static::$trackedModelImages[$modelId])) {
             static::$trackedModelImages[$modelId] = [];
         }
 
@@ -57,7 +57,7 @@ class EloquentImageryObserver
     {
         $modelId = spl_object_id($model);
 
-        if (!isset(static::$trackedModelImages[$modelId])) {
+        if (! isset(static::$trackedModelImages[$modelId])) {
             return;
         }
 
@@ -99,7 +99,7 @@ class EloquentImageryObserver
 
         $modelId = spl_object_id($model);
 
-        if (!isset(static::$trackedModelImages[$modelId])) {
+        if (! isset(static::$trackedModelImages[$modelId])) {
             return;
         }
 

@@ -36,10 +36,10 @@ class Image implements JsonSerializable
 
     const MIME_TYPE_EXTENSIONS = [
         'image/jpeg' => 'jpg',
-        'image/png' => 'png',
-        'image/gif' => 'gif',
+        'image/png'  => 'png',
+        'image/gif'  => 'gif',
         'image/webp' => 'webp',
-        'image/bmp' => 'bmp',
+        'image/bmp'  => 'bmp',
     ];
 
     protected static ?Filesystem $filesystem = null;

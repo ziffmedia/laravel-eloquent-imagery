@@ -52,7 +52,7 @@ class EloquentImageryProvider extends ServiceProvider
         }
 
         if (config('eloquent-imagery.render.enable')) {
-            if (! $this->app->runningInConsole() && !config('eloquent-imagery.extension')) {
+            if (! $this->app->runningInConsole() && ! config('eloquent-imagery.extension')) {
                 throw new RuntimeException('Eloquent Imagery requires ext/ImageMagick or ext/gd in order to render images');
             }
 

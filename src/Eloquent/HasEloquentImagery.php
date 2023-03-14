@@ -2,7 +2,6 @@
 
 namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
-use Illuminate\Database\Eloquent\Model;
 use ReflectionException;
 use RuntimeException;
 

@@ -34,7 +34,7 @@ class ImageCollectionTest extends AbstractTestCase
                     'metadata'  => [],
                 ],
             ],
-            'metadata' => [
+            'metadata'      => [
                 'foo' => 'bar',
             ],
         ];
@@ -55,7 +55,7 @@ class ImageCollectionTest extends AbstractTestCase
         $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}', []));
 
         $state = [
-            'images' => [
+            'images'   => [
                 [
                     'path'      => 'foo/bar.jpg',
                     'extension' => 'jpg',
@@ -194,7 +194,7 @@ class ImageCollectionTest extends AbstractTestCase
                     'index'     => 2,
                 ],
             ],
-            'metadata' => [],
+            'metadata'      => [],
         ];
 
         $this->assertEquals($expected, $imageCollection->getStateAsAttributeData());
