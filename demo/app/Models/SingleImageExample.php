@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use ZiffMedia\LaravelEloquentImagery\Eloquent\EloquentImage;
+use ZiffMedia\LaravelEloquentImagery\Eloquent\EloquentImageCast;
 use ZiffMedia\LaravelEloquentImagery\Eloquent\HasEloquentImagery;
 
 class SingleImageExample extends Model
@@ -12,7 +12,7 @@ class SingleImageExample extends Model
 
     protected $casts = [
         'variations' => 'json',
-        'image' => EloquentImage::class . ':single-image-examples/{id}.{extension}'
+        'image' => EloquentImageCast::class . ':single-image-examples/{id}.{extension}'
     ];
 
     protected static function boot()

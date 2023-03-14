@@ -4,7 +4,6 @@ namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use ReflectionProperty;
 use RuntimeException;
 
 class EloquentImageryObserver

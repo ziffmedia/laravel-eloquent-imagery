@@ -4,7 +4,7 @@ namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 
-class EloquentImage implements CastsAttributes
+class EloquentImageCast implements CastsAttributes
 {
     protected array $presets = [];
 
@@ -33,18 +33,6 @@ class EloquentImage implements CastsAttributes
         if (!$value || ($value instanceof Image && ! $value->exists())) {
             return null;
         }
-
-        // if ($value->pathHasReplacements()) {
-        //     $value->updatePath([], $model);
-        // }
-
-        // if ($value instanceof ImageCollection) {
-        //     $value->purgeRemovedImages();
-        // }
-
-        // if ($value->requiresFlush()) {
-        //     EloquentImageryObserver::flushModelImage($model, $key, $value);
-        // }
 
         $attributes[$key] = json_encode($value->getStateAsAttributeData());
 

@@ -13,6 +13,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
+use InvalidArgumentException;
 use JsonSerializable;
 use OutOfBoundsException;
 use RuntimeException;
@@ -42,10 +43,6 @@ class Image implements JsonSerializable
     ];
 
     protected static ?Filesystem $filesystem = null;
-
-    protected string $pathTemplate;
-
-    protected array $presets = [];
 
     protected ?int $index = null;
 
@@ -90,15 +87,19 @@ class Image implements JsonSerializable
         return $return;
     }
 
-    public function __construct(string $pathTemplate, array $presets)
-    {
+    public function __construct(
+        protected string $pathTemplate,
+        protected array $presets = []
+    ) {
         // the filesystem should come from the configuration, unless Image is extended and configured statically set with a filesystem
         if (! static::$filesystem) {
             static::$filesystem = app(FilesystemManager::class)->disk(config('eloquent-imagery.filesystem', config('filesystems.default')));
         }
 
-        $this->pathTemplate = $pathTemplate;
-        $this->presets = $presets;
+        if (! Str::endsWith($this->pathTemplate, '.{extension}')) {
+            throw new InvalidArgumentException("{$this->pathTemplate} must end with .{extension}");
+        }
+
         $this->metadata = new Collection;
     }
 
@@ -358,7 +359,6 @@ class Image implements JsonSerializable
         $imageBytes = static::$filesystem->get($this->path);
 
         static::$filesystem->put($optimizedPath, $transformer->transform(collect(['fit' => 'limit', 'height' => 1080, 'width' => 1920]), $imageBytes));
-
     }
 
     public function __get($name): mixed
