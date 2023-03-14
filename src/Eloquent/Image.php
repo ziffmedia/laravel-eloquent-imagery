@@ -198,6 +198,10 @@ class Image implements JsonSerializable
 
         $mimeType = $fInfo->buffer($data, FILEINFO_MIME_TYPE);
 
+        if ($mimeType === 'image/x-ms-bmp') {
+            $mimeType = 'image/bmp';
+        }
+
         if (! $mimeType) {
             throw new RuntimeException('Mime type could not be discovered');
         }
@@ -334,6 +338,17 @@ class Image implements JsonSerializable
         }
 
         $this->flush = false;
+    }
+
+    public function resetToFreshState()
+    {
+        $data = static::$filesystem->get($this->path);
+
+        $this->path = $this->pathTemplate;
+        $this->exists = true;
+        $this->flush = true;
+        $this->data = $data;
+        $this->timestamp = Carbon::now()->unix();
     }
 
     public function hasOptimizedCopy()

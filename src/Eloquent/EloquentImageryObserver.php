@@ -11,6 +11,8 @@ class EloquentImageryObserver
     /** @var array<array<Image|ImageCollection>> */
     protected static array $trackedModelImages = [];
 
+    protected static array $replicatedModels = [];
+
     public static function trackModelImage(Model $model, string $attribute, Image|ImageCollection $image): void
     {
         $modelId = spl_object_id($model);
@@ -26,7 +28,17 @@ class EloquentImageryObserver
     {
         $modelId = spl_object_id($model);
 
-        if (!isset(static::$trackedModelImages[$modelId])) {
+        if (isset(static::$replicatedModels[$modelId])) {
+            foreach ($model->getCasts() as $attribute => $castSpec) {
+                $value = $model->{$attribute};
+
+                if ($value instanceof Image || $value instanceof ImageCollection) {
+                    $value->resetToFreshState();
+                }
+            }
+        }
+
+        if (! isset(static::$trackedModelImages[$modelId])) {
             return;
         }
 
@@ -97,5 +109,10 @@ class EloquentImageryObserver
                 $image->flush();
             }
         }
+    }
+
+    public function replicating(Model $model)
+    {
+        static::$replicatedModels[spl_object_id($model)] = $model;
     }
 }

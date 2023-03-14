@@ -277,6 +277,13 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         });
     }
 
+    public function resetToFreshState()
+    {
+        $this->images->each(function (Image $image) {
+            $image->resetToFreshState();
+        });
+    }
+
     public function exists(): bool
     {
         return true;

@@ -25,6 +25,7 @@ trait HasEloquentImagery
         static::registerModelEvent('saving', [$observer, 'saving']);
         static::registerModelEvent('saved', [$observer, 'saved']);
         static::registerModelEvent('deleted', [$observer, 'deleted']);
+        static::registerModelEvent('replicating', [$observer, 'replicating']);
     }
 
     public function initializeHasEloquentImagery(): void

@@ -25,14 +25,4 @@ class SingleImageExample extends Model
             }
         });
     }
-
-    // protected $eloquentImagery = [
-    //     'image' => [
-    //         'path'    => 'single-image-examples/{id}.{extension}',
-    //         'presets' => [
-    //             'thumbnail'   => 'fit_resize|size_50x50|v',
-    //             'timestamped' => 'v', // ?
-    //         ],
-    //     ],
-    // ];
 }
