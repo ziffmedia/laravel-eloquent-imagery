@@ -13,6 +13,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
+use InvalidArgumentException;
 use JsonSerializable;
 use OutOfBoundsException;
 use RuntimeException;
@@ -35,17 +36,13 @@ class Image implements JsonSerializable
 
     const MIME_TYPE_EXTENSIONS = [
         'image/jpeg' => 'jpg',
-        'image/png' => 'png',
-        'image/gif' => 'gif',
+        'image/png'  => 'png',
+        'image/gif'  => 'gif',
         'image/webp' => 'webp',
-        'image/bmp' => 'bmp',
+        'image/bmp'  => 'bmp',
     ];
 
     protected static ?Filesystem $filesystem = null;
-
-    protected string $pathTemplate;
-
-    protected array $presets = [];
 
     protected ?int $index = null;
 
@@ -90,15 +87,19 @@ class Image implements JsonSerializable
         return $return;
     }
 
-    public function __construct(string $pathTemplate, array $presets)
-    {
+    public function __construct(
+        protected string $pathTemplate,
+        protected array $presets = []
+    ) {
         // the filesystem should come from the configuration, unless Image is extended and configured statically set with a filesystem
         if (! static::$filesystem) {
             static::$filesystem = app(FilesystemManager::class)->disk(config('eloquent-imagery.filesystem', config('filesystems.default')));
         }
 
-        $this->pathTemplate = $pathTemplate;
-        $this->presets = $presets;
+        if (! Str::endsWith($this->pathTemplate, '.{extension}')) {
+            throw new InvalidArgumentException("{$this->pathTemplate} must end with .{extension}");
+        }
+
         $this->metadata = new Collection;
     }
 
@@ -196,6 +197,10 @@ class Image implements JsonSerializable
         [$width, $height] = getimagesizefromstring($data);
 
         $mimeType = $fInfo->buffer($data, FILEINFO_MIME_TYPE);
+
+        if ($mimeType === 'image/x-ms-bmp') {
+            $mimeType = 'image/bmp';
+        }
 
         if (! $mimeType) {
             throw new RuntimeException('Mime type could not be discovered');
@@ -298,6 +303,11 @@ class Image implements JsonSerializable
         $this->metadata = new Collection;
     }
 
+    public function requiresFlush(): bool
+    {
+        return $this->flush;
+    }
+
     public function flush()
     {
         if ($this->isReadOnly) {
@@ -330,6 +340,17 @@ class Image implements JsonSerializable
         $this->flush = false;
     }
 
+    public function resetToFreshState()
+    {
+        $data = static::$filesystem->get($this->path);
+
+        $this->path = $this->pathTemplate;
+        $this->exists = true;
+        $this->flush = true;
+        $this->data = $data;
+        $this->timestamp = Carbon::now()->unix();
+    }
+
     public function hasOptimizedCopy()
     {
         $pathExtension = pathinfo($this->path, PATHINFO_EXTENSION);
@@ -353,7 +374,6 @@ class Image implements JsonSerializable
         $imageBytes = static::$filesystem->get($this->path);
 
         static::$filesystem->put($optimizedPath, $transformer->transform(collect(['fit' => 'limit', 'height' => 1080, 'width' => 1920]), $imageBytes));
-
     }
 
     public function __get($name): mixed

@@ -8,7 +8,6 @@ use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Imagick;
 use ImagickPixel;

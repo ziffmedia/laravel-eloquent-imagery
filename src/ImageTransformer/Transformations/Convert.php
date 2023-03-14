@@ -4,7 +4,6 @@ namespace ZiffMedia\LaravelEloquentImagery\ImageTransformer\Transformations;
 
 use Illuminate\Support\Collection;
 use Imagick;
-use ZiffMedia\LaravelEloquentImagery\Eloquent\Image;
 
 class Convert implements ImagickTransformationInterface
 {
@@ -12,11 +11,10 @@ class Convert implements ImagickTransformationInterface
 
     public function applyImagick(Collection $arguments, Imagick $imagick)
     {
-        if (!$arguments->has('convert')) {
+        if (! $arguments->has('convert')) {
             return;
         }
 
         $imagick->setImageFormat($arguments->get('convert'));
     }
 }
-

@@ -22,7 +22,6 @@ class LegacyStrategy implements StrategyInterface
         'fill'       => '/^fill$/', // fill operation
         'gravity'    => '/^gravity_(?P<value>[\w_]+)$/', // optional gravity param, g_auto - means center, g_north or g_south
         'static'     => '/^static(?:_(?P<value>\d*)){0,1}$/', // ensure even animated gifs are single frame
-        // 'convert'    => '/^convert_(?P<value>\w{3,4})/', // convert to {value} format
     ];
 
     protected string $extensionsRegex;
@@ -126,7 +125,7 @@ class LegacyStrategy implements StrategyInterface
         // keyed with [dirname, filename, basename, extension]
         $pathinfo = pathinfo($image->path);
 
-        if (!isset($pathinfo['dirname'])) {
+        if (! isset($pathinfo['dirname'])) {
             throw new InvalidArgumentException("pathinfo() was unable to parse {$image->path} into path parts.");
         }
 

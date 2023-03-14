@@ -255,6 +255,17 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         });
     }
 
+    public function requiresFlush(): bool
+    {
+        if ($this->deletedImages) {
+            return true;
+        }
+
+        $image = $this->images->first(fn (Image $image) => $image->requiresFlush());
+
+        return $image instanceof Image;
+    }
+
     public function flush()
     {
         foreach ($this->deletedImages as $image) {
@@ -263,6 +274,13 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
 
         $this->images->each(function (Image $image) {
             $image->flush();
+        });
+    }
+
+    public function resetToFreshState()
+    {
+        $this->images->each(function (Image $image) {
+            $image->resetToFreshState();
         });
     }
 
