@@ -4,6 +4,7 @@ namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 class EloquentImageryObserver
@@ -30,6 +31,10 @@ class EloquentImageryObserver
 
         if (isset(static::$replicatedModels[$modelId])) {
             foreach ($model->getCasts() as $attribute => $castSpec) {
+                if (! Str::startsWith($castSpec, 'ZiffMedia\\LaravelEloquentImagery')) {
+                    continue;
+                }
+
                 $value = $model->{$attribute};
 
                 if ($value instanceof Image || $value instanceof ImageCollection) {
@@ -89,6 +94,22 @@ class EloquentImageryObserver
         }
 
         unset(static::$trackedModelImages[$modelId]);
+    }
+
+    public function deleting(Model $model): void
+    {
+        // we need to get the tracked attributes so we can later remove them from disk
+        foreach ($model->getCasts() as $attribute => $castSpec) {
+            if (! Str::startsWith($castSpec, 'ZiffMedia\\LaravelEloquentImagery')) {
+                continue;
+            }
+
+            $value = $model->{$attribute};
+
+            if ($value instanceof Image || $value instanceof ImageCollection) {
+                static::trackModelImage($model, $attribute, $value);
+            }
+        }
     }
 
     public function deleted(Model $model): void
