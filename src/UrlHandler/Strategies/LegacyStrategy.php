@@ -56,7 +56,6 @@ class LegacyStrategy implements StrategyInterface
             $filenameParts = explode('.', $filenameWithoutExtension);
             $filenameWithoutExtension = $filenameParts[0];
 
-
             $modifierSpecs = array_slice($filenameParts, 1);
 
             foreach ($modifierSpecs as $modifierSpec) {
