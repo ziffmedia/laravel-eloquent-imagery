@@ -18,6 +18,7 @@ trait HasEloquentImagery
         // register directly so that the instance is preserved (not preserved via static::observe())
         static::registerModelEvent('saving', [$observer, 'saving']);
         static::registerModelEvent('saved', [$observer, 'saved']);
+        static::registerModelEvent('deleting', [$observer, 'deleting']);
         static::registerModelEvent('deleted', [$observer, 'deleted']);
         static::registerModelEvent('replicating', [$observer, 'replicating']);
     }

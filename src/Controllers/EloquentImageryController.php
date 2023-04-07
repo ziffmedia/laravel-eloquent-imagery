@@ -3,7 +3,6 @@
 namespace ZiffMedia\LaravelEloquentImagery\Controllers;
 
 use finfo;
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Http\Request;
