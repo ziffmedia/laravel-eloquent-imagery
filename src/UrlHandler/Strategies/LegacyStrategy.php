@@ -80,7 +80,7 @@ class LegacyStrategy implements StrategyInterface
         return $imageRequestData;
     }
 
-    public function toUrl(Image $image, Collection $transformations = null)
+    public function toUrl(Image $image, Collection $transformations = null): string
     {
         // handle size, width, height
         if ($transformations->has('size')) {
@@ -95,9 +95,11 @@ class LegacyStrategy implements StrategyInterface
         }
 
         // handle versioning
-        if ($version = $transformations->search(function ($value, $key) {
+        $version = $transformations->search(function ($value, $key) {
             return preg_match('/^v\d/', $key);
-        })) {
+        });
+
+        if ($version) {
             unset($transformations[$version]);
         }
 
@@ -111,7 +113,7 @@ class LegacyStrategy implements StrategyInterface
 
             if (is_bool($version) && $imageTimestamp) {
                 $version = 'v' . $imageTimestamp;
-            } elseif (is_string($version) && strpos($version, '{timestamp}') !== false && $imageTimestamp) {
+            } elseif (is_string($version) && str_contains($version, '{timestamp}') && $imageTimestamp) {
                 $version = str_replace('{timestamp}', $imageTimestamp, $version);
             }
 

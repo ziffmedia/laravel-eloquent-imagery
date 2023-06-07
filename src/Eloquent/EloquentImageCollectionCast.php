@@ -6,31 +6,36 @@ use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 
 class EloquentImageCollectionCast implements CastsAttributes
 {
-    protected array $presets = [];
+    protected static CastInstanceManager $castInstanceManager;
+    // protected array $presets = [];
 
-    public function __construct(protected string $pathTemplate, string $presetsConfig = '')
-    {
-        if ($presetsConfig) {
-            parse_str($presetsConfig, $this->presets);
-        }
+    public function __construct(
+        protected ?string $pathTemplate = null,
+        protected ?string $presetsConfig = null
+    ) {
+        static::$castInstanceManager ??= app(CastInstanceManager::class);
     }
 
     public function get($model, string $key, $value, array $attributes): ImageCollection
     {
-        $images = new ImageCollection(new Image($this->pathTemplate, $this->presets));
+        /** @var ImageCollection $image */
+        $imageCollection = static::$castInstanceManager->get($model, $key, true);
 
-        EloquentImageryObserver::trackModelImage($model, $key, $images);
+        // @todo
+        // if ($this->pathTemplate) {
+        //     $imageCollection->setPathTemplate($this->pathTemplate);
+        // }
 
         if ($value) {
-            $images->setStateFromAttributeData(json_decode($value, true));
+            $imageCollection->setStateFromAttributeData(json_decode($value, true));
         }
 
-        return $images;
+        return $imageCollection;
     }
 
     public function set($model, string $key, $value, array $attributes): ?array
     {
-        if (! $value || ($value instanceof Image && ! $value->exists())) {
+        if (! $value || ($value instanceof ImageCollection && ! $value->exists())) {
             return null;
         }
 

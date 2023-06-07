@@ -3,27 +3,30 @@
 namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
+use Illuminate\Support\Str;
 
 class EloquentImageCast implements CastsAttributes
 {
-    protected array $presets = [];
+    protected static CastInstanceManager $castInstanceManager;
+    // protected array $presets = [];
 
-    public function __construct(protected string $pathTemplate, string $presetsConfig = '')
-    {
-        if ($presetsConfig) {
-            parse_str($presetsConfig, $this->presets);
-        }
+    public function __construct(
+        protected ?string $pathTemplate = null,
+        protected ?string $presetsConfig = null
+    ) {
+        static::$castInstanceManager ??= app(CastInstanceManager::class);
     }
 
     public function get($model, string $key, $value, array $attributes): Image
     {
-        $image = new Image($this->pathTemplate, $this->presets);
+        /** @var Image $image */
+        $image = static::$castInstanceManager->get($model, $key);
 
-        EloquentImageryObserver::trackModelImage($model, $key, $image);
-
-        if ($value) {
-            $image->setStateFromAttributeData(json_decode($value, true));
+        if ($this->pathTemplate) {
+            $image->setPathTemplate($this->pathTemplate);
         }
+
+        $image->setStateFromAttributeData($value ? json_decode($value, true) : []);
 
         return $image;
     }
