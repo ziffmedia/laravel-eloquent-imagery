@@ -220,6 +220,13 @@ class Image implements JsonSerializable
         return $this->metadata;
     }
 
+    public function setMetadata(Collection $metadata)
+    {
+        $this->metadata = $metadata;
+
+        return $this;
+    }
+
     public function updatePath(array $replacements = []): array
     {
         $path = $this->path;
