@@ -73,9 +73,12 @@ class Image implements JsonSerializable
 
     protected bool $isReadOnly = false;
 
-    public function __construct(
-        protected Collection $metadata = new Collection
-    ) {}
+    protected Collection $metadata;
+
+    public function __construct()
+    {
+        $this->metadata = new Collection;
+    }
 
     public function setPathTemplate(string $pathTemplate): void
     {
@@ -377,6 +380,7 @@ class Image implements JsonSerializable
             'height'    => $this->height,
             'hash'      => $this->hash,
             'timestamp' => $this->timestamp,
+            'metadata'  => $this->metadata
         ];
 
         if (array_key_exists($name, $properties)) {
