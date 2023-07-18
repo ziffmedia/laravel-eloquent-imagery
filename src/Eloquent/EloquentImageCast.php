@@ -22,7 +22,9 @@ class EloquentImageCast implements CastsAttributes
             $image->setPathTemplate($this->pathTemplate);
         }
 
-        $image->setStateFromAttributeData($value ? json_decode($value, true) : []);
+        if ($value) {
+            $image->setStateFromAttributeData(json_decode($value, true));
+        }
 
         return $image;
     }
