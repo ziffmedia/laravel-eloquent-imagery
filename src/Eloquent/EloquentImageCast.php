@@ -7,20 +7,16 @@ use Illuminate\Support\Str;
 
 class EloquentImageCast implements CastsAttributes
 {
-    protected static CastInstanceManager $castInstanceManager;
-    // protected array $presets = [];
-
     public function __construct(
         protected ?string $pathTemplate = null,
         protected ?string $presetsConfig = null
     ) {
-        static::$castInstanceManager ??= app(CastInstanceManager::class);
     }
 
     public function get($model, string $key, $value, array $attributes): Image
     {
         /** @var Image $image */
-        $image = static::$castInstanceManager->get($model, $key);
+        $image = app(CastInstanceManager::class)->get($model, $key);
 
         if ($this->pathTemplate) {
             $image->setPathTemplate($this->pathTemplate);
