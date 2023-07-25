@@ -401,6 +401,7 @@ class Image implements JsonSerializable
             'height'    => $this->height,
             'hash'      => $this->hash,
             'timestamp' => $this->timestamp,
+            'metadata'  => $this->metadata
         ];
 
         if (! array_key_exists($name, $properties)) {
