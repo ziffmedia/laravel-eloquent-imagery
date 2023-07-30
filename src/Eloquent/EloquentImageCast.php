@@ -32,11 +32,9 @@ class EloquentImageCast implements CastsAttributes
     public function set($model, string $key, $value, array $attributes): ?array
     {
         if (! $value || ($value instanceof Image && ! $value->exists())) {
-            return null;
+            return [];
         }
 
-        $attributes[$key] = json_encode($value->getStateAsAttributeData());
-
-        return $attributes;
+        return [$key => json_encode($value->getStateAsAttributeData())];
     }
 }
