@@ -35,8 +35,8 @@ class EloquentImageCollectionCast implements CastsAttributes
 
     public function set($model, string $key, $value, array $attributes): ?array
     {
-        if (! $value || ($value instanceof ImageCollection && $value->count() === 0)) {
-            return [];
+        if (! $value || ($value instanceof ImageCollection && $value->count() === 0 && $value->getAutoincrement() === 1)) {
+            return [$key => null];
         }
 
         return [$key => json_encode($value->getStateAsAttributeData())];

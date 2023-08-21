@@ -3,12 +3,10 @@
 namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
 use Carbon\Carbon;
-use Closure;
 use finfo;
 use Illuminate\Contracts\Filesystem\Cloud;
 use Illuminate\Contracts\Filesystem\Filesystem;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Filesystem\FilesystemManager;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -21,14 +19,15 @@ use ZiffMedia\LaravelEloquentImagery\ImageTransformer\ImageTransformer;
 use ZiffMedia\LaravelEloquentImagery\UrlHandler\UrlHandler;
 
 /**
+ * @property-read $id
  * @property-read $index
- * @property-read $path,
- * @property-read $extension,
+ * @property-read $path
+ * @property-read $extension
  * @property-read $animated
- * @property-read $width,
- * @property-read $height,
- * @property-read $hash,
- * @property-read $timestamp,
+ * @property-read $width
+ * @property-read $height
+ * @property-read $hash
+ * @property-read $timestamp
  */
 class Image implements JsonSerializable
 {
@@ -45,7 +44,10 @@ class Image implements JsonSerializable
     protected ?Filesystem $filesystem = null;
 
     protected string $pathTemplate = '';
+
     protected array $presets = [];
+
+    protected ?string $id = null;
 
     protected ?int $index = null;
 
@@ -90,6 +92,15 @@ class Image implements JsonSerializable
         $this->filesystem = $filesystem;
     }
 
+    public function setId(string $id): void
+    {
+        if (strlen($id) !== 26) {
+            throw new InvalidArgumentException('ID for an image must be a ulid of 26 characters in length');
+        }
+
+        $this->id = strtolower($id);
+    }
+
     public function setIndex($index): void
     {
         $this->index = $index;
@@ -128,6 +139,7 @@ class Image implements JsonSerializable
 
     public function setStateFromAttributeData(array $attributeData): void
     {
+        $this->id = $attributeData['id'] ?? null;
         $this->index = $attributeData['index'] ?? null;
         $this->path = $attributeData['path'] ?? null;
         $this->extension = $attributeData['extension'] ?? null;
@@ -149,6 +161,7 @@ class Image implements JsonSerializable
     public function getStateAsAttributeData(): array
     {
         return [
+            'id'        => $this->id,
             'index'     => $this->index,
             'path'      => $this->path,
             'extension' => $this->extension,
@@ -197,6 +210,9 @@ class Image implements JsonSerializable
             throw new RuntimeException('Mime type could not be discovered');
         }
 
+        // create an initial ulid for this image
+        $this->setId((string) Str::ulid());
+
         $this->path = $this->pathTemplate;
         $this->exists = true;
         $this->flush = true;
@@ -223,7 +239,7 @@ class Image implements JsonSerializable
         return $this->metadata;
     }
 
-    public function setMetadata(Collection $metadata)
+    public function setMetadata(Collection $metadata): static
     {
         $this->metadata = $metadata;
 
@@ -282,6 +298,7 @@ class Image implements JsonSerializable
         $this->flush = true;
         $this->removeAtPathOnFlush = $this->path;
 
+        $this->id = null;
         $this->index = null;
         $this->path = '';
         $this->extension = '';
@@ -333,6 +350,8 @@ class Image implements JsonSerializable
     {
         $data = $this->filesystem->get($this->path);
 
+        $this->id = null;
+        $this->index = null;
         $this->path = $this->pathTemplate;
         $this->exists = true;
         $this->flush = true;
@@ -372,6 +391,7 @@ class Image implements JsonSerializable
     public function __get($name): mixed
     {
         $properties = [
+            'id'        => $this->id,
             'index'     => $this->index,
             'path'      => $this->path,
             'extension' => $this->extension,
@@ -393,6 +413,7 @@ class Image implements JsonSerializable
     public function __isset(string $name): bool
     {
         $properties = [
+            'id'        => $this->id,
             'index'     => $this->index,
             'path'      => $this->path,
             'extension' => $this->extension,
