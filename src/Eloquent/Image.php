@@ -3,12 +3,10 @@
 namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
 use Carbon\Carbon;
-use Closure;
 use finfo;
 use Illuminate\Contracts\Filesystem\Cloud;
 use Illuminate\Contracts\Filesystem\Filesystem;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Filesystem\FilesystemManager;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -21,14 +19,15 @@ use ZiffMedia\LaravelEloquentImagery\ImageTransformer\ImageTransformer;
 use ZiffMedia\LaravelEloquentImagery\UrlHandler\UrlHandler;
 
 /**
+ * @property-read $id
  * @property-read $index
- * @property-read $path,
- * @property-read $extension,
+ * @property-read $path
+ * @property-read $extension
  * @property-read $animated
- * @property-read $width,
- * @property-read $height,
- * @property-read $hash,
- * @property-read $timestamp,
+ * @property-read $width
+ * @property-read $height
+ * @property-read $hash
+ * @property-read $timestamp
  */
 class Image implements JsonSerializable
 {
@@ -42,13 +41,19 @@ class Image implements JsonSerializable
         'image/bmp'  => 'bmp',
     ];
 
-    protected static ?Filesystem $filesystem = null;
+    protected ?Filesystem $filesystem = null;
+
+    protected string $pathTemplate = '';
+
+    protected array $presets = [];
+
+    protected ?string $id = null;
 
     protected ?int $index = null;
 
-    protected string $path = '';
+    protected ?string $path = null;
 
-    protected string $extension = '';
+    protected ?string $extension = '';
 
     protected bool $animated = false;
 
@@ -60,8 +65,6 @@ class Image implements JsonSerializable
 
     protected ?int $timestamp = 0;
 
-    public Collection $metadata;
-
     protected bool $exists = false;
 
     protected bool $flush = false;
@@ -72,35 +75,30 @@ class Image implements JsonSerializable
 
     protected bool $isReadOnly = false;
 
-    public static function onFilesystemWith(Filesystem $filesystem, Closure $callback): mixed
+    protected Collection $metadata;
+
+    public function __construct()
     {
-        $previousFilesystem = static::$filesystem;
-
-        try {
-            static::$filesystem = $filesystem;
-
-            $return = $callback();
-        } finally {
-            static::$filesystem = $previousFilesystem;
-        }
-
-        return $return;
+        $this->metadata = new Collection;
     }
 
-    public function __construct(
-        protected string $pathTemplate,
-        protected array $presets = []
-    ) {
-        // the filesystem should come from the configuration, unless Image is extended and configured statically set with a filesystem
-        if (! static::$filesystem) {
-            static::$filesystem = app(FilesystemManager::class)->disk(config('eloquent-imagery.filesystem', config('filesystems.default')));
+    public function setPathTemplate(string $pathTemplate): void
+    {
+        $this->pathTemplate = $pathTemplate;
+    }
+
+    public function setFilesystem(Filesystem $filesystem): void
+    {
+        $this->filesystem = $filesystem;
+    }
+
+    public function setId(string $id): void
+    {
+        if (strlen($id) !== 26) {
+            throw new InvalidArgumentException('ID for an image must be a ulid of 26 characters in length');
         }
 
-        if (! Str::endsWith($this->pathTemplate, '.{extension}')) {
-            throw new InvalidArgumentException("{$this->pathTemplate} must end with .{extension}");
-        }
-
-        $this->metadata = new Collection;
+        $this->id = strtolower($id);
     }
 
     public function setIndex($index): void
@@ -126,8 +124,8 @@ class Image implements JsonSerializable
             throw new RuntimeException('Cannot process render transformation options unless the rendering route is enabled');
         }
 
-        if ($renderRouteEnabled === false && static::$filesystem instanceof Cloud) {
-            return static::$filesystem->url($this->path);
+        if ($renderRouteEnabled === false && $this->filesystem instanceof Cloud) {
+            return $this->filesystem->url($this->path);
         }
 
         $globalPresets = config('eloquent-imagery.urls.presets');
@@ -139,8 +137,9 @@ class Image implements JsonSerializable
         return app(UrlHandler::class)->createUrl($this, $transformations);
     }
 
-    public function setStateFromAttributeData($attributeData): void
+    public function setStateFromAttributeData(array $attributeData): void
     {
+        $this->id = $attributeData['id'] ?? null;
         $this->index = $attributeData['index'] ?? null;
         $this->path = $attributeData['path'] ?? null;
         $this->extension = $attributeData['extension'] ?? null;
@@ -150,7 +149,11 @@ class Image implements JsonSerializable
         $this->hash = $attributeData['hash'] ?? null;
         $this->timestamp = $attributeData['timestamp'] ?? null;
 
-        $this->metadata = new Collection($attributeData['metadata'] ?? []);
+        $this->metadata->slice(0);
+
+        foreach (($attributeData['metadata'] ?? []) as $key => $value) {
+            $this->metadata->offsetSet($key, $value);
+        }
 
         $this->exists = true;
     }
@@ -158,6 +161,7 @@ class Image implements JsonSerializable
     public function getStateAsAttributeData(): array
     {
         return [
+            'id'        => $this->id,
             'index'     => $this->index,
             'path'      => $this->path,
             'extension' => $this->extension,
@@ -176,7 +180,7 @@ class Image implements JsonSerializable
             throw new RuntimeException('Cannot call setData on an image marked as read only');
         }
 
-        if ($this->path && static::$filesystem->exists($this->path)) {
+        if ($this->path && $this->filesystem->exists($this->path)) {
             $this->removeAtPathOnFlush = $this->path;
         }
 
@@ -206,6 +210,9 @@ class Image implements JsonSerializable
             throw new RuntimeException('Mime type could not be discovered');
         }
 
+        // create an initial ulid for this image
+        $this->setId((string) Str::ulid());
+
         $this->path = $this->pathTemplate;
         $this->exists = true;
         $this->flush = true;
@@ -232,7 +239,14 @@ class Image implements JsonSerializable
         return $this->metadata;
     }
 
-    public function updatePath(array $replacements, Model $model)
+    public function setMetadata(Collection $metadata): static
+    {
+        $this->metadata = $metadata;
+
+        return $this;
+    }
+
+    public function updatePath(array $replacements = []): array
     {
         $path = $this->path;
 
@@ -252,15 +266,6 @@ class Image implements JsonSerializable
             if ($replacements && isset($replacements[$pathReplacement]) && $replacements[$pathReplacement] != '') {
                 $path = str_replace("{{$pathReplacement}}", $replacements[$pathReplacement], $path);
                 $updatedPathParts[] = $pathReplacement;
-
-                continue;
-            }
-
-            if ($model && $model->offsetExists($pathReplacement) && $model->offsetGet($pathReplacement) != '') {
-                $path = str_replace("{{$pathReplacement}}", $model->offsetGet($pathReplacement), $path);
-                $updatedPathParts[] = $pathReplacement;
-
-                continue;
             }
         }
 
@@ -293,6 +298,7 @@ class Image implements JsonSerializable
         $this->flush = true;
         $this->removeAtPathOnFlush = $this->path;
 
+        $this->id = null;
         $this->index = null;
         $this->path = '';
         $this->extension = '';
@@ -300,7 +306,7 @@ class Image implements JsonSerializable
         $this->height = null;
         $this->hash = '';
         $this->timestamp = 0;
-        $this->metadata = new Collection;
+        $this->metadata->slice(0);
     }
 
     public function requiresFlush(): bool
@@ -308,7 +314,7 @@ class Image implements JsonSerializable
         return $this->flush;
     }
 
-    public function flush()
+    public function flush(): void
     {
         if ($this->isReadOnly) {
             throw new RuntimeException('Cannot flush an image marked as read only');
@@ -319,13 +325,13 @@ class Image implements JsonSerializable
         }
 
         if ($this->removeAtPathOnFlush) {
-            static::$filesystem->delete($this->removeAtPathOnFlush);
+            $this->filesystem->delete($this->removeAtPathOnFlush);
 
             $removeAtPathExtension = pathinfo($this->removeAtPathOnFlush, PATHINFO_EXTENSION);
             $optimizedRemoveAtPath = Str::replace(".{$removeAtPathExtension}", ".optimized.{$removeAtPathExtension}", $this->removeAtPathOnFlush);
 
-            if (static::$filesystem->exists($optimizedRemoveAtPath)) {
-                static::$filesystem->delete($optimizedRemoveAtPath);
+            if ($this->filesystem->exists($optimizedRemoveAtPath)) {
+                $this->filesystem->delete($optimizedRemoveAtPath);
             }
         }
 
@@ -334,16 +340,18 @@ class Image implements JsonSerializable
                 throw new RuntimeException('The image path still has an unresolved replacement in it ("{...}") and cannot be saved: ' . $this->path);
             }
 
-            static::$filesystem->put($this->path, $this->data);
+            $this->filesystem->put($this->path, $this->data);
         }
 
         $this->flush = false;
     }
 
-    public function resetToFreshState()
+    public function resetToFreshState(): void
     {
-        $data = static::$filesystem->get($this->path);
+        $data = $this->filesystem->get($this->path);
 
+        $this->id = null;
+        $this->index = null;
         $this->path = $this->pathTemplate;
         $this->exists = true;
         $this->flush = true;
@@ -351,34 +359,39 @@ class Image implements JsonSerializable
         $this->timestamp = Carbon::now()->unix();
     }
 
-    public function hasOptimizedCopy()
+    public function hasOptimizedCopy(): bool
     {
         $pathExtension = pathinfo($this->path, PATHINFO_EXTENSION);
         $optimizedPath = Str::replace(".{$pathExtension}", ".optimized.{$pathExtension}", $this->path);
 
-        return static::$filesystem->exists($optimizedPath);
+        return $this->filesystem->exists($optimizedPath);
     }
 
-    public function canBeOptimized()
+    public function canBeOptimized(): bool
     {
         return $this->width > 1920 || $this->height > 1080;
     }
 
-    public function optimize()
+    public function optimize(): void
     {
         $transformer = new ImageTransformer(ImageTransformer::createTransformationCollection(['gifoptimize', 'fit', 'quality']));
 
         $pathExtension = pathinfo($this->path, PATHINFO_EXTENSION);
         $optimizedPath = Str::replace(".{$pathExtension}", ".optimized.{$pathExtension}", $this->path);
 
-        $imageBytes = static::$filesystem->get($this->path);
-
-        static::$filesystem->put($optimizedPath, $transformer->transform(collect(['fit' => 'limit', 'height' => 1080, 'width' => 1920]), $imageBytes));
+        $this->filesystem->put(
+            $optimizedPath,
+            $transformer->transform(
+                collect(['fit' => 'limit', 'height' => 1080, 'width' => 1920]),
+                $this->filesystem->get($this->path)
+            )
+        );
     }
 
     public function __get($name): mixed
     {
         $properties = [
+            'id'        => $this->id,
             'index'     => $this->index,
             'path'      => $this->path,
             'extension' => $this->extension,
@@ -387,6 +400,7 @@ class Image implements JsonSerializable
             'height'    => $this->height,
             'hash'      => $this->hash,
             'timestamp' => $this->timestamp,
+            'metadata'  => $this->metadata
         ];
 
         if (array_key_exists($name, $properties)) {
@@ -399,6 +413,7 @@ class Image implements JsonSerializable
     public function __isset(string $name): bool
     {
         $properties = [
+            'id'        => $this->id,
             'index'     => $this->index,
             'path'      => $this->path,
             'extension' => $this->extension,
@@ -407,6 +422,7 @@ class Image implements JsonSerializable
             'height'    => $this->height,
             'hash'      => $this->hash,
             'timestamp' => $this->timestamp,
+            'metadata'  => $this->metadata
         ];
 
         if (! array_key_exists($name, $properties)) {
@@ -421,7 +437,7 @@ class Image implements JsonSerializable
         return $this->getStateAsAttributeData();
     }
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize(): ?array
     {
         if ($this->exists) {
             return [

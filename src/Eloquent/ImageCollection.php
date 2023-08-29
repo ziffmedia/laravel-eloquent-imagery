@@ -21,19 +21,15 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
 {
     use ForwardsCalls;
 
-    /** @var Image */
-    protected $imagePrototype;
+    protected Image $imagePrototype;
 
-    /** @var Collection|Image[] */
-    protected $images;
+    protected Collection $images;
 
-    /** @var int */
-    protected $autoincrement = 1;
+    protected int $autoincrement = 1;
 
-    /** @var Collection */
-    protected $metadata;
+    protected Collection $metadata;
 
-    protected $deletedImages = [];
+    protected array $deletedImages = [];
 
     public function __construct($imagePrototype)
     {
@@ -42,17 +38,17 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         $this->metadata = new Collection;
     }
 
-    public function getImagePrototype()
+    public function getImagePrototype(): Image
     {
         return $this->imagePrototype;
     }
 
-    public function getAutoincrement()
+    public function getAutoincrement(): int
     {
         return $this->autoincrement;
     }
 
-    public function createImage($imageData)
+    public function createImage($imageData): Image
     {
         $image = clone $this->imagePrototype;
         $image->setData($imageData);
@@ -60,7 +56,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         return $image;
     }
 
-    public function getWrappedCollectionForImages()
+    public function getWrappedCollectionForImages(): Collection
     {
         return $this->images;
     }
@@ -231,21 +227,21 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         }
     }
 
-    public function updatePath(array $replacements, Model $model)
+    public function updatePath(array $replacements): void
     {
-        $this->images->each(function (Image $image) use ($replacements, $model) {
+        $this->images->each(function (Image $image) use ($replacements) {
             if ($image->index === null) {
                 $image->setIndex($this->autoincrement++);
             }
 
-            $updatedPathParts = $image->updatePath($replacements, $model);
+            $image->updatePath($replacements);
         });
     }
 
     /**
      * Called to remove all the images from this collection, generally in a workflow to remove an entire entity
      */
-    public function remove()
+    public function remove(): void
     {
         $this->images = $this->images->filter(function (Image $image) {
             $this->deletedImages[] = $image;
