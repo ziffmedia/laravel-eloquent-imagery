@@ -7,24 +7,17 @@ use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 class EloquentImageCollectionCast implements CastsAttributes
 {
     protected static CastInstanceManager $castInstanceManager;
-    // protected array $presets = [];
 
     public function __construct(
         protected ?string $pathTemplate = null,
         protected ?string $presetsConfig = null
-    ) {
-        static::$castInstanceManager ??= app(CastInstanceManager::class);
-    }
+    ) {}
 
     public function get($model, string $key, $value, array $attributes): ImageCollection
     {
-        /** @var ImageCollection $image */
-        $imageCollection = static::$castInstanceManager->get($model, $key, true);
-
-        // @todo
-        // if ($this->pathTemplate) {
-        //     $imageCollection->setPathTemplate($this->pathTemplate);
-        // }
+        /** @var ImageCollection $imageCollection */
+        $imageCollection = app(CastInstanceManager::class)->get($model, $key, true);
+        $imageCollection->getImagePrototype()->setPathTemplate($this->pathTemplate);
 
         if ($value) {
             $imageCollection->setStateFromAttributeData(json_decode($value, true));
