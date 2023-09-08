@@ -7,7 +7,7 @@ use ArrayIterator;
 use Countable;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Traits\ForwardsCalls;
 use IteratorAggregate;
@@ -29,13 +29,24 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
 
     protected Collection $metadata;
 
-    protected array $deletedImages = [];
+    protected array $markedRemovedImages = [];
+
+    protected array $flushDeletedImages = [];
 
     public function __construct($imagePrototype)
     {
         $this->imagePrototype = $imagePrototype;
         $this->images = new Collection;
         $this->metadata = new Collection;
+    }
+
+    public function setFilesystem(Filesystem $filesystem): void
+    {
+        $this->imagePrototype->setFilesystem($filesystem);
+
+        foreach ($this->images as $image) {
+            $image->setFilesystem($filesystem);
+        }
     }
 
     public function getImagePrototype(): Image
@@ -122,7 +133,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
      */
     public function offsetUnset($key): void
     {
-        $this->deletedImages[] = $this->images[$key];
+        $this->markedRemovedImages[] = $this->images[$key];
 
         $this->images[$key]->remove();
 
@@ -217,11 +228,11 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         });
     }
 
-    public function purgeRemovedImages()
+    public function purgeRemovedImages(): void
     {
         foreach ($this->images as $i => $image) {
-            if ($image->isFullyRemoved()) {
-                $this->deletedImages[] = $image;
+            if ($image->markedRemoved()) {
+                $this->markedRemovedImages[] = $image;
                 unset($this->images[$i]);
             }
         }
@@ -244,7 +255,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
     public function remove(): void
     {
         $this->images = $this->images->filter(function (Image $image) {
-            $this->deletedImages[] = $image;
+            $this->markedRemovedImages[] = $image;
             $image->remove();
 
             return false; // returning false will remove from new collection
@@ -253,7 +264,7 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
 
     public function requiresFlush(): bool
     {
-        if ($this->deletedImages) {
+        if ($this->markedRemovedImages) {
             return true;
         }
 
@@ -262,18 +273,21 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         return $image instanceof Image;
     }
 
-    public function flush()
+    public function flush(): void
     {
-        foreach ($this->deletedImages as $image) {
+        foreach ($this->markedRemovedImages as $key => $image) {
             $image->flush();
+            $this->flushDeletedImages[] = $image;
         }
+
+        $this->markedRemovedImages = [];
 
         $this->images->each(function (Image $image) {
             $image->flush();
         });
     }
 
-    public function resetToFreshState()
+    public function resetToFreshState(): void
     {
         $this->images->each(function (Image $image) {
             $image->resetToFreshState();
@@ -283,6 +297,12 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
     public function exists(): bool
     {
         return true;
+    }
+
+    public function diff(ImageCollection $imageCollection)
+    {
+        $diffImages = [];
+
     }
 
     /**

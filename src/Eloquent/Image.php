@@ -6,7 +6,6 @@ use Carbon\Carbon;
 use finfo;
 use Illuminate\Contracts\Filesystem\Cloud;
 use Illuminate\Contracts\Filesystem\Filesystem;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -279,7 +278,7 @@ class Image implements JsonSerializable
         return (bool) preg_match('#{(\w+)}#', $this->path);
     }
 
-    public function isFullyRemoved(): bool
+    public function markedRemoved(): bool
     {
         return $this->flush === true && $this->removeAtPathOnFlush !== '' && $this->path === '';
     }
