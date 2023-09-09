@@ -72,12 +72,12 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         return $this->images;
     }
 
-    public function replaceWrappedCollectionForImages(Collection $images)
+    public function replaceWrappedCollectionForImages(Collection $images): void
     {
         $this->images = $images;
     }
 
-    public function metadata()
+    public function metadata(): Collection
     {
         return $this->metadata;
     }
@@ -87,64 +87,42 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
         return $this->images->getIterator();
     }
 
-    /**
-     * Determine if the given item exists.
-     *
-     * @param  mixed  $key
-     * @return bool
-     */
-    public function offsetExists($key): bool
+    public function offsetExists($offset): bool
     {
-        return $this->images->has($key);
+        if (is_numeric($offset)) {
+            return $this->images->has($offset);
+        }
+
+        return $this->images->firstWhere('path', $offset) !== null;
     }
 
-    /**
-     * Get the item at the given offset.
-     *
-     * @param  mixed  $key
-     * @return mixed
-     */
-    public function offsetGet($key): mixed
+    public function offsetGet($offset): mixed
     {
-        return $this->images->get($key);
+        if (is_numeric($offset)) {
+            return $this->images->get($offset);
+        }
+
+        return $this->images->firstWhere('path', $offset);
     }
 
-    /**
-     * Set the item at the given offset.
-     *
-     * @param  mixed  $key
-     * @param  mixed  $value
-     * @return void
-     */
-    public function offsetSet($key, $value): void
+    public function offsetSet($offset, $value): void
     {
         if (! $value instanceof Image) {
             $value = $this->createImage($value);
         }
 
-        $this->images->put($key, $value);
+        $this->images->put($offset, $value);
     }
 
-    /**
-     * Unset the item at the given key.
-     *
-     * @param  mixed  $key
-     * @return void
-     */
-    public function offsetUnset($key): void
+    public function offsetUnset($offset): void
     {
-        $this->markedRemovedImages[] = $this->images[$key];
+        $this->markedRemovedImages[] = $this->images[$offset];
 
-        $this->images[$key]->remove();
+        $this->images[$offset]->remove();
 
-        $this->images->forget($key);
+        $this->images->forget($offset);
     }
 
-    /**
-     * Get the number of items for the current page.
-     *
-     * @return int
-     */
     public function count(): int
     {
         return $this->images->count();
@@ -297,12 +275,6 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
     public function exists(): bool
     {
         return true;
-    }
-
-    public function diff(ImageCollection $imageCollection)
-    {
-        $diffImages = [];
-
     }
 
     /**

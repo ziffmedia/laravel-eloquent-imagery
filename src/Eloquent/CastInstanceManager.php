@@ -63,7 +63,7 @@ class CastInstanceManager
 
         $this->models[$model][$attribute] = $imageCollection ?? $image;
 
-        $this->prepareImageWithFilesystem($model, $attribute);
+        $this->prepareImageWithFilesystem($image, $model, $attribute);
 
         return $this->models[$model][$attribute];
     }
@@ -86,23 +86,9 @@ class CastInstanceManager
         unset($this->modelFilesystems[$model][$forAttribute]);
     }
 
-    protected function prepareImageWithFilesystem(Model $model, $attribute): void
+    protected function prepareImageWithFilesystem(Image|ImageCollection $image, Model $model, $attribute): void
     {
-        $image = $this->models[$model][$attribute];
-
-        $modelSpecificFilesystems = $this->modelFilesystems[$model] ?? null;
-
-        if ($modelSpecificFilesystems && isset($modelSpecificFilesystems[$attribute])) {
-            $image->setFilesystem($this->modelFilesystems[$model][$attribute]);
-
-            return;
-        }
-
-        if ($modelSpecificFilesystems && isset($modelSpecificFilesystems['all'])) {
-            $image->setFilesystem($this->modelFilesystems[$model]['all']);
-
-            return;
-        }
+        // @todo use $model and $attribute to decide which filesystem needs to be injected
 
         $image->setFilesystem($this->defaultFilesystem);
     }

@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use InvalidArgumentException;
 use JsonSerializable;
+use League\Flysystem\FileNotFoundException;
 use OutOfBoundsException;
 use RuntimeException;
 use ZiffMedia\LaravelEloquentImagery\ImageTransformer\ImageTransformer;
@@ -40,7 +41,7 @@ class Image implements JsonSerializable
         'image/bmp'  => 'bmp',
     ];
 
-    protected ?Filesystem $filesystem = null;
+    public ?Filesystem $filesystem = null;
 
     protected string $pathTemplate = '';
 
@@ -173,7 +174,7 @@ class Image implements JsonSerializable
         ];
     }
 
-    public function setData($data): void
+    public function setData(UploadedFile|string $data): void
     {
         if ($this->isReadOnly) {
             throw new RuntimeException('Cannot call setData on an image marked as read only');
@@ -231,6 +232,16 @@ class Image implements JsonSerializable
         } else {
             throw new RuntimeException('Unsupported mime-type for expected image: ' . $mimeType);
         }
+    }
+
+    public function getData(): ?string
+    {
+        try {
+            return $this->filesystem->get($this->path);
+        } catch (FileNotFoundException $e) {
+        }
+
+        return null;
     }
 
     public function metadata(): Collection
