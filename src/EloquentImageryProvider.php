@@ -60,12 +60,19 @@ class EloquentImageryProvider extends ServiceProvider
                 throw new RuntimeException('Eloquent Imagery requires ext/ImageMagick or ext/gd in order to render images');
             }
 
-            $imageRoute = rtrim(config('eloquent-imagery.render.route', '/imagery'), '/');
+            $imageRoute = rtrim(config('eloquent-imagery.render.path', '/imagery'), '/');
 
-            $router->get("{$imageRoute}/{path}", Controllers\EloquentImageryController::class . '@render')
+            $route = $router->get("{$imageRoute}/{path}", [Controllers\EloquentImageryController::class, 'render'])
                 ->where('path', '(.*)')
-                ->name('eloquent-imagery.render')
-                ->domain(config('eloquent-imagery.render.domain', null));
+                ->name('eloquent-imagery.render');
+
+            if (config('eloquent-imagery.render.domain')) {
+                $route->domain(config('eloquent-imagery.render.domain', null));
+            }
+
+            if (config('eloquent-imagery.render.middleware')) {
+                $route->middleware(config('eloquent-imagery.render.middleware'));
+            }
 
             Blade::directive('placeholderImageUrl', [View\BladeDirectives::class, 'placeholderImageUrl']);
         }
