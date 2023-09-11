@@ -16,12 +16,14 @@ class CastInstanceManager
     protected array $observedModelClasses = [];
     protected array $defaultPathTemplates = [];
     protected Filesystem $defaultFilesystem;
+    protected WeakMap $modelFilesystems;
     protected WeakMap $models;
     protected WeakMap $replicatingModels;
 
     public function __construct()
     {
         $this->defaultFilesystem = app(FilesystemManager::class)->disk(config('eloquent-imagery.filesystem', config('filesystems.default')));
+        $this->modelFilesystems = new WeakMap;
         $this->models = new WeakMap;
         $this->replicatingModels = new WeakMap;
     }
@@ -39,7 +41,11 @@ class CastInstanceManager
             ?? $this->generateDefaultPathTemplate($model, $attribute, $asCollection);
 
         if (isset($this->models[$model][$attribute])) {
-            return $this->models[$model][$attribute];
+            $image = $this->models[$model][$attribute];
+
+            $this->prepareImageWithFilesystem($model, $attribute);
+
+            return $image;
         }
 
         if (!isset($this->models[$model])) {
@@ -50,7 +56,6 @@ class CastInstanceManager
 
         // set the default path template for this image
         $image->setPathTemplate($defaultPathTemplate);
-        $image->setFilesystem($this->defaultFilesystem);
 
         if ($asCollection) {
             $imageCollection = new ImageCollection($image);
@@ -58,7 +63,34 @@ class CastInstanceManager
 
         $this->models[$model][$attribute] = $imageCollection ?? $image;
 
+        $this->prepareImageWithFilesystem($image, $model, $attribute);
+
         return $this->models[$model][$attribute];
+    }
+
+    public function registerFilesystem(Filesystem $filesystem, Model|string $forModel, string $forAttribute = null): void
+    {
+        $forAttribute ??= 'all';
+
+        $this->modelFilesystems[$forModel] = [$forAttribute => $filesystem];
+    }
+
+    public function unregisterFilesystem(Model|string $model, string $forAttribute = null): void
+    {
+        if ($forAttribute === null) {
+            unset($this->modelFilesystems[$model]);
+
+            return;
+        }
+
+        unset($this->modelFilesystems[$model][$forAttribute]);
+    }
+
+    protected function prepareImageWithFilesystem(Image|ImageCollection $image, Model $model, $attribute): void
+    {
+        // @todo use $model and $attribute to decide which filesystem needs to be injected
+
+        $image->setFilesystem($this->defaultFilesystem);
     }
 
     protected function generateDefaultPathTemplate(Model $model, string $attribute, bool $forCollection): string

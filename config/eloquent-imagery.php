@@ -29,6 +29,11 @@ return [
         'path' => '/imagery',
 
         /**
+         * The middleware for this route
+         */
+        'middleware' => 'web',
+
+        /**
          * optionally bind the route to a specific domain (ex: for a CDN)
          */
         'domain' => env('IMAGERY_RENDER_DOMAIN', null),
@@ -57,7 +62,7 @@ return [
              * When a file is missing on the filesystem, should the renderer
              * fallback and utilize placeholders?
              *
-             * (This is useful for dev enviroment where a copy of all the production
+             * (This is useful for dev environment where a copy of all the production
              *  images is not available)
              */
             'use_for_missing_files' => env('IMAGERY_RENDER_PLACEHOLDER_USE_FOR_MISSING_FILES', false),
