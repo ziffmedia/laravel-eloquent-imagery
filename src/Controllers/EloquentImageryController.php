@@ -49,8 +49,12 @@ class EloquentImageryController extends Controller
             goto SERVE_BYTES;
         }
 
+        $imageBytes = null;
+
         // step 2: no placeholder, look for actual file on designated filesystem
-        $imageBytes = $filesystem->get($imageRequestData['optimized_path']);
+        if (config('eloquent-imagery.optimization.enable')) {
+            $imageBytes = $filesystem->get($imageRequestData['optimized_path']);
+        }
 
         if (! $imageBytes) {
             $imageBytes = $filesystem->get($imageActualPath);

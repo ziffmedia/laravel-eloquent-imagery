@@ -13,6 +13,18 @@ return [
         'gd'
     ],
 
+    'optimization' => [
+        /**
+         * enable? (true or false only)
+         */
+        'enable' => env('IMAGERY_OPTIMIZATION_ENABLE', false),
+
+        /**
+         * Which method to use for optimization, this can be one of 'on_save', 'deferred_save', 'job', 'none'
+         */
+        'method' => 'none',
+    ],
+
     /**
      * The route to use to render with
      */
@@ -57,7 +69,7 @@ return [
              * When a file is missing on the filesystem, should the renderer
              * fallback and utilize placeholders?
              *
-             * (This is useful for dev enviroment where a copy of all the production
+             * (This is useful for dev environment where a copy of all the production
              *  images is not available)
              */
             'use_for_missing_files' => env('IMAGERY_RENDER_PLACEHOLDER_USE_FOR_MISSING_FILES', false),
