@@ -14,10 +14,15 @@ use WeakMap;
 class CastInstanceManager
 {
     protected array $observedModelClasses = [];
+
     protected array $defaultPathTemplates = [];
+
     protected Filesystem $defaultFilesystem;
+
     protected WeakMap $modelFilesystems;
+
     protected WeakMap $models;
+
     protected WeakMap $replicatingModels;
 
     public function __construct()
@@ -48,7 +53,7 @@ class CastInstanceManager
             return $image;
         }
 
-        if (!isset($this->models[$model])) {
+        if (! isset($this->models[$model])) {
             $this->models[$model] = [];
         }
 

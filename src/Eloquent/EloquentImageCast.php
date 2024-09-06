@@ -3,7 +3,6 @@
 namespace ZiffMedia\LaravelEloquentImagery\Eloquent;
 
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
-use Illuminate\Support\Str;
 
 class EloquentImageCast implements CastsAttributes
 {

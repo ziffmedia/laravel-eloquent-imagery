@@ -11,7 +11,8 @@ class EloquentImageCollectionCast implements CastsAttributes
     public function __construct(
         protected ?string $pathTemplate = null,
         protected ?string $presetsConfig = null
-    ) {}
+    ) {
+    }
 
     public function get($model, string $key, $value, array $attributes): ImageCollection
     {
