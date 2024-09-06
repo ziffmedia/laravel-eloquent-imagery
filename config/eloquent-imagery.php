@@ -13,6 +13,18 @@ return [
         'gd'
     ],
 
+    'optimization' => [
+        /**
+         * enable? (true or false only)
+         */
+        'enable' => env('IMAGERY_OPTIMIZATION_ENABLE', false),
+
+        /**
+         * Which method to use for optimization, this can be one of 'on_save', 'deferred_save', 'job', 'none'
+         */
+        'method' => 'none',
+    ],
+
     /**
      * The route to use to render with
      */
