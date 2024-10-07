@@ -34,13 +34,16 @@ class LegacyStrategy implements StrategyInterface
     public function getDataFromRequest(Request $request): Collection
     {
         $path = $request->route('path');
-        $imageRequestData = new Collection();
+        $imageRequestData = new Collection;
 
         $pathInfo = pathinfo($path);
         $imagePath = $pathInfo['dirname'] !== '.' ? $pathInfo['dirname'] . '/' : '';
 
         $filenameWithoutExtension = $pathInfo['filename'];
-        $actualExtension = $pathInfo['extension'];
+
+        //  There can be misformed urls come in with no extension, and this will
+        //  throw a 500 in that instance
+        $actualExtension = $pathInfo['extension'] ?? '';
 
         // does it still have an extension?
         if (preg_match("#\\.{$this->extensionsRegex}$#", $filenameWithoutExtension, $matches)) {
@@ -68,10 +71,18 @@ class LegacyStrategy implements StrategyInterface
             }
         }
 
-        $imagePath .= "{$filenameWithoutExtension}.{$actualExtension}";
+        $imagePath .= "{$filenameWithoutExtension}" . ($actualExtension ? ".$actualExtension" : '');
 
         $imageRequestData['path'] = $imagePath;
-        $imageRequestData['optimized_path'] = Str::replaceLast($actualExtension, "optimized.{$actualExtension}", $imagePath);
+        if ($actualExtension) {
+            $imageRequestData['optimized_path'] = Str::replaceLast(
+                $actualExtension,
+                "optimized.{$actualExtension}",
+                $imagePath
+            );
+        } else {
+            $imageRequestData['optimized_path'] = $imagePath . '.optimized';
+        }
 
         if (isset($imageRequestData['fit']) && $imageRequestData['fit'] === 'lim') {
             $imageRequestData['fit'] = 'limit';
