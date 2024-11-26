@@ -30,13 +30,13 @@ class LegacyStrategyTest extends AbstractTestCase
     public function dataForGetDataFromRequest()
     {
         return [
-            [$this->createMockRequestWithPath('foo'), ['path' => 'foo', 'optimized_path' => 'foo.optimized']],
             [$this->createMockRequestWithPath('foo.gif'), ['path' => 'foo.gif', 'optimized_path' => 'foo.optimized.gif']],
             [$this->createMockRequestWithPath('foo/bar.jpg'), ['path' => 'foo/bar.jpg', 'optimized_path' => 'foo/bar.optimized.jpg']],
             [$this->createMockRequestWithPath('foo/bar.v123456.jpg'), ['path' => 'foo/bar.jpg', 'optimized_path' => 'foo/bar.optimized.jpg']], // version is excluded
             [$this->createMockRequestWithPath('foo/bar.fit_limit.size_x200.jpg'), ['path' => 'foo/bar.jpg', 'fit' => 'limit', 'height' => '200', 'width' => '', 'optimized_path' => 'foo/bar.optimized.jpg']],
             [$this->createMockRequestWithPath('foo/bar.fit_lim.size_x200.jpg'), ['path' => 'foo/bar.jpg', 'fit' => 'limit', 'height' => '200', 'width' => '', 'optimized_path' => 'foo/bar.optimized.jpg']],
             [$this->createMockRequestWithPath('foo/bar.grayscale.jpg'), ['path' => 'foo/bar.jpg', 'grayscale' => true, 'optimized_path' => 'foo/bar.optimized.jpg']],
+            [$this->createMockRequestWithPath('foo'), []]
         ];
     }
 
