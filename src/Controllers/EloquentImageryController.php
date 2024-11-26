@@ -38,6 +38,8 @@ class EloquentImageryController extends Controller
 
         $imageRequestData = app(UrlHandler::class)->getDataFromRequest($request);
 
+        abort_if(! $imageRequestData->has('path'), 404);
+
         $imageActualPath = $imageRequestData->get('path');
 
         // step 1: if placeholder request, generate a placeholder

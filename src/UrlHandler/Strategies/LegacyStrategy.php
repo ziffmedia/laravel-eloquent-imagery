@@ -39,6 +39,10 @@ class LegacyStrategy implements StrategyInterface
         $pathInfo = pathinfo($path);
         $imagePath = $pathInfo['dirname'] !== '.' ? $pathInfo['dirname'] . '/' : '';
 
+        if (! isset($pathInfo['filename'], $pathInfo['extension'])) {
+            return collect();
+        }
+
         $filenameWithoutExtension = $pathInfo['filename'];
         $actualExtension = $pathInfo['extension'];
 

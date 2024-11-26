@@ -36,6 +36,7 @@ class LegacyStrategyTest extends AbstractTestCase
             [$this->createMockRequestWithPath('foo/bar.fit_limit.size_x200.jpg'), ['path' => 'foo/bar.jpg', 'fit' => 'limit', 'height' => '200', 'width' => '', 'optimized_path' => 'foo/bar.optimized.jpg']],
             [$this->createMockRequestWithPath('foo/bar.fit_lim.size_x200.jpg'), ['path' => 'foo/bar.jpg', 'fit' => 'limit', 'height' => '200', 'width' => '', 'optimized_path' => 'foo/bar.optimized.jpg']],
             [$this->createMockRequestWithPath('foo/bar.grayscale.jpg'), ['path' => 'foo/bar.jpg', 'grayscale' => true, 'optimized_path' => 'foo/bar.optimized.jpg']],
+            [$this->createMockRequestWithPath('foo'), []]
         ];
     }
 
