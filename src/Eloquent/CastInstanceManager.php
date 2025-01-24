@@ -134,8 +134,8 @@ class CastInstanceManager
             return;
         }
 
-        // at booting, all casts have not yet been initialized
-        $casts = array_merge($model->getCasts(), $model->casts());
+        // at booting, all casts have not yet been initialized, so construct them as best we can from $casts and casts()
+        $casts = (fn ($model) => array_merge($model->getCasts(), $model->casts()))->bindTo($model, $model)($model);
 
         if (Arr::first($casts, fn ($castSpec) => Str::startsWith($castSpec, 'ZiffMedia\\LaravelEloquentImagery'), false) === false) {
             $this->observedModelClasses[$modelClass] = false;
