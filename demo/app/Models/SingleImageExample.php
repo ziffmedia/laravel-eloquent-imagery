@@ -7,10 +7,10 @@ use ZiffMedia\LaravelEloquentImagery\Eloquent\EloquentImageCast;
 
 class SingleImageExample extends Model
 {
-    protected $casts = [
-        'variations' => 'json',
-        'image' => EloquentImageCast::class . ':single-image-examples/{id}.{extension}'
-    ];
+    // protected $casts = [
+    //     'variations' => 'json',
+    //     'image' => EloquentImageCast::class.':single-image-examples/{id}.{extension}',
+    // ];
 
     protected static function boot()
     {
@@ -22,4 +22,13 @@ class SingleImageExample extends Model
             }
         });
     }
+
+    public function casts()
+    {
+        return [
+            'variations' => 'json',
+            'image' => EloquentImageCast::class.':single-image-examples/{id}.{extension}',
+        ];
+    }
+
 }

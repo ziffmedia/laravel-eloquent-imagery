@@ -124,6 +124,7 @@ class CastInstanceManager
 
     public function booting($event, $payload): void
     {
+        /** @var Model $model */
         $model = $payload[0];
 
         // get model from event name
@@ -133,7 +134,10 @@ class CastInstanceManager
             return;
         }
 
-        if (Arr::first($model->getCasts(), fn ($castSpec) => Str::startsWith($castSpec, 'ZiffMedia\\LaravelEloquentImagery'), false) === false) {
+        // at booting, all casts have not yet been initialized
+        $casts = array_merge($model->getCasts(), $model->casts());
+
+        if (Arr::first($casts, fn ($castSpec) => Str::startsWith($castSpec, 'ZiffMedia\\LaravelEloquentImagery'), false) === false) {
             $this->observedModelClasses[$modelClass] = false;
 
             return;
