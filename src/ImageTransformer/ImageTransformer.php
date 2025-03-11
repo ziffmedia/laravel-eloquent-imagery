@@ -4,6 +4,7 @@ namespace ZiffMedia\LaravelEloquentImagery\ImageTransformer;
 
 use Exception;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Imagick;
 use ImagickException;
 use InvalidArgumentException;
@@ -127,10 +128,15 @@ class ImageTransformer
             if ($isCoalesced) {
                 $imagick = $imagick->deconstructImages();
             }
-        } catch (ImagickException $imagickException) {
-            // throw?
-        } catch (Exception $exception) {
-            // throw?
+        } catch (ImagickException|Exception $e) {
+            if (config('eloquent-imagery.logging.enable') === true) {
+                logger()->log(
+                    config('eloquent-imagery.logging.level'),
+                    'Imagick error: '.$e->getMessage().' with image bytes: '.base64_encode(Str::limit($imagick->getImageBlob(), 20))
+                );
+            }
+
+            return $imageBytes;
         }
 
         return $imagick->getImagesBlob();
