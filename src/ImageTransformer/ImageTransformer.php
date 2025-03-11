@@ -132,7 +132,7 @@ class ImageTransformer
             if (config('eloquent-imagery.logging.enable') === true) {
                 logger()->log(
                     config('eloquent-imagery.logging.level'),
-                    'Imagick error: '.$e->getMessage().' with image bytes: '.base64_encode(Str::limit($imagick->getImageBlob(), 20))
+                    'Imagick error: '.$e->getMessage().' with image bytes: '.base64_encode(Str::limit($imageBytes, 20))
                 );
             }
 
