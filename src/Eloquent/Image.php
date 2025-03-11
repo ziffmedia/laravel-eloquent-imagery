@@ -35,10 +35,10 @@ class Image implements JsonSerializable
 
     const MIME_TYPE_EXTENSIONS = [
         'image/jpeg' => 'jpg',
-        'image/png'  => 'png',
-        'image/gif'  => 'gif',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
         'image/webp' => 'webp',
-        'image/bmp'  => 'bmp',
+        'image/bmp' => 'bmp',
     ];
 
     public ?Filesystem $filesystem = null;
@@ -161,16 +161,16 @@ class Image implements JsonSerializable
     public function getStateAsAttributeData(): array
     {
         return [
-            'id'        => $this->id,
-            'index'     => $this->index,
-            'path'      => $this->path,
+            'id' => $this->id,
+            'index' => $this->index,
+            'path' => $this->path,
             'extension' => $this->extension,
-            'animated'  => $this->animated,
-            'width'     => $this->width,
-            'height'    => $this->height,
-            'hash'      => $this->hash,
+            'animated' => $this->animated,
+            'width' => $this->width,
+            'height' => $this->height,
+            'hash' => $this->hash,
             'timestamp' => $this->timestamp,
-            'metadata'  => $this->metadata->toArray(),
+            'metadata' => $this->metadata->toArray(),
         ];
     }
 
@@ -230,7 +230,7 @@ class Image implements JsonSerializable
                 $this->animated = (bool) preg_match('#(\x00\x21\xF9\x04.{4}\x00\x2C.*){2,}#s', $data);
             }
         } else {
-            throw new RuntimeException('Unsupported mime-type for expected image: ' . $mimeType);
+            throw new RuntimeException('Unsupported mime-type for expected image: '.$mimeType);
         }
     }
 
@@ -347,7 +347,7 @@ class Image implements JsonSerializable
 
         if ($this->data) {
             if ($this->pathHasReplacements()) {
-                throw new RuntimeException('The image path still has an unresolved replacement in it ("{...}") and cannot be saved: ' . $this->path);
+                throw new RuntimeException('The image path still has an unresolved replacement in it ("{...}") and cannot be saved: '.$this->path);
             }
 
             $this->filesystem->put($this->path, $this->data);
@@ -401,16 +401,16 @@ class Image implements JsonSerializable
     public function __get($name): mixed
     {
         $properties = [
-            'id'        => $this->id,
-            'index'     => $this->index,
-            'path'      => $this->path,
+            'id' => $this->id,
+            'index' => $this->index,
+            'path' => $this->path,
             'extension' => $this->extension,
-            'animated'  => $this->animated,
-            'width'     => $this->width,
-            'height'    => $this->height,
-            'hash'      => $this->hash,
+            'animated' => $this->animated,
+            'width' => $this->width,
+            'height' => $this->height,
+            'hash' => $this->hash,
             'timestamp' => $this->timestamp,
-            'metadata'  => $this->metadata,
+            'metadata' => $this->metadata,
         ];
 
         if (array_key_exists($name, $properties)) {
@@ -423,16 +423,16 @@ class Image implements JsonSerializable
     public function __isset(string $name): bool
     {
         $properties = [
-            'id'        => $this->id,
-            'index'     => $this->index,
-            'path'      => $this->path,
+            'id' => $this->id,
+            'index' => $this->index,
+            'path' => $this->path,
             'extension' => $this->extension,
-            'animated'  => $this->animated,
-            'width'     => $this->width,
-            'height'    => $this->height,
-            'hash'      => $this->hash,
+            'animated' => $this->animated,
+            'width' => $this->width,
+            'height' => $this->height,
+            'hash' => $this->hash,
             'timestamp' => $this->timestamp,
-            'metadata'  => $this->metadata,
+            'metadata' => $this->metadata,
         ];
 
         if (! array_key_exists($name, $properties)) {
@@ -451,7 +451,7 @@ class Image implements JsonSerializable
     {
         if ($this->exists) {
             return [
-                'path'     => $this->path,
+                'path' => $this->path,
                 'metadata' => $this->metadata,
             ];
         }

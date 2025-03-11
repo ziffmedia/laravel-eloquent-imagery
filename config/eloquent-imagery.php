@@ -8,9 +8,16 @@ return [
      */
     'filesystem' => env('IMAGERY_FILESYSTEM', 'public'),
 
+    'logging' => [
+        /**
+         * enable? (true or false only)
+         */
+        'enable' => env('IMAGERY_LOGGING_ENABLE', false),
+    ],
+
     'extension_priority' => [
         'imagick',
-        'gd'
+        'gd',
     ],
 
     'optimization' => [
@@ -145,7 +152,7 @@ return [
                 'fallbackbanner',
                 'crop',
                 'fill',
-                'convert'
+                'convert',
             ],
         ],
     ],

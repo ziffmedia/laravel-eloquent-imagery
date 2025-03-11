@@ -25,7 +25,7 @@ class UrlHandler
             return app($nameOrClassConfig);
         }
 
-        throw new InvalidArgumentException($nameOrClassConfig . ' is an unsupported UrlHandler strategy, please see the documentation');
+        throw new InvalidArgumentException($nameOrClassConfig.' is an unsupported UrlHandler strategy, please see the documentation');
     }
 
     public function __construct(Strategies\StrategyInterface $strategy)

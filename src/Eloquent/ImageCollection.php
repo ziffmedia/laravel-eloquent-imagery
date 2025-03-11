@@ -190,8 +190,8 @@ class ImageCollection implements Arrayable, ArrayAccess, Countable, IteratorAggr
 
         return [
             'autoincrement' => $this->autoincrement,
-            'images'        => $images,
-            'metadata'      => $this->metadata->toArray(),
+            'images' => $images,
+            'metadata' => $this->metadata->toArray(),
         ];
     }
 

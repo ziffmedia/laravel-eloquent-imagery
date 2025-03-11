@@ -42,7 +42,7 @@ class CastInstanceManager
     {
         $modelClass = get_class($model);
 
-        $defaultPathTemplate = $this->defaultPathTemplates[$modelClass . ':' . $attribute]
+        $defaultPathTemplate = $this->defaultPathTemplates[$modelClass.':'.$attribute]
             ?? $this->generateDefaultPathTemplate($model, $attribute, $asCollection);
 
         if (isset($this->models[$model][$attribute])) {
@@ -104,20 +104,20 @@ class CastInstanceManager
 
         $defaultPathTemplate = $forCollection
             ? Str::kebab(Str::pluralStudly(class_basename($modelName)))
-                . '/{'
-                . Str::kebab($model->getKeyName())
-                . '}/'
-                . Str::kebab(str_replace('_', ' ', $attribute))
-                . '-{index}'
-                . '.{extension}'
+                .'/{'
+                .Str::kebab($model->getKeyName())
+                .'}/'
+                .Str::kebab(str_replace('_', ' ', $attribute))
+                .'-{index}'
+                .'.{extension}'
             : Str::kebab(Str::pluralStudly(class_basename($modelName)))
-                . '/{'
-                . Str::kebab($model->getKeyName())
-                . '}-'
-                . Str::kebab(str_replace('_', ' ', $attribute))
-                . '.{extension}';
+                .'/{'
+                .Str::kebab($model->getKeyName())
+                .'}-'
+                .Str::kebab(str_replace('_', ' ', $attribute))
+                .'.{extension}';
 
-        $this->defaultPathTemplates[get_class($model) . ':' . $attribute] = $defaultPathTemplate;
+        $this->defaultPathTemplates[get_class($model).':'.$attribute] = $defaultPathTemplate;
 
         return $defaultPathTemplate;
     }

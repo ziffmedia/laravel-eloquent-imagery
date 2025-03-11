@@ -4,6 +4,7 @@ namespace ZiffMedia\LaravelEloquentImagery\ImageTransformer;
 
 use Exception;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Imagick;
 use ImagickException;
 use InvalidArgumentException;
@@ -12,22 +13,22 @@ use RuntimeException;
 class ImageTransformer
 {
     const BUILTIN_TRANSFORMATIONS = [
-        'crop'           => Transformations\Crop::class,
-        'fill'           => Transformations\Fill::class,
+        'crop' => Transformations\Crop::class,
+        'fill' => Transformations\Fill::class,
         'fallbackbanner' => Transformations\FallbackBanner::class,
-        'fit'            => Transformations\Fit::class,
-        'gifoptimize'    => Transformations\GifOptimize::class,
-        'gifstatic'      => Transformations\GifStatic::class,
-        'grayscale'      => Transformations\Grayscale::class,
-        'jpegexif'       => Transformations\JpegExif::class,
-        'jpegnormalize'  => Transformations\JpegNormalize::class,
-        'quality'        => Transformations\Quality::class,
-        'convert'        => Transformations\Convert::class,
+        'fit' => Transformations\Fit::class,
+        'gifoptimize' => Transformations\GifOptimize::class,
+        'gifstatic' => Transformations\GifStatic::class,
+        'grayscale' => Transformations\Grayscale::class,
+        'jpegexif' => Transformations\JpegExif::class,
+        'jpegnormalize' => Transformations\JpegNormalize::class,
+        'quality' => Transformations\Quality::class,
+        'convert' => Transformations\Convert::class,
     ];
 
     public Collection $transformations;
 
-    protected readonly string $extension;
+    protected ?string $extension = null;
 
     public static function createTransformationCollection($transformerConfigs): Collection
     {
@@ -87,7 +88,7 @@ class ImageTransformer
         }
 
         if (! $this->extension) {
-            throw new RuntimeException('No valid image library was found in php, tried: ' . implode(', ', $extensions));
+            throw new RuntimeException('No valid image library was found in php, tried: '.implode(', ', $extensions));
         }
     }
 
@@ -102,7 +103,7 @@ class ImageTransformer
             $background = $arguments->get('background');
 
             if (preg_match('/^[A-Fa-f0-9]{3,6}$/', $background)) {
-                $arguments['background'] = '#' . $background;
+                $arguments['background'] = '#'.$background;
             }
         }
 
@@ -127,10 +128,15 @@ class ImageTransformer
             if ($isCoalesced) {
                 $imagick = $imagick->deconstructImages();
             }
-        } catch (ImagickException $imagickException) {
-            // throw?
-        } catch (Exception $exception) {
-            // throw?
+        } catch (ImagickException|Exception $e) {
+            if (config('eloquent-imagery.logging.enable') === true) {
+                logger()->log(
+                    config('eloquent-imagery.logging.level'),
+                    'Imagick error: '.$e->getMessage().' with image bytes: '.base64_encode(Str::limit($imagick->getImageBlob(), 20))
+                );
+            }
+
+            return $imageBytes;
         }
 
         return $imagick->getImagesBlob();

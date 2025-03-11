@@ -41,7 +41,7 @@ if (! function_exists('eloquent_imagery_url')) {
         $image = new Image($relativePath, []);
 
         $image->setStateFromAttributeData([
-            'path'      => $relativePath,
+            'path' => $relativePath,
             'extension' => pathinfo($relativePath, PATHINFO_EXTENSION), // suffix of relative path?
         ]);
 

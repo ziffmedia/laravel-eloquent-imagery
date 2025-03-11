@@ -36,7 +36,7 @@ class LegacyStrategyTest extends AbstractTestCase
             [$this->createMockRequestWithPath('foo/bar.fit_limit.size_x200.jpg'), ['path' => 'foo/bar.jpg', 'fit' => 'limit', 'height' => '200', 'width' => '', 'optimized_path' => 'foo/bar.optimized.jpg']],
             [$this->createMockRequestWithPath('foo/bar.fit_lim.size_x200.jpg'), ['path' => 'foo/bar.jpg', 'fit' => 'limit', 'height' => '200', 'width' => '', 'optimized_path' => 'foo/bar.optimized.jpg']],
             [$this->createMockRequestWithPath('foo/bar.grayscale.jpg'), ['path' => 'foo/bar.jpg', 'grayscale' => true, 'optimized_path' => 'foo/bar.optimized.jpg']],
-            [$this->createMockRequestWithPath('foo'), []]
+            [$this->createMockRequestWithPath('foo'), []],
         ];
     }
 
@@ -57,13 +57,13 @@ class LegacyStrategyTest extends AbstractTestCase
     {
         $image = new Image('{id}.{extension}', []);
         $image->setStateFromAttributeData([
-            'path'      => 'test/1.gif',
+            'path' => 'test/1.gif',
             'extension' => 'gif',
-            'width'     => '50',
-            'height'    => '50',
-            'hash'      => '12345',
+            'width' => '50',
+            'height' => '50',
+            'hash' => '12345',
             'timestamp' => 1234567890,
-            'metadata'  => [],
+            'metadata' => [],
         ]);
 
         $legacyStrategy = new LegacyStrategy;

@@ -11,7 +11,7 @@ class ImageTransformerTest extends AbstractTestCase
 {
     public function testImageTransformerHasTransformations()
     {
-        $config = include __DIR__ . '/../../../config/eloquent-imagery.php';
+        $config = include __DIR__.'/../../../config/eloquent-imagery.php';
 
         $imageTransformer = new ImageTransformer(
             ImageTransformer::createTransformationCollection(Arr::get($config, 'render.transformation.transformers'))
@@ -25,7 +25,7 @@ class ImageTransformerTest extends AbstractTestCase
     {
         $imageTransformer = new ImageTransformer(collect());
 
-        $bytesOriginal = file_get_contents(__DIR__ . '/TestAssets/picture.jpg');
+        $bytesOriginal = file_get_contents(__DIR__.'/TestAssets/picture.jpg');
 
         $newBytes = $imageTransformer->transform(collect(['quality' => 50]), $bytesOriginal);
 
