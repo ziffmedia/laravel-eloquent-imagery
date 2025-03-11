@@ -93,7 +93,7 @@ class FitTest extends TestCase
     {
         $iteratorState = new \ArrayObject([
             'iteration' => 0,
-            'values'    => $items,
+            'values' => $items,
         ]);
 
         $iterator->method('rewind');

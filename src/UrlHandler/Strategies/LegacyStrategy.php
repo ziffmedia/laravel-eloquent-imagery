@@ -11,24 +11,24 @@ use ZiffMedia\LaravelEloquentImagery\Eloquent\Image;
 class LegacyStrategy implements StrategyInterface
 {
     protected $urlModifierRegexes = [
-        'width'      => '/^size_(?P<value>\d*){0,1}x(?:\d*){0,1}$/', // set width
-        'height'     => '/^size_(?:\d*){0,1}x(?P<value>\d*){0,1}$/', // set height
-        'fit'        => '/^fit_(?P<value>[a-z]+)$/', // set height
-        'grayscale'  => '/^grayscale$/', // grayscale
-        'quality'    => '/^quality_(?P<value>[0-9]+)/', //quality, if applicable
+        'width' => '/^size_(?P<value>\d*){0,1}x(?:\d*){0,1}$/', // set width
+        'height' => '/^size_(?:\d*){0,1}x(?P<value>\d*){0,1}$/', // set height
+        'fit' => '/^fit_(?P<value>[a-z]+)$/', // set height
+        'grayscale' => '/^grayscale$/', // grayscale
+        'quality' => '/^quality_(?P<value>[0-9]+)/', //quality, if applicable
         'background' => '/^bg_(?P<value>[\da-f]{6})$/', // background hex
-        'trim'       => '/^trim_(?P<value>\d+)$/', // trim, tolerance
-        'crop'       => '/^crop_(?P<value>[\dx]+)$/', // crop operations
-        'fill'       => '/^fill$/', // fill operation
-        'gravity'    => '/^gravity_(?P<value>[\w_]+)$/', // optional gravity param, g_auto - means center, g_north or g_south
-        'static'     => '/^static(?:_(?P<value>\d*)){0,1}$/', // ensure even animated gifs are single frame
+        'trim' => '/^trim_(?P<value>\d+)$/', // trim, tolerance
+        'crop' => '/^crop_(?P<value>[\dx]+)$/', // crop operations
+        'fill' => '/^fill$/', // fill operation
+        'gravity' => '/^gravity_(?P<value>[\w_]+)$/', // optional gravity param, g_auto - means center, g_north or g_south
+        'static' => '/^static(?:_(?P<value>\d*)){0,1}$/', // ensure even animated gifs are single frame
     ];
 
     protected string $extensionsRegex;
 
     public function __construct()
     {
-        $this->extensionsRegex = '(' . implode('|', Image::MIME_TYPE_EXTENSIONS) . ')';
+        $this->extensionsRegex = '('.implode('|', Image::MIME_TYPE_EXTENSIONS).')';
     }
 
     public function getDataFromRequest(Request $request): Collection
@@ -37,7 +37,7 @@ class LegacyStrategy implements StrategyInterface
         $imageRequestData = new Collection();
 
         $pathInfo = pathinfo($path);
-        $imagePath = $pathInfo['dirname'] !== '.' ? $pathInfo['dirname'] . '/' : '';
+        $imagePath = $pathInfo['dirname'] !== '.' ? $pathInfo['dirname'].'/' : '';
 
         if (! isset($pathInfo['filename'], $pathInfo['extension'])) {
             return collect();
@@ -92,8 +92,8 @@ class LegacyStrategy implements StrategyInterface
         } elseif ($transformations->has('width') || $transformations->has('height')) {
             $transformations['size'] =
                 ($transformations['width'] ?? '')
-                . 'x'
-                . ($transformations['height'] ?? '');
+                .'x'
+                .($transformations['height'] ?? '');
 
             unset($transformations['width'], $transformations['height']);
         }
@@ -116,7 +116,7 @@ class LegacyStrategy implements StrategyInterface
             $imageTimestamp = $image->timestamp;
 
             if (is_bool($version) && $imageTimestamp) {
-                $version = 'v' . $imageTimestamp;
+                $version = 'v'.$imageTimestamp;
             } elseif (is_string($version) && str_contains($version, '{timestamp}') && $imageTimestamp) {
                 $version = str_replace('{timestamp}', $imageTimestamp, $version);
             }
@@ -137,7 +137,7 @@ class LegacyStrategy implements StrategyInterface
         $extension = $pathinfo['extension'];
         if ($transformations->has('convert')) {
             if ($pathinfo['extension'] != $transformations['convert']) {
-                $extension = $extension . '.' . $transformations['convert'];
+                $extension = $extension.'.'.$transformations['convert'];
             }
             unset($transformations['convert']);
         }
@@ -151,7 +151,7 @@ class LegacyStrategy implements StrategyInterface
                 return $key;
             }
 
-            return $key . '_' . $value;
+            return $key.'_'.$value;
         })->sort()->implode('.');
 
         // keyed with [dirname, filename, basename, extension]
@@ -163,9 +163,9 @@ class LegacyStrategy implements StrategyInterface
 
         $pathWithModifiers =
             (($pathinfo['dirname'] !== '.') ? "{$pathinfo['dirname']}/" : '')
-            . $pathinfo['filename']
-            . ($transformations ? ".{$transformations}" : '')
-            . ".{$extension}";
+            .$pathinfo['filename']
+            .($transformations ? ".{$transformations}" : '')
+            .".{$extension}";
 
         return url()->route('eloquent-imagery.render', $pathWithModifiers);
     }

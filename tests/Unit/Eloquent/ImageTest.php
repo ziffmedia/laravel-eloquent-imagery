@@ -20,13 +20,13 @@ class ImageTest extends AbstractTestCase
         $image = new Image('foo/{name}.{extension}', []);
 
         $state = [
-            'path'      => 'foo/bar.jpg',
+            'path' => 'foo/bar.jpg',
             'extension' => 'jpg',
-            'width'     => 1,
-            'height'    => 1,
-            'hash'      => '1234567890',
+            'width' => 1,
+            'height' => 1,
+            'hash' => '1234567890',
             'timestamp' => 12345,
-            'metadata'  => [],
+            'metadata' => [],
         ];
 
         $image->setStateFromAttributeData($state);
@@ -41,7 +41,7 @@ class ImageTest extends AbstractTestCase
         $foo = new TestAssets\FooModel();
         $foo->setRawAttributes(['id' => 20], true);
 
-        $pngImageData = file_get_contents(__DIR__ . '/TestAssets/30.png');
+        $pngImageData = file_get_contents(__DIR__.'/TestAssets/30.png');
 
         $image = new Image('foo/{id}.{extension}', []);
         $image->setData($pngImageData);
@@ -61,7 +61,7 @@ class ImageTest extends AbstractTestCase
     public function testPathHasReplacements()
     {
         $image = new Image('foo/{id}.{extension}', []);
-        $image->setData(file_get_contents(__DIR__ . '/TestAssets/30.png'));
+        $image->setData(file_get_contents(__DIR__.'/TestAssets/30.png'));
 
         $this->assertTrue($image->pathHasReplacements());
 
@@ -75,15 +75,15 @@ class ImageTest extends AbstractTestCase
         $image = new Image('foo/{name}.{extension}', []);
 
         $state = [
-            'path'      => 'foo/bar.jpg',
+            'path' => 'foo/bar.jpg',
             'extension' => 'jpg',
-            'width'     => 1,
-            'height'    => 1,
-            'hash'      => '1234567890',
+            'width' => 1,
+            'height' => 1,
+            'hash' => '1234567890',
             'timestamp' => 12345,
-            'metadata'  => [
-                'one'            => 1,
-                'two'            => 2,
+            'metadata' => [
+                'one' => 1,
+                'two' => 2,
                 'negative_three' => -3,
             ],
         ];
@@ -113,13 +113,13 @@ class ImageTest extends AbstractTestCase
     {
         $image = new Image('foo/{name}.{extension}', []);
 
-        $image->setData(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
+        $image->setData(file_get_contents(__DIR__.'/TestAssets/30.jpg'));
         $image->updatePath(['name' => 'bar'], new TestAssets\FooModel);
 
         $image->flush();
 
         $this->assertEquals('foo/bar.jpg', $image->path);
-        $this->assertFileExists(__DIR__ . '/../../storage/foo/bar.jpg');
+        $this->assertFileExists(__DIR__.'/../../storage/foo/bar.jpg');
     }
 
     public function testCannotCallSetDataOnReadonlyImage()

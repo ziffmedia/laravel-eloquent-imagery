@@ -17,7 +17,7 @@ class EloquentImageryProvider extends ServiceProvider
 
     public function register(): void
     {
-        $this->packageConfigPath = realpath(__DIR__ . '/../config/eloquent-imagery.php');
+        $this->packageConfigPath = realpath(__DIR__.'/../config/eloquent-imagery.php');
 
         // setup configuration, merge values from top level config
         $this->mergeConfigFrom($this->packageConfigPath, 'eloquent-imagery');

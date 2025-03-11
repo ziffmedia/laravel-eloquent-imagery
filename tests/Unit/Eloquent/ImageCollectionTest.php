@@ -23,18 +23,18 @@ class ImageCollectionTest extends AbstractTestCase
 
         $state = [
             'autoincrement' => 10,
-            'images'        => [
+            'images' => [
                 [
-                    'path'      => 'foo/bar.jpg',
+                    'path' => 'foo/bar.jpg',
                     'extension' => 'jpg',
-                    'width'     => 1,
-                    'height'    => 1,
-                    'hash'      => '1234567890',
+                    'width' => 1,
+                    'height' => 1,
+                    'hash' => '1234567890',
                     'timestamp' => 12345,
-                    'metadata'  => [],
+                    'metadata' => [],
                 ],
             ],
-            'metadata'      => [
+            'metadata' => [
                 'foo' => 'bar',
             ],
         ];
@@ -55,15 +55,15 @@ class ImageCollectionTest extends AbstractTestCase
         $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}', []));
 
         $state = [
-            'images'   => [
+            'images' => [
                 [
-                    'path'      => 'foo/bar.jpg',
+                    'path' => 'foo/bar.jpg',
                     'extension' => 'jpg',
-                    'width'     => 1,
-                    'height'    => 1,
-                    'hash'      => '1234567890',
+                    'width' => 1,
+                    'height' => 1,
+                    'hash' => '1234567890',
                     'timestamp' => 12345,
-                    'metadata'  => [],
+                    'metadata' => [],
                 ],
             ],
             'metadata' => [
@@ -82,7 +82,7 @@ class ImageCollectionTest extends AbstractTestCase
     public function testPathHasReplacements()
     {
         $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}', []));
-        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
+        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__.'/TestAssets/30.jpg'));
 
         $this->assertTrue($imageCollection->pathHasReplacements());
 
@@ -94,7 +94,7 @@ class ImageCollectionTest extends AbstractTestCase
     public function testOffsetExists()
     {
         $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}', []));
-        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
+        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__.'/TestAssets/30.jpg'));
 
         $this->assertTrue(isset($imageCollection[0]));
         $this->assertFalse(isset($imageCollection[1]));
@@ -105,10 +105,10 @@ class ImageCollectionTest extends AbstractTestCase
         $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}', []));
 
         // add image
-        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
+        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__.'/TestAssets/30.jpg'));
 
         // add bytes that will go through createImage()
-        $imageCollection[] = file_get_contents(__DIR__ . '/TestAssets/30.png');
+        $imageCollection[] = file_get_contents(__DIR__.'/TestAssets/30.png');
 
         $this->assertCount(2, $imageCollection);
         $this->assertInstanceOf(Image::class, $imageCollection[0]);
@@ -118,8 +118,8 @@ class ImageCollectionTest extends AbstractTestCase
     public function testOffsetUnset()
     {
         $imageCollection = new ImageCollection(new Image('foo/{name}-{index}.{extension}', []));
-        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
-        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.png'));
+        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__.'/TestAssets/30.jpg'));
+        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__.'/TestAssets/30.png'));
 
         $this->assertCount(2, $imageCollection);
 
@@ -131,8 +131,8 @@ class ImageCollectionTest extends AbstractTestCase
     public function testFlush()
     {
         $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}', []));
-        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
-        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.png'));
+        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__.'/TestAssets/30.jpg'));
+        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__.'/TestAssets/30.png'));
 
         $model = new TestAssets\FooModel();
         $model->setRawAttributes(['slug' => 'bar-baz'], true);
@@ -140,8 +140,8 @@ class ImageCollectionTest extends AbstractTestCase
         $imageCollection->updatePath([], $model);
         $imageCollection->flush();
 
-        $this->assertFileExists(__DIR__ . '/../../storage/foo/bar-baz-1.jpg');
-        $this->assertFileExists(__DIR__ . '/../../storage/foo/bar-baz-2.png');
+        $this->assertFileExists(__DIR__.'/../../storage/foo/bar-baz-1.jpg');
+        $this->assertFileExists(__DIR__.'/../../storage/foo/bar-baz-2.png');
 
         $state = $imageCollection->getStateAsAttributeData();
 
@@ -153,15 +153,15 @@ class ImageCollectionTest extends AbstractTestCase
         unset($imageCollection[1]);
         $imageCollection->flush();
 
-        $this->assertFileExists(__DIR__ . '/../../storage/foo/bar-baz-1.jpg');
-        $this->assertFileDoesNotExist(__DIR__ . '/../../storage/foo/bar-baz-2.png');
+        $this->assertFileExists(__DIR__.'/../../storage/foo/bar-baz-1.jpg');
+        $this->assertFileDoesNotExist(__DIR__.'/../../storage/foo/bar-baz-2.png');
     }
 
     public function testGetStateAsDataAttribute()
     {
         $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}', []));
-        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
-        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.png'));
+        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__.'/TestAssets/30.jpg'));
+        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__.'/TestAssets/30.png'));
 
         $model = new TestAssets\FooModel();
         $model->setRawAttributes(['slug' => 'boom'], true);
@@ -170,31 +170,31 @@ class ImageCollectionTest extends AbstractTestCase
 
         $expected = [
             'autoincrement' => 3,
-            'images'        => [
+            'images' => [
                 [
-                    'path'      => 'foo/boom-1.jpg',
+                    'path' => 'foo/boom-1.jpg',
                     'extension' => 'jpg',
-                    'animated'  => false,
-                    'width'     => 30,
-                    'height'    => 30,
-                    'hash'      => '809dcbbcd89eb8a275a6c6f4556e1f41',
+                    'animated' => false,
+                    'width' => 30,
+                    'height' => 30,
+                    'hash' => '809dcbbcd89eb8a275a6c6f4556e1f41',
                     'timestamp' => Carbon::getTestNow()->unix(),
-                    'metadata'  => [],
-                    'index'     => 1,
+                    'metadata' => [],
+                    'index' => 1,
                 ],
                 [
-                    'path'      => 'foo/boom-2.png',
+                    'path' => 'foo/boom-2.png',
                     'extension' => 'png',
-                    'animated'  => false,
-                    'width'     => 30,
-                    'height'    => 30,
-                    'hash'      => '7692f4f945481216e41ce0a8f42f6ed6',
+                    'animated' => false,
+                    'width' => 30,
+                    'height' => 30,
+                    'hash' => '7692f4f945481216e41ce0a8f42f6ed6',
                     'timestamp' => Carbon::getTestNow()->unix(),
-                    'metadata'  => [],
-                    'index'     => 2,
+                    'metadata' => [],
+                    'index' => 2,
                 ],
             ],
-            'metadata'      => [],
+            'metadata' => [],
         ];
 
         $this->assertEquals($expected, $imageCollection->getStateAsAttributeData());
@@ -204,13 +204,13 @@ class ImageCollectionTest extends AbstractTestCase
     public function testRemove()
     {
         $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}', []));
-        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
-        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.png'));
+        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__.'/TestAssets/30.jpg'));
+        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__.'/TestAssets/30.png'));
         $imageCollection->updatePath(['slug' => 'bar-baz'], new TestAssets\FooModel);
         $imageCollection->flush();
 
-        $this->assertFileExists(__DIR__ . '/../../storage/foo/bar-baz-1.jpg');
-        $this->assertFileExists(__DIR__ . '/../../storage/foo/bar-baz-2.png');
+        $this->assertFileExists(__DIR__.'/../../storage/foo/bar-baz-1.jpg');
+        $this->assertFileExists(__DIR__.'/../../storage/foo/bar-baz-2.png');
 
         $state = $imageCollection->getStateAsAttributeData();
 
@@ -221,15 +221,15 @@ class ImageCollectionTest extends AbstractTestCase
         $imageCollection->remove();
         $imageCollection->flush();
 
-        $this->assertFileDoesNotExist(__DIR__ . '/../../storage/foo/bar-baz-1.jpg');
-        $this->assertFileDoesNotExist(__DIR__ . '/../../storage/foo/bar-baz-2.png');
+        $this->assertFileDoesNotExist(__DIR__.'/../../storage/foo/bar-baz-1.jpg');
+        $this->assertFileDoesNotExist(__DIR__.'/../../storage/foo/bar-baz-2.png');
     }
 
     public function testPurgeRemovedImages()
     {
         $imageCollection = new ImageCollection(new Image('foo/{slug}-{index}.{extension}', []));
-        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.jpg'));
-        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__ . '/TestAssets/30.png'));
+        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__.'/TestAssets/30.jpg'));
+        $imageCollection[] = $imageCollection->createImage(file_get_contents(__DIR__.'/TestAssets/30.png'));
 
         $this->assertCount(2, $imageCollection);
 

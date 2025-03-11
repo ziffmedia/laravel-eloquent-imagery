@@ -18,7 +18,7 @@ class GifOptimize implements ImagickTransformationInterface
             $imagick->optimizeImageLayers();
             $imagick->quantizeImages(256, Imagick::COLORSPACE_RGB, 8, false, false);
         } catch (ImagickException $e) {
-            logger()->error('Caught ImagickException: ' . $e->getMessage());
+            logger()->error('Caught ImagickException: '.$e->getMessage());
         }
     }
 }
