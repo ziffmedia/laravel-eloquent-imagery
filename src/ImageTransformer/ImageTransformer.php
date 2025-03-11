@@ -128,6 +128,8 @@ class ImageTransformer
             if ($isCoalesced) {
                 $imagick = $imagick->deconstructImages();
             }
+
+            return $imagick->getImagesBlob();
         } catch (ImagickException|Exception $e) {
             if (config('eloquent-imagery.logging.enable') === true) {
                 logger()->log(
@@ -138,7 +140,5 @@ class ImageTransformer
 
             return $imageBytes;
         }
-
-        return $imagick->getImagesBlob();
     }
 }
