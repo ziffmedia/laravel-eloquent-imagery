@@ -92,7 +92,9 @@ class EloquentImageryController extends Controller
         }
 
         // No Bytes = 404
-        abort_if(! $imageBytes, 404);
+        if (!$imageBytes) {
+            abort(404, 'Image not found, path: ' . ($imageActualPath ?? ''));
+        }
 
         SERVE_BYTES:
 
