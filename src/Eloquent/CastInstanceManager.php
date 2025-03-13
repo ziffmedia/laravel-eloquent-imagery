@@ -6,10 +6,12 @@ use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Filesystem\FilesystemManager;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use RuntimeException;
 use WeakMap;
+use function Orchestra\Testbench\laravel_version_compare;
 
 class CastInstanceManager
 {
@@ -134,8 +136,13 @@ class CastInstanceManager
             return;
         }
 
-        // at booting, all casts have not yet been initialized, so construct them as best we can from $casts and casts()
-        $casts = (fn ($model) => array_merge($model->getCasts(), $model->casts()))->bindTo($model, $model)($model);
+        $casts = $model->getCasts();
+
+        // if laravel 11
+        if (version_compare(Application::VERSION, '11.0', '>=')) {
+            // at booting, all casts have not yet been initialized, so construct them as best we can from $casts and casts()
+            $casts = (fn ($model) => array_merge($model->getCasts(), $model->casts()))->bindTo($model, $model)($model);
+        }
 
         if (Arr::first($casts, fn ($castSpec) => Str::startsWith($castSpec, 'ZiffMedia\\LaravelEloquentImagery'), false) === false) {
             $this->observedModelClasses[$modelClass] = false;

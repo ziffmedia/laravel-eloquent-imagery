@@ -132,10 +132,7 @@ class ImageTransformer
             return $imagick->getImagesBlob();
         } catch (ImagickException|Exception $e) {
             if (config('eloquent-imagery.logging.enable') === true) {
-                logger()->log(
-                    config('eloquent-imagery.logging.level'),
-                    'Imagick error: '.$e->getMessage().' with image bytes: '.base64_encode(Str::limit($imagick->getImageBlob(), 20))
-                );
+                logger()->error('Imagick error: '.$e->getMessage(), ['first_100_bytes' => base64_encode(Str::limit($imageBytes, 100))]);
             }
 
             return $imageBytes;

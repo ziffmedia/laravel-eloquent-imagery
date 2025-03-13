@@ -2,6 +2,8 @@
 
 namespace ZiffMedia\LaravelEloquentImagery\Controllers;
 
+use Error;
+use Exception;
 use finfo;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Filesystem\FilesystemManager;
@@ -63,6 +65,9 @@ class EloquentImageryController extends Controller
         }
 
         if ($imageBytes) {
+            $originalMimeType = config('eloquent-imagery.logging.enable')
+                ? $this->getMimeTypeFromBytes($imageBytes) : null;
+
             goto SERVE_BYTES;
         }
 
@@ -91,8 +96,8 @@ class EloquentImageryController extends Controller
             goto SERVE_BYTES;
         }
 
-        // No Bytes = 404
-        abort_if(! $imageBytes, 404);
+        // There are no image bytes at this line, so we abort with 404
+        abort(404);
 
         SERVE_BYTES:
 
@@ -103,10 +108,14 @@ class EloquentImageryController extends Controller
 
         $browserCacheMaxAge = config('eloquent-imagery.render.browser_cache_max_age');
 
-        $response = response()
-            ->make($imageBytes)
-            ->header('Content-type', $mimeType)
-            ->header('Cache-control', "public, max-age=$browserCacheMaxAge");
+        if (! in_array($mimeType, ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp', 'image/tiff'])
+            && config('eloquent-imagery.logging.enable', false)
+        ) {
+            // log original mime type if it was different from the current mime type
+            logger()->info("Unsupported image mime type served $mimeType", ['original_mime_type' => $originalMimeType ?? 'unknown']);
+        }
+
+        $response = response($imageBytes, headers: ['Content-Type' => $mimeType, 'Cache-Control' => "public, max-age=$browserCacheMaxAge"]);
 
         if ($cacheEnabled) {
             Cache::store($cacheDriver)->put($path, $response, config('eloquent-imagery.render.caching.ttl', 60));
@@ -128,16 +137,23 @@ class EloquentImageryController extends Controller
 
     protected function createPlaceHolderImage($width, $height, $backgroundColor = 'FFFFFF'): string
     {
-        $extension = config('eloquent-imagery.extension');
+        if (! class_exists('Imagick')) {
+            throw new RuntimeException('Imagick is not installed, a placeholder cannot be created.');
+        }
 
-        if ($extension === 'imagick') {
+        try {
             $image = new Imagick();
             $image->newImage($width, $height, new ImagickPixel('red'));
             $image->setImageFormat('png');
 
             return $image->getImageBlob();
+        } catch (Exception $e) {
+            if (config('eloquent-imagery.logging.enable') === true) {
+                logger()->error('Imagick error while creating placeholder image: '.$e->getMessage());
+            }
         }
 
-        throw new RuntimeException('A suitable extension does not appear to be loaded to create a placeholder image');
+        // @todo placeholders from configured image
+        return '';
     }
 }
