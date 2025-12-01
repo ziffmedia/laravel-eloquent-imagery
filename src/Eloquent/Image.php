@@ -39,6 +39,7 @@ class Image implements JsonSerializable
         'image/gif' => 'gif',
         'image/webp' => 'webp',
         'image/bmp' => 'bmp',
+        'image/svg+xml' => 'svg+xml',
     ];
 
     public ?Filesystem $filesystem = null;
